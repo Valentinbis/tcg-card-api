@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Form\RegistrationFormType;
 use App\Security\APIAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,6 +12,7 @@ use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
@@ -24,41 +24,34 @@ class RegistrationController extends AbstractController
         UserAuthenticatorInterface $userAuthenticator,
         APIAuthenticator $authenticator,
         EntityManagerInterface $entityManager,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
+        ValidatorInterface $validator
     ): Response {
-    {
         $user = new User();
-        // $form = $this->createForm(RegistrationFormType::class, $user);
-        // $form->handleRequest($request);
-        // dd($form)
-        // Decode de JSON input
+
         $data = $serializer->deserialize($request->getContent(), User::class, 'json');
-
-        dd($data);
-        $form->submit($data);
-        if ($form->isValid()) {
-            $user->setPassword(
-                $userPasswordHasher->hashPassword(
-                    $user,
-                    $form->get('password')->getData()
-                ),
-            $user->setApiToken(
-                $authenticator->generateToken()
-            )
-            );
-
-            $entityManager->persist($user);
-            $entityManager->flush();
-
-            return $userAuthenticator->authenticateUser(
-                $user,
-                $authenticator,
-                $request
-            );
+        $errors = $validator->validate($data);
+        if (count($errors) > 0) {
+            return new Response((string) $errors, 400);
         }
 
-        return new Response($this->getUser());
+        //set user data
+        $user = $data;
+
+        $user->setPassword(
+            $userPasswordHasher->hashPassword(
+                $user,
+                $data->getPassword()
+            ),
+        );
+
+        $entityManager->persist($user);
+        $entityManager->flush();
+
+        return $userAuthenticator->authenticateUser(
+            $user,
+            $authenticator,
+            $request
+        );
     }
-    
-}
 }
