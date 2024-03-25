@@ -48,10 +48,22 @@ class RegistrationController extends AbstractController
         $entityManager->persist($user);
         $entityManager->flush();
 
-        return $userAuthenticator->authenticateUser(
+        $authenticateUser = $userAuthenticator->authenticateUser(
             $user,
             $authenticator,
             $request
+        );
+
+        if ($authenticateUser instanceof Response) {
+            return $authenticateUser;
+        }
+
+        return $this->json($user,
+            Response::HTTP_OK,
+            [],
+            [
+                'groups' => ['user.show']
+            ]
         );
     }
 }
