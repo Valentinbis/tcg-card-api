@@ -29,6 +29,9 @@ class RegistrationController extends AbstractController
     ): Response {
         $user = new User();
 
+        if (empty($request->getContent())) {
+            return new Response('The request is empty', 400);
+        }
         $data = $serializer->deserialize($request->getContent(), User::class, 'json');
         $errors = $validator->validate($data);
         if (count($errors) > 0) {
