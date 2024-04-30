@@ -17,7 +17,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class RegistrationController extends AbstractController
 {
 
-    #[Route('/register', name: 'app_register')]
+    #[Route('/register', name: 'app_register', methods: ['POST'])]
     public function register(
         Request $request,
         UserPasswordHasherInterface $userPasswordHasher,
@@ -27,8 +27,6 @@ class RegistrationController extends AbstractController
         SerializerInterface $serializer,
         ValidatorInterface $validator
     ): Response {
-        $user = new User();
-
         if (empty($request->getContent())) {
             return new Response('The request is empty', 400);
         }
