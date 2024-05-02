@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\MovementRepository;
 use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Enums\MovementEnum;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
 class Movement
@@ -17,6 +19,8 @@ class Movement
     #[ORM\Column]
     private ?int $amount = null;
 
+    // The type of the movement (expense, income)
+    #[Assert\Choice(choices: [MovementEnum::Expense, MovementEnum::Income])]
     #[ORM\Column(length: 255)]
     private ?string $type = null;
 
