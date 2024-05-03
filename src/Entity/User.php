@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -53,6 +55,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user.show'])]
     private ?string $lastName = null;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Movement::class)]
+    private Collection $movements;
+
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: History::class)]
+    private Collection $histories;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -68,6 +76,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             $this->apiToken = bin2hex(random_bytes(60));
         }
         $this->updatedAt = new \DateTimeImmutable();
+        $this->movements = new ArrayCollection();
+        $this->histories = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,6 +187,60 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
+
+        return $this;
+    }
+
+    public function getMovements(): Collection
+    {
+        return $this->movements;
+    }
+
+    public function addMovement(Movement $movement): self
+    {
+        if (!$this->movements->contains($movement)) {
+            $this->movements[] = $movement;
+            $movement->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMovement(Movement $movement): self
+    {
+        if ($this->movements->removeElement($movement)) {
+            // set the owning side to null (unless already changed)
+            if ($movement->getUser() === $this) {
+                $movement->setUser(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getHistories(): Collection
+    {
+        return $this->histories;
+    }
+
+    public function addHistory(History $history): self
+    {
+        if (!$this->histories->contains($history)) {
+            $this->histories[] = $history;
+            $history->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistory(History $history): self
+    {
+        if ($this->histories->removeElement($history)) {
+            // set the owning side to null (unless already changed)
+            if ($history->getUser() === $this) {
+                $history->setUser(null);
+            }
+        }
 
         return $this;
     }

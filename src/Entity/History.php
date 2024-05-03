@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\HistoryRepository;
-use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HistoryRepository::class)]
@@ -31,8 +30,10 @@ class History
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable("now", new DateTimeZone('Europe/Paris'));
-        $this->updatedAt = new \DateTimeImmutable("now", new DateTimeZone('Europe/Paris'));
+        if (empty($this->createdAt)) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
