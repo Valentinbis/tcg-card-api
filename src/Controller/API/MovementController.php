@@ -67,7 +67,7 @@ class MovementController extends AbstractController
     #[Route('/api/movement/{id}', name: 'show_movement', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
-    public function show(Movement $movement): Response
+    public function show(?Movement $movement): Response
     {
         if (!$movement) {
             throw $this->createNotFoundException('No movement found');
@@ -85,10 +85,6 @@ class MovementController extends AbstractController
         ?Movement $movement,
         Request $request
     ): Response {
-        if (!$movement) {
-            throw $this->createNotFoundException('No movement found');
-        }
-
         $data = json_decode($request->getContent(), true);
 
         $updatedMovement = $this->serializer->deserialize(

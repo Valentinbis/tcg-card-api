@@ -61,6 +61,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: History::class)]
     private Collection $histories;
 
+    #[ORM\OneToOne(targetEntity: "Bank", mappedBy: "user")]
+    private ?Bank $bank = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -241,6 +244,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $history->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getBank(): ?Bank
+    {
+        return $this->bank;
+    }
+
+    public function setBank(?Bank $bank): self
+    {
+        $this->bank = $bank;
 
         return $this;
     }
