@@ -3,8 +3,10 @@
 namespace App\Entity;
 
 use App\Repository\MovementRepository;
-use DateTimeZone;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use App\Enums\MovementEnum;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
 class Movement
@@ -15,9 +17,15 @@ class Movement
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Merci de renseigner un montant')]
+    #[Assert\Type(type: 'integer', message: 'Le montant doit être un nombre entier')]
+    #[Groups(['movements.create', 'movements.show'])]
     private ?int $amount = null;
 
+    // The type of the movement (expense, income)
+    #[Assert\Choice(choices: [MovementEnum::Expense->value, MovementEnum::Income->value])]
     #[ORM\Column(length: 255)]
+    #[Groups(['movements.create', 'movements.show'])]
     private ?string $type = null;
 
     #[ORM\Column]
@@ -29,11 +37,13 @@ class Movement
     #[ORM\ManyToOne(inversedBy: 'movements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'movements')]
+    #[ORM\ManyToOne(inversedBy: 'movements') ]
+    #[Groups(['movements.create', 'movements.show'])]
     private ?Recurrence $recurrence = null;
 
     #[ORM\ManyToOne(inversedBy: 'movements')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['movements.create', 'movements.show'])]
     private ?Category $category = null;
 
     #[ORM\OneToOne(mappedBy: 'movement', cascade: ['persist', 'remove'])]
@@ -41,8 +51,10 @@ class Movement
 
     public function __construct()
     {
-        $this->createdAt = new \DateTimeImmutable("now", new DateTimeZone('Europe/Paris'));
-        $this->updatedAt = new \DateTimeImmutable("now", new DateTimeZone('Europe/Paris'));
+        if (empty($this->createdAt)) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
