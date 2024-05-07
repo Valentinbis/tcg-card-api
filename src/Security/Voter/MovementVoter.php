@@ -18,8 +18,11 @@ class MovementVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::CREATE, self::LIST, self::LIST_ALL]) || (in_array($attribute, [self::EDIT, self::VIEW])
-            && $subject instanceof Movement);
+        return in_array($attribute, [self::CREATE, self::LIST, self::LIST_ALL]) ||
+            (
+                in_array($attribute, [self::EDIT, self::VIEW])
+                && $subject instanceof Movement
+            );
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token): bool
@@ -30,16 +33,10 @@ class MovementVoter extends Voter
         if (!$user instanceof User) {
             return false;
         }
-
-        // ... (check conditions and return true to grant permission) ...
+        
         switch ($attribute) {
             case self::EDIT:
-                return $subject->getUser() === $user;
-                break;
-
-            case self::VIEW:
-                // logic to determine if the user can VIEW
-                // return true or false
+                return $subject instanceof Movement && $subject->getUser() === $user;
                 break;
             case self::CREATE:
                 return true;
@@ -48,8 +45,8 @@ class MovementVoter extends Voter
                 return true;
                 break;
             case self::LIST_ALL:
-                // return in_array('ROLE_ADMIN', $user->getRoles());
-                return false;
+            case self::VIEW:
+                return $subject instanceof Movement && $subject->getUser() === $user;
                 break;
         }
 

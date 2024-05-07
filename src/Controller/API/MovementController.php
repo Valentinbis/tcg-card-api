@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
 use App\Entity\Category;
 use App\Entity\Movement;
@@ -27,11 +27,12 @@ class MovementController extends AbstractController
     }
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
-    #[IsGranted("ROLE_USER")]
-    #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
+    #[IsGranted("MOVEMENT_LIST")]
     public function index(): Response
     {
-        $movements = $this->entityManager->getRepository(Movement::class)->findAll();
+        $user = $this->getUser();
+
+        $movements = $this->entityManager->getRepository(Movement::class)->findBy(['user' => $user]);
 
         return $this->json($movements, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
@@ -109,7 +110,7 @@ class MovementController extends AbstractController
             $category = $this->getEntity(Category::class, $data['category']);
             $updatedMovement->setCategory($category);
         }
-        
+
         $this->entityManager->persist($updatedMovement);
         $this->entityManager->flush();
 
