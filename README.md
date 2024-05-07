@@ -10,16 +10,6 @@ Assurez-vous également d'avoir Docker installé sur votre machine pour lancer l
 
 Après avoir installé PHP 8.3, ajoutez le chemin d'installation de PHP à la variable d'environnement de votre système pour pouvoir exécuter les commandes PHP depuis n'importe quel répertoire dans votre terminal.
 
-## Base de données
-
-Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker. Assurez-vous que Docker est installé et fonctionne correctement sur votre machine avant de continuer.
-
-Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la racine du projet :
-
-```bash
-docker-compose up -d
-``` 
-
 ## Installation du projet
 ### 1. Clonez ce dépôt sur votre machine :
 ```bash
@@ -41,3 +31,13 @@ Pour démarrer le serveur de développement Symfony, exécutez la commande suiva
 ```bash
 symfony serve
 ```
+
+## Base de données
+
+Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker. Assurez-vous que Docker est installé et fonctionne correctement sur votre machine avant de continuer.
+
+Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la racine du projet :
+
+```bash
+docker-compose up -d
+``` 
