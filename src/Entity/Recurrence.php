@@ -2,10 +2,12 @@
 
 namespace App\Entity;
 
+use App\Enums\RecurrenceEnum;
 use App\Repository\RecurrenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RecurrenceRepository::class)]
@@ -16,6 +18,8 @@ class Recurrence
     #[ORM\Column]
     private ?int $id = null;
 
+    // We use the RecurrenceEnum to define the possible values (daily, weekly, bimonthly, quarterly, monthly, yearly)
+    #[Assert\Choice(choices: [RecurrenceEnum::Daily->value, RecurrenceEnum::Weekly->value, RecurrenceEnum::Bimonthly->value, RecurrenceEnum::Quarterly->value, RecurrenceEnum::Monthly->value, RecurrenceEnum::Yearly->value])]
     #[ORM\Column(length: 255)]
     #[Groups(['movements.show'])]
     private ?string $name = null;
