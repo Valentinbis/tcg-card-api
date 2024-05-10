@@ -16,13 +16,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class UserController extends AbstractController
 {
-    private $userRepository;
     private $entityManager;
     private $serializer;
 
-    public function __construct(UserRepository $userRepository, EntityManagerInterface $entityManager, SerializerInterface $serializer)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer)
     {
-        $this->userRepository = $userRepository;
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
     }
@@ -42,7 +40,7 @@ class UserController extends AbstractController
     #[IsGranted("ROLE_USER")]
     public function users(): JsonResponse
     {
-        $users = $this->userRepository->findAll();
+        $users = $this->entityManager->getRepository(User::class)->findAll();
         return $this->json($users, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
@@ -50,9 +48,8 @@ class UserController extends AbstractController
 
     #[Route('/api/user/{id}', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
-    public function user($id): JsonResponse
+    public function user(User $user): JsonResponse
     {
-        $user = $this->userRepository->find($id);
         return $this->json($user, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
@@ -60,30 +57,27 @@ class UserController extends AbstractController
 
     #[Route('/api/user/{id}', methods: ['DELETE'])]
     #[IsGranted("ROLE_ADMIN")]
-    public function deleteUser($id): JsonResponse
+    public function deleteUser(User $user): JsonResponse
     {
-        $user = $this->userRepository->find($id);
         $this->entityManager->remove($user);
         $this->entityManager->flush();
-        return $this->json(null, Response::HTTP_NO_CONTENT);
+
+        return new Response(null, Response::HTTP_NO_CONTENT);
     }
 
-    #[Route('/api/user/{id}', name:"updateUser", methods: ['PUT'])]
+    #[Route('/api/user/{id}', name: "updateUser", methods: ['PUT'])]
     #[IsGranted("ROLE_USER")]
-    public function updateUser(Request $request, ?User $currentUser): JsonResponse
+    public function update(Request $request, User $user): JsonResponse
     {
-        try {
-            $updatedUser = $this->serializer->deserialize(
-                $request->getContent(),
-                User::class,
-                'json',
-                [AbstractNormalizer::OBJECT_TO_POPULATE => $currentUser]
-            );
-            $this->entityManager->persist($updatedUser);
-            $this->entityManager->flush();
-            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
-        } catch (\Exception $e) {
-            return new JsonResponse(['error' => 'User not found'], JsonResponse::HTTP_NOT_FOUND);
-        }
+        $updatedUser = $this->serializer->deserialize(
+            $request->getContent(),
+            User::class,
+            'json',
+            [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
+        );
+        $this->entityManager->persist($updatedUser);
+        $this->entityManager->flush();
+
+        return new Response('User updated!', Response::HTTP_OK);
     }
 }

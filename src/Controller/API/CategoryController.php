@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
 // Uniquement disponible pour les utilisateurs ayant le rôle ROLE_ADMIN
+// Peut être à ajouter plus tard une liste de categories par default(ou fait par un admin) et
+// la possibilité aux utilisateurs de créer des categories
 class CategoryController extends AbstractController
 {
     private $entityManager;
@@ -36,11 +38,8 @@ class CategoryController extends AbstractController
 
     #[Route('/api/category/{id}', name: 'show_category', methods: ['GET'])]
     #[IsGranted("CATEGORY_VIEW", subject: "category")]
-    public function show(?Category $category): Response
+    public function show(Category $category): Response
     {
-        if (!$category) {
-            return new Response('Category not found!', Response::HTTP_NOT_FOUND);
-        }
         return $this->json($category, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
@@ -63,12 +62,8 @@ class CategoryController extends AbstractController
 
     #[Route('/api/category/{id}', name: 'update_category', methods: ['PUT'])]
     #[IsGranted("CATEGORY_EDIT", subject: "category")]
-    public function update(Request $request, ?Category $category, SerializerInterface $serializer): Response
+    public function update(Request $request, Category $category, SerializerInterface $serializer): Response
     {
-        if (!$category) {
-            return new Response('Category not found!', Response::HTTP_NOT_FOUND);
-        }
-
         $updatedCategory = $serializer->deserialize(
             $request->getContent(),
             Category::class,
@@ -84,11 +79,8 @@ class CategoryController extends AbstractController
 
     #[Route('/api/category/{id}', name: 'delete_category', methods: ['DELETE'])]
     #[IsGranted("CATEGORY_EDIT", subject: "category")]
-    public function delete(?Category $category): Response
+    public function delete(Category $category): Response
     {
-        if (!$category) {
-            return new Response('Category not found!', Response::HTTP_NOT_FOUND);
-        }
         $this->entityManager->remove($category);
         $this->entityManager->flush();
 

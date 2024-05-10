@@ -69,10 +69,6 @@ class MovementController extends AbstractController
     #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
     public function show(Movement $movement): Response
     {
-        if (!$movement) {
-            throw $this->createNotFoundException('No movement found');
-        }
-
         return $this->json($movement, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
@@ -82,13 +78,9 @@ class MovementController extends AbstractController
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function update(
-        ?Movement $movement,
+        Movement $movement,
         Request $request
     ): Response {
-        if (!$movement) {
-            throw $this->createNotFoundException('No movement found');
-        }
-
         $data = json_decode($request->getContent(), true);
 
         $updatedMovement = $this->serializer->deserialize(
@@ -124,10 +116,6 @@ class MovementController extends AbstractController
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function delete(Movement $movement): Response
     {
-        if (!$movement) {
-            throw $this->createNotFoundException('No movement found');
-        }
-
         $this->entityManager->remove($movement);
         $this->entityManager->flush();
 
