@@ -35,7 +35,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/api/category/{id}', name: 'show_category', methods: ['GET'])]
-    #[IsGranted("CATEGORY_VIEW")]
+    #[IsGranted("CATEGORY_VIEW", subject: "category")]
     public function show(?Category $category): Response
     {
         if (!$category) {
@@ -47,7 +47,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/api/category', name: 'create_category', methods: ['POST'])]
-    #[IsGranted("CATEGORY_EDIT")]
+    #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function create(
         #[MapRequestPayload(serializationContext: [
             'groups' => ['category.create']
@@ -62,7 +62,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/api/category/{id}', name: 'update_category', methods: ['PUT'])]
-    #[IsGranted("CATEGORY_EDIT")]
+    #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function update(Request $request, ?Category $category, SerializerInterface $serializer): Response
     {
         if (!$category) {
@@ -83,7 +83,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/api/category/{id}', name: 'delete_category', methods: ['DELETE'])]
-    #[IsGranted("CATEGORY_EDIT")]
+    #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function delete(?Category $category): Response
     {
         if (!$category) {

@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use App\Repository\BankRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: BankRepository::class)]
 class Bank
@@ -14,6 +15,7 @@ class Bank
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['bank.show'])]
     private ?int $balance = null;
 
     #[ORM\Column]
@@ -22,7 +24,7 @@ class Bank
     #[ORM\Column]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\OneToOne(inversedBy: 'bank', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
