@@ -127,6 +127,6 @@ class RegistrationController extends AbstractController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return new Response('Logout');
+        return new JsonResponse(['message' => 'Logout successful'], Response::HTTP_OK);
     }
 }
