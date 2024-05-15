@@ -41,6 +41,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user.token'])]
     private ?string $apiToken = null;
 
     #[ORM\Column(length: 255, nullable: true)]
