@@ -64,7 +64,7 @@ class MovementController extends AbstractController
         return new Response('Movement created!', Response::HTTP_CREATED);
     }
 
-    #[Route('/api/movement/{id}', name: 'show_movement', methods: ['GET'])]
+    #[Route('/api/movement/{movement}', name: 'show_movement', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
     public function show(Movement $movement): Response
@@ -78,7 +78,7 @@ class MovementController extends AbstractController
         ]);
     }
 
-    #[Route('/api/movement/{id}', name: 'update_movement', methods: ['PUT'])]
+    #[Route('/api/movement/{movement}', name: 'update_movement', methods: ['PUT'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function update(
@@ -119,7 +119,7 @@ class MovementController extends AbstractController
         ]);
     }
 
-    #[Route('/api/movement/{id}', name: 'delete_movement', methods: ['DELETE'])]
+    #[Route('/api/movement/{movement}', name: 'delete_movement', methods: ['DELETE'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function delete(Movement $movement): Response

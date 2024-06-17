@@ -41,3 +41,26 @@ Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la
 ```bash
 docker-compose up -d
 ``` 
+
+Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
+https://dbdiagram.io/d/SuiviArgent-6554c2fe7d8bbd64653e5578
+
+## Sonarqube
+
+Après avoir démarrer le conteneur docker, vous pouvez executez cette commande pour démarrer le scan de sonarqube.
+```bash
+docker run \
+    --rm \
+    -e SONAR_HOST_URL="http://host.docker.internal:9000" \
+    -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=CashTrack" \
+    -e SONAR_TOKEN="sqp_e83cbfa705278f8b8258af66522960cad618c909" \
+    -v "/Users/v.bissay/Documents/dev/perso/Cashtrack/api/src:/usr/src" \
+    sonarsource/sonar-scanner-cli K
+``` 
+
+
+## Commande de test
+
+```bash
+./vendor/bin/phpunit --coverage-text tests/AppBundle/Entity/ClientTest.php
+```

@@ -29,7 +29,7 @@ class BankController extends AbstractController
         ]);
     }
 
-    #[Route('/api/bank/{id}', name: 'show_bank')]
+    #[Route('/api/bank/{bank}', name: 'show_bank')]
     #[IsGranted("BANK_VIEW", subject: "bank")]
     public function show(Bank $bank): Response
     {
