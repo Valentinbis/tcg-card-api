@@ -51,9 +51,11 @@ class ResetPasswordController extends AbstractController
     }
 
     // Validates and process the reset URL that the user clicked in their email.
-    #[Route('/reset/{token}', name: 'app_reset_password', methods: ['POST'])]
+    #[Route('/reset', name: 'app_reset_password', methods: ['POST'])]
     public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, string $token = null): JsonResponse
     {
+        $token = $request->query->get('token');
+        
         if (null === $token) {
             return new JsonResponse(['message' => 'No reset password token found in the URL.'], Response::HTTP_NOT_FOUND);
         }
@@ -114,8 +116,8 @@ class ResetPasswordController extends AbstractController
             ->htmlTemplate('email/resetPassword.html.twig')
             ->context([
                 'user' => $user,
-                'resetToken' => $resetToken,
-                'resetLink' => $this->generateUrl('app_reset_password', ['token' => $resetToken->getToken()]),
+                // 'resetToken' => $resetToken,
+                'resetLink' => $this->generateUrl('app_reset_password', ['token' => urlencode($resetToken->getToken())]),
             ])
         ;
 
