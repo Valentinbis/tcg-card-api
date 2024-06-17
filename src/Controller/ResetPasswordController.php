@@ -44,34 +44,20 @@ class ResetPasswordController extends AbstractController
     }
 
     // Confirmation page after a user has requested a password reset.
-    #[Route('/check-email', name: 'app_check_email')]
+    #[Route('/check-email', name: 'app_check_email', methods: ['GET'])]
     public function checkEmail(): JsonResponse
     {
-        // Generate a fake token if the user does not exist or someone hit this page directly.
-        // This prevents exposing whether or not a user was found with the given email address or not
-        if (null === ($resetToken = $this->getTokenObjectFromSession())) {
-            $resetToken = $this->resetPasswordHelper->generateFakeResetToken();
-        }
-
-        return new JsonResponse(['resetToken' => $resetToken], Response::HTTP_OK);
-   
+        return new JsonResponse(['message' => 'Reset password email sent.'], Response::HTTP_OK);   
     }
 
     // Validates and process the reset URL that the user clicked in their email.
-    #[Route('/reset/{token}', name: 'app_reset_password')]
+    #[Route('/reset/{token}', name: 'app_reset_password', methods: ['POST'])]
     public function reset(Request $request, UserPasswordHasherInterface $passwordHasher, string $token = null): JsonResponse
     {
-        if ($token) {
-            $this->storeTokenInSession($token);
-    
-            return new JsonResponse(['message' => 'Token stored in session'], Response::HTTP_OK);
-        }
-    
-        $token = $this->getTokenFromSession();
         if (null === $token) {
-            return new JsonResponse(['message' => 'No reset password token found in the URL or in the session.'], Response::HTTP_NOT_FOUND);
+            return new JsonResponse(['message' => 'No reset password token found in the URL.'], Response::HTTP_NOT_FOUND);
         }
-    
+        
         try {
             $user = $this->resetPasswordHelper->validateTokenAndFetchUser($token);
         } catch (ResetPasswordExceptionInterface $e) {

@@ -57,3 +57,10 @@ docker run \
     -v "/Users/v.bissay/Documents/dev/perso/Cashtrack/api/src:/usr/src" \
     sonarsource/sonar-scanner-cli K
 ``` 
+
+
+## Commande de test
+
+```bash
+./vendor/bin/phpunit --coverage-text tests/AppBundle/Entity/ClientTest.php
+```
