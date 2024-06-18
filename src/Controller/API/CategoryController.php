@@ -36,7 +36,7 @@ class CategoryController extends AbstractController
         ]);
     }
 
-    #[Route('/api/category/{id}', name: 'show_category', methods: ['GET'])]
+    #[Route('/api/category/{category}', name: 'show_category', methods: ['GET'])]
     #[IsGranted("CATEGORY_VIEW", subject: "category")]
     public function show(Category $category): Response
     {
@@ -60,7 +60,7 @@ class CategoryController extends AbstractController
         return new Response('Category created!', Response::HTTP_CREATED);
     }
 
-    #[Route('/api/category/{id}', name: 'update_category', methods: ['PUT'])]
+    #[Route('/api/category/{category}', name: 'update_category', methods: ['PUT'])]
     #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function update(Request $request, Category $category, SerializerInterface $serializer): Response
     {
@@ -77,7 +77,7 @@ class CategoryController extends AbstractController
         return new Response('Category updated!', Response::HTTP_OK);
     }
 
-    #[Route('/api/category/{id}', name: 'delete_category', methods: ['DELETE'])]
+    #[Route('/api/category/{category}', name: 'delete_category', methods: ['DELETE'])]
     #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function delete(Category $category): Response
     {
