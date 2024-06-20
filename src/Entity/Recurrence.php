@@ -11,6 +11,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RecurrenceRepository::class)]
+#[ORM\Table(name: 'recurrence')]
 class Recurrence
 {
     #[ORM\Id]
@@ -19,11 +20,19 @@ class Recurrence
     private ?int $id = null;
 
     // We use the RecurrenceEnum to define the possible values (daily, weekly, bimonthly, quarterly, monthly, yearly)
-    #[Assert\Choice(choices: [RecurrenceEnum::Daily->value, RecurrenceEnum::Weekly->value, RecurrenceEnum::Bimonthly->value, RecurrenceEnum::Quarterly->value, RecurrenceEnum::Monthly->value, RecurrenceEnum::Yearly->value])]
-    #[ORM\Column(length: 255)]
+    #[Assert\Choice(choices: [RecurrenceEnum::Daily, RecurrenceEnum::Weekly, RecurrenceEnum::Bimonthly, RecurrenceEnum::Quarterly, RecurrenceEnum::Monthly, RecurrenceEnum::Yearly])]
+    #[ORM\Column(enumType: RecurrenceEnum::class)]
     #[Groups(['movements.show'])]
     private ?string $name = null;
 
+    #[Assert\DateTime('d/m/Y')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeImmutable $startDate;
+
+    #[Assert\DateTime('d/m/Y')]
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeImmutable $endDate;
+    
     #[ORM\OneToMany(mappedBy: 'recurrence', targetEntity: Movement::class)]
     private Collection $movements;
 
@@ -45,6 +54,30 @@ class Recurrence
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getStartDate(): ?\DateTimeImmutable
+    {
+        return $this->startDate;
+    }
+
+    public function setStartDate(?\DateTimeImmutable $startDate): static
+    {
+        $this->startDate = $startDate;
+
+        return $this;
+    }
+
+    public function getEndDate(): ?\DateTimeImmutable
+    {
+        return $this->endDate;
+    }
+
+    public function setEndDate(?\DateTimeImmutable $endDate): static
+    {
+        $this->endDate = $endDate;
 
         return $this;
     }

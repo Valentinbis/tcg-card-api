@@ -9,6 +9,8 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: CategoryRepository::class)]
+#[ORM\Table(name: 'category')]
+#[ORM\HasLifecycleCallbacks]
 class Category
 {
     #[ORM\Id]
@@ -20,21 +22,31 @@ class Category
     #[Groups(['category.show', 'category.create', 'category.update'])]
     private ?string $name = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime', options: ["default" => "CURRENT_TIMESTAMP"])]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\OneToMany(mappedBy: 'category', targetEntity: Movement::class)]
     private Collection $movements;
 
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id')]
+    private ?self $parent = null;
+
+    #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'parent')]
+    private Collection $children;
+
     public function __construct()
     {
         $this->movements = new ArrayCollection();
-        if (empty($this->createdAt)) {
-            $this->createdAt = new \DateTimeImmutable();
-        }
+        $this->children = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function updateTimestamp(): void
+    {
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -60,23 +72,9 @@ class Category
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
     }
 
     /**
@@ -103,6 +101,48 @@ class Category
             // set the owning side to null (unless already changed)
             if ($movement->getCategory() === $this) {
                 $movement->setCategory(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getParent(): ?self
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?self $parent): self
+    {
+        $this->parent = $parent;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|self[]
+     */
+    public function getChildren(): Collection
+    {
+        return $this->children;
+    }
+
+    public function addChild(self $child): self
+    {
+        if (!$this->children->contains($child)) {
+            $this->children[] = $child;
+            $child->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChild(self $child): self
+    {
+        if ($this->children->removeElement($child)) {
+            // set the owning side to null (unless already changed)
+            if ($child->getParent() === $this) {
+                $child->setParent(null);
             }
         }
 

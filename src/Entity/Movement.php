@@ -6,9 +6,12 @@ use App\Repository\MovementRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Enums\MovementEnum;
+use Doctrine\DBAL\Types\DecimalType;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
+#[ORM\Table(name: 'movement')]
+#[ORM\HasLifecycleCallbacks]
 class Movement
 {
     #[ORM\Id]
@@ -16,22 +19,29 @@ class Movement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Merci de renseigner un montant')]
-    #[Assert\Type(type: 'integer', message: 'Le montant doit être un nombre entier')]
+    #[Assert\Type(type: 'decimal', message: 'Le montant doit être un nombre entier')]
     #[Groups(['movements.create', 'movements.show'])]
-    private ?int $amount = null;
+    private ?DecimalType $amount = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[Assert\Type(type: 'decimal', message: 'Le montant doit être un nombre décimal')]
+    private ?DecimalType $bank = null;
 
     // The type of the movement (expense, income)
-    #[Assert\Choice(choices: [MovementEnum::Expense->value, MovementEnum::Income->value])]
-    #[ORM\Column(length: 255)]
+    #[Assert\Choice(choices: [MovementEnum::Expense, MovementEnum::Income])]
+    #[ORM\Column(enumType: MovementEnum::class)]
     #[Groups(['movements.create', 'movements.show'])]
     private ?string $type = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeImmutable $date = null;
+
+    #[ORM\Column(type: 'datetime', options: ["default" => "CURRENT_TIMESTAMP"])]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'movements')]
@@ -46,14 +56,9 @@ class Movement
     #[Groups(['movements.create', 'movements.show'])]
     private ?Category $category = null;
 
-    #[ORM\OneToOne(mappedBy: 'movement', cascade: ['persist', 'remove'])]
-    private ?History $history = null;
-
-    public function __construct()
+    #[ORM\PrePersist]
+    public function updateTimestamp(): void
     {
-        if (empty($this->createdAt)) {
-            $this->createdAt = new \DateTimeImmutable();
-        }
         $this->updatedAt = new \DateTimeImmutable();
     }
 
@@ -62,14 +67,26 @@ class Movement
         return $this->id;
     }
 
-    public function getAmount(): ?int
+    public function getAmount(): ?DecimalType
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): static
+    public function setAmount(DecimalType $amount): static
     {
         $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getBank(): ?DecimalType
+    {
+        return $this->bank;
+    }
+
+    public function setBank(DecimalType $bank): static
+    {
+        $this->bank = $bank;
 
         return $this;
     }
@@ -86,28 +103,26 @@ class Movement
         return $this;
     }
 
+    public function getDate(): ?\DateTimeImmutable
+    {
+        return $this->date;
+    }
+
+    public function setDate(\DateTimeImmutable $date): static
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
     }
 
     public function getUser(): ?User
@@ -142,28 +157,6 @@ class Movement
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
-
-        return $this;
-    }
-
-    public function getHistory(): ?History
-    {
-        return $this->history;
-    }
-
-    public function setHistory(?History $history): static
-    {
-        // unset the owning side of the relation if necessary
-        if ($history === null && $this->history !== null) {
-            $this->history->setMovement(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($history !== null && $history->getMovement() !== $this) {
-            $history->setMovement($this);
-        }
-
-        $this->history = $history;
 
         return $this;
     }
