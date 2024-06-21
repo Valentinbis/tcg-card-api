@@ -6,7 +6,6 @@ use App\Repository\MovementRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Enums\MovementEnum;
-use Doctrine\DBAL\Types\DecimalType;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
@@ -19,23 +18,25 @@ class Movement
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2)]
+    #[ORM\Column(type: 'float', precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Merci de renseigner un montant')]
-    #[Assert\Type(type: 'decimal', message: 'Le montant doit être un nombre entier')]
+    #[Assert\Type(type: 'float', message: 'Le montant doit être un nombre décimal')]
     #[Groups(['movements.create', 'movements.show'])]
-    private ?DecimalType $amount = null;
+    private ?float $amount = null;
 
-    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
-    #[Assert\Type(type: 'decimal', message: 'Le montant doit être un nombre décimal')]
-    private ?DecimalType $bank = null;
+    #[ORM\Column(type: 'float', precision: 10, scale: 2, nullable: true)]
+    #[Assert\Type(type: 'float', message: 'Le montant doit être un nombre décimal')]
+    #[Groups(['movements.show'])]
+    private ?float $bank = null;
 
     // The type of the movement (expense, income)
-    #[Assert\Choice(choices: [MovementEnum::Expense, MovementEnum::Income])]
-    #[ORM\Column(enumType: MovementEnum::class)]
+    #[Assert\Choice(choices: [MovementEnum::Expense->value, MovementEnum::Income->value])]
+    #[ORM\Column(length: 255)]
     #[Groups(['movements.create', 'movements.show'])]
     private ?string $type = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Groups(['movements.create', 'movements.show'])]
     private ?\DateTimeImmutable $date = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -70,24 +71,24 @@ class Movement
         return $this->id;
     }
 
-    public function getAmount(): ?DecimalType
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    public function setAmount(DecimalType $amount): static
+    public function setAmount(float $amount): static
     {
         $this->amount = $amount;
 
         return $this;
     }
 
-    public function getBank(): ?DecimalType
+    public function getBank(): ?float
     {
         return $this->bank;
     }
 
-    public function setBank(DecimalType $bank): static
+    public function setBank(float $bank): static
     {
         $this->bank = $bank;
 

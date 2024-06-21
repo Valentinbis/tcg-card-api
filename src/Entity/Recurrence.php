@@ -20,8 +20,8 @@ class Recurrence
     private ?int $id = null;
 
     // We use the RecurrenceEnum to define the possible values (daily, weekly, bimonthly, quarterly, monthly, yearly)
-    #[Assert\Choice(choices: [RecurrenceEnum::Daily, RecurrenceEnum::Weekly, RecurrenceEnum::Bimonthly, RecurrenceEnum::Quarterly, RecurrenceEnum::Monthly, RecurrenceEnum::Yearly])]
-    #[ORM\Column(enumType: RecurrenceEnum::class)]
+    #[Assert\Choice(choices: [RecurrenceEnum::Daily->value, RecurrenceEnum::Weekly->value, RecurrenceEnum::Bimonthly->value, RecurrenceEnum::Quarterly->value, RecurrenceEnum::Monthly->value, RecurrenceEnum::Yearly->value])]
+    #[ORM\Column(length: 255)]
     #[Groups(['movements.show'])]
     private ?string $name = null;
 
