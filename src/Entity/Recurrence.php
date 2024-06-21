@@ -26,11 +26,11 @@ class Recurrence
     private ?string $name = null;
 
     #[Assert\DateTime('d/m/Y')]
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $startDate;
 
     #[Assert\DateTime('d/m/Y')]
-    #[ORM\Column(type: 'datetime', nullable: true)]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $endDate;
     
     #[ORM\OneToMany(mappedBy: 'recurrence', targetEntity: Movement::class)]
