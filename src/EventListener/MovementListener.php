@@ -3,6 +3,7 @@ namespace App\EventListener;
 
 use App\Entity\Movement;
 use App\Enums\MovementEnum;
+use Doctrine\ORM\Event\PrePersistEventArgs;
 use Doctrine\ORM\Event\PreUpdateEventArgs;
 use Doctrine\Persistence\Event\LifecycleEventArgs;
 
@@ -10,22 +11,13 @@ class MovementListener
 {
     public function prePersist(LifecycleEventArgs $args): void
     {
-        // dd($args->getObject());
         $entity = $args->getObject();
-    
         // Vérifiez si l'entité est une instance de Movement
         if (!$entity instanceof Movement) {
             return; // Si ce n'est pas le cas, ne faites rien
         }
-    
-        // Si c'est le cas, procédez à la mise à jour du total du mouvement
+        // // Si c'est le cas, procédez à la mise à jour du total du mouvement
         $this->updateMovementTotal($entity);
-    }
-
-    public function preUpdate(Movement $movement, PreUpdateEventArgs $event): void
-    {
-        $oldAmount = $event->getEntityChangeSet()['amount'][0] ?? 0; // Récupère l'ancienne valeur
-        $this->updateMovementTotal($movement, $oldAmount);
     }
     
     private function updateMovementTotal(Movement $movement, float $oldAmount = 0): void
@@ -40,11 +32,9 @@ class MovementListener
     {
         $type = $movement->getType();
         $amount = $movement->getAmount();
-        $bankTotal = $movement->getBank(); // Assurez-vous que votre entité Movement a une méthode getBank()
-        
-        // Ajuster le total de la banque en fonction de l'ancienne et de la nouvelle valeur
+        $bankTotal = $movement->getBank();        
         if ($type === MovementEnum::Expense->value) {
-            $newTotal = $bankTotal - $oldAmount + (-$amount);
+            $newTotal = $bankTotal - $oldAmount - $amount;
         } elseif ($type === MovementEnum::Income->value) {
             $newTotal = $bankTotal - $oldAmount + $amount;
         } else {
