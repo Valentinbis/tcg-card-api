@@ -62,5 +62,5 @@ docker run \
 ## Commande de test
 
 ```bash
-./vendor/bin/phpunit --coverage-text tests/AppBundle/Entity/ClientTest.php
+php bin/phpunit --coverage-html tests/Coverage
 ```

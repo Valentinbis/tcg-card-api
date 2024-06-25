@@ -1,4 +1,14 @@
 services:
+  ###> symfony ###
+  symfony:
+    container_name: cashtrack_api
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.local
+    command: symfony server:start --no-tls --port=8000
+    volumes:
+      - .:/app
+  ###< symfony ###
   ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
@@ -45,6 +55,7 @@ services:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
       POSTGRES_DB: sonar
+      PGUSER: sonar
     volumes:
       - postgresql:/var/lib/postgresql
       - postgresql_data:/var/lib/postgresql/data

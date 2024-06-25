@@ -116,7 +116,6 @@ class ResetPasswordController extends AbstractController
             ->htmlTemplate('email/resetPassword.html.twig')
             ->context([
                 'user' => $user,
-                // 'resetToken' => $resetToken,
                 'resetLink' => $this->generateUrl('app_reset_password', ['token' => urlencode($resetToken->getToken())]),
             ])
         ;
