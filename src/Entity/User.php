@@ -16,6 +16,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Table(name: '`user`')]
 #[UniqueEntity(fields: ['email'], message: 'Il existe déjà un compte avec cette adresse email')]
 #[ORM\UniqueConstraint(name: 'UNIQ_IDENTIFIER_EMAIL', fields: ['email'])]
+#[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -41,6 +42,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['user.token'])]
     private ?string $apiToken = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -58,29 +60,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'user', targetEntity: Movement::class)]
     private Collection $movements;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: History::class)]
-    private Collection $histories;
-
-    #[ORM\OneToOne(targetEntity: "Bank", mappedBy: "user")]
-    private ?Bank $bank = null;
-
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
     public function __construct()
     {
-        if (empty($this->createdAt)) {
-            $this->createdAt = new \DateTimeImmutable();
-        }
         if (empty($this->apiToken)) {
             $this->apiToken = bin2hex(random_bytes(60));
         }
-        $this->updatedAt = new \DateTimeImmutable();
         $this->movements = new ArrayCollection();
-        $this->histories = new ArrayCollection();
+    }
+
+    #[ORM\PrePersist]
+    public function updateTimestamp(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -221,66 +221,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getHistories(): Collection
-    {
-        return $this->histories;
-    }
-
-    public function addHistory(History $history): self
-    {
-        if (!$this->histories->contains($history)) {
-            $this->histories[] = $history;
-            $history->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistory(History $history): self
-    {
-        if ($this->histories->removeElement($history)) {
-            // set the owning side to null (unless already changed)
-            if ($history->getUser() === $this) {
-                $history->setUser(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getBank(): ?Bank
-    {
-        return $this->bank;
-    }
-
-    public function setBank(?Bank $bank): self
-    {
-        $this->bank = $bank;
-
-        return $this;
-    }
-
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
     }
 
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
-    }
-
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
-    }
-
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 }

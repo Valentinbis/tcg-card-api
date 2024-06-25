@@ -10,16 +10,6 @@ Assurez-vous également d'avoir Docker installé sur votre machine pour lancer l
 
 Après avoir installé PHP 8.3, ajoutez le chemin d'installation de PHP à la variable d'environnement de votre système pour pouvoir exécuter les commandes PHP depuis n'importe quel répertoire dans votre terminal.
 
-## Base de données
-
-Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker. Assurez-vous que Docker est installé et fonctionne correctement sur votre machine avant de continuer.
-
-Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la racine du projet :
-
-```bash
-docker-compose up -d
-``` 
-
 ## Installation du projet
 ### 1. Clonez ce dépôt sur votre machine :
 ```bash
@@ -40,4 +30,37 @@ composer install
 Pour démarrer le serveur de développement Symfony, exécutez la commande suivante :
 ```bash
 symfony serve
+```
+
+## Base de données
+
+Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker. Assurez-vous que Docker est installé et fonctionne correctement sur votre machine avant de continuer.
+
+Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la racine du projet :
+
+```bash
+docker-compose up -d
+``` 
+
+Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
+https://dbdiagram.io/d/SuiviArgent-6554c2fe7d8bbd64653e5578
+
+## Sonarqube
+
+Après avoir démarrer le conteneur docker, vous pouvez executez cette commande pour démarrer le scan de sonarqube.
+```bash
+docker run \
+    --rm \
+    -e SONAR_HOST_URL="http://host.docker.internal:9000" \
+    -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=CashTrack" \
+    -e SONAR_TOKEN="sqp_e83cbfa705278f8b8258af66522960cad618c909" \
+    -v "/Users/v.bissay/Documents/dev/perso/Cashtrack/api/src:/usr/src" \
+    sonarsource/sonar-scanner-cli K
+``` 
+
+
+## Commande de test
+
+```bash
+php bin/phpunit --coverage-html tests/Coverage
 ```
