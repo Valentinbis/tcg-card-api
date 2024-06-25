@@ -5,6 +5,7 @@ namespace App\Controller\API;
 use App\Entity\Category;
 use App\Entity\Movement;
 use App\Entity\Recurrence;
+use App\Service\RecurrenceService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,11 +20,13 @@ class MovementController extends AbstractController
 {
     private $entityManager;
     private $serializer;
+    private $recurrenceService;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, RecurrenceService $recurrenceService)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
+        $this->recurrenceService = $recurrenceService;
     }
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
@@ -55,7 +58,7 @@ class MovementController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $movement->setUser($this->getUser());
-        $movement->setRecurrence($this->entityManager->getRepository(Recurrence::class)->find($data['recurrence']));
+        $this->recurrenceService->createRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
 
         $this->entityManager->persist($movement);

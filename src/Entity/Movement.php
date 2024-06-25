@@ -48,7 +48,7 @@ class Movement
     #[ORM\ManyToOne(inversedBy: 'movements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'movements') ]
+    #[ORM\ManyToOne(targetEntity: Recurrence::class, inversedBy: 'movements', cascade: ['persist']) ]
     #[Groups(['movements.create', 'movements.show'])]
     private ?Recurrence $recurrence = null;
 
