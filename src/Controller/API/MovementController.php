@@ -6,6 +6,7 @@ use App\Entity\Category;
 use App\Entity\Movement;
 use App\Entity\Recurrence;
 use App\Service\RecurrenceService;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,6 +58,7 @@ class MovementController extends AbstractController
     ): Response {
         $data = json_decode($request->getContent(), true);
 
+        $movement->setDate(CarbonImmutable::createFromFormat('d/m/Y', $data['date']));
         $movement->setUser($this->getUser());
         $this->recurrenceService->createRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
@@ -132,5 +134,22 @@ class MovementController extends AbstractController
             throw $this->createNotFoundException('No entity found');
         }
         return $entity;
+    }
+
+    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
+    public function showTotalBetweenDates(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $user = $this->getUser();
+        $startDate = new CarbonImmutable($data['startDate']);
+        $endDate = new CarbonImmutable($data['endDate']);
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotalBetweenDates(
+            $user->getId(),
+            $startDate->startOfMonth()->format('Y-m-d H:i:s'),
+            $endDate->endOfMonth()->format('Y-m-d H:i:s'));
+
+        return $this->json($total, Response::HTTP_OK);
     }
 }

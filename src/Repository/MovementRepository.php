@@ -21,28 +21,30 @@ class MovementRepository extends ServiceEntityRepository
         parent::__construct($registry, Movement::class);
     }
 
-//    /**
-//     * @return Movement[] Returns an array of Movement objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('m.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
+    public function findLatestMovement(): ?Movement
+    {
+        return $this->createQueryBuilder('m')
+            ->orderBy('m.date', 'DESC')
+            ->addOrderBy('m.updatedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 
-//    public function findOneBySomeField($value): ?Movement
-//    {
-//        return $this->createQueryBuilder('m')
-//            ->andWhere('m.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
+    public function calculateTotalBetweenDates(int $userId, string $start, string $end): float
+    {
+    
+        $query = $this->createQueryBuilder('m')
+            ->select('SUM(m.amount) as total')
+            ->where('m.date >= :start AND m.date <= :end')
+            ->andWhere('m.user = :userId')
+            ->setParameter('start', $start)
+            ->setParameter('end', $end)
+            ->setParameter('userId', $userId)
+            ->getQuery();
+    
+        $result = $query->getSingleScalarResult();
+    
+        return $result;
+    }
 }
