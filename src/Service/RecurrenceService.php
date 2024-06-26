@@ -3,23 +3,23 @@ namespace App\Service;
 
 use App\Entity\Recurrence;
 use App\Enums\RecurrenceEnum;
+use Carbon\CarbonImmutable;
 
 class RecurrenceService
 {
     public function createRecurrence($movement, $data)
     {
-        // Vérifie si 'recurrence' est défini et si le nom est valide
         if (isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
             $recurrenceData = $data['recurrence'];
             $recurrence = new Recurrence();
             $recurrence->setName($recurrenceData['name']);
 
-            // Convertit les dates de chaîne en objets DateTimeImmutable
+            // Convertit les dates de chaîne en objets CarbonImmutable
             if (isset($recurrenceData['startDate'])) {
-                $recurrence->setStartDate(new \DateTimeImmutable($recurrenceData['startDate']));
+                $recurrence->setStartDate(CarbonImmutable::createFromFormat('d/m/Y', $recurrenceData['startDate']));
             }
             if (isset($recurrenceData['endDate'])) {
-                $recurrence->setEndDate(new \DateTimeImmutable($recurrenceData['endDate']));
+                $recurrence->setEndDate(CarbonImmutable::createFromFormat('d/m/Y', $recurrenceData['endDate']));
             }
 
             $movement->setRecurrence($recurrence);

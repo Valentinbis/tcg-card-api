@@ -7,6 +7,7 @@ use App\Repository\RecurrenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -63,6 +64,13 @@ class Recurrence
         return $this->startDate;
     }
 
+    #[SerializedName('startDate')]
+    #[Groups(['movements.show'])]
+    public function getFormattedStartDate(): string
+    {
+        return $this->startDate->format('d-m-Y');
+    }
+
     public function setStartDate(?\DateTimeImmutable $startDate): static
     {
         $this->startDate = $startDate;
@@ -73,6 +81,13 @@ class Recurrence
     public function getEndDate(): ?\DateTimeImmutable
     {
         return $this->endDate;
+    }
+
+    #[SerializedName('endDate')]
+    #[Groups(['movements.show'])]
+    public function getFormattedEndDate(): string
+    {
+        return $this->endDate->format('d-m-Y');
     }
 
     public function setEndDate(?\DateTimeImmutable $endDate): static
