@@ -60,7 +60,7 @@ class CategoryController extends AbstractController
         return new Response('Category created!', Response::HTTP_CREATED);
     }
 
-    #[Route('/api/category/{category}', name: 'update_category', methods: ['PUT'])]
+    #[Route('/api/category/{category}', name: 'update_category', methods: ['PATCH'])]
     #[IsGranted("CATEGORY_EDIT", subject: "category")]
     public function update(Request $request, Category $category, SerializerInterface $serializer): Response
     {
