@@ -6,6 +6,7 @@ use App\Repository\MovementRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Enums\MovementEnum;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
@@ -36,7 +37,7 @@ class Movement
     private ?string $type = null;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
-    #[Groups(['movements.create', 'movements.show'])]
+    #[Groups(['movements.create'])]
     private ?\DateTimeImmutable $date = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
@@ -48,7 +49,7 @@ class Movement
     #[ORM\ManyToOne(inversedBy: 'movements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'movements') ]
+    #[ORM\ManyToOne(targetEntity: Recurrence::class, inversedBy: 'movements', cascade: ['persist', 'remove']) ]
     #[Groups(['movements.create', 'movements.show'])]
     private ?Recurrence $recurrence = null;
 
@@ -110,6 +111,13 @@ class Movement
     public function getDate(): ?\DateTimeImmutable
     {
         return $this->date;
+    }
+
+    #[SerializedName('date')]
+    #[Groups(['movements.show'])]
+    public function getFormattedDate(): string
+    {
+        return $this->date->format('d-m-Y');
     }
 
     public function setDate(\DateTimeImmutable $date): static

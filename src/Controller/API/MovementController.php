@@ -5,6 +5,8 @@ namespace App\Controller\API;
 use App\Entity\Category;
 use App\Entity\Movement;
 use App\Entity\Recurrence;
+use App\Service\RecurrenceService;
+use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,11 +21,13 @@ class MovementController extends AbstractController
 {
     private $entityManager;
     private $serializer;
+    private $recurrenceService;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, RecurrenceService $recurrenceService)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
+        $this->recurrenceService = $recurrenceService;
     }
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
@@ -54,8 +58,9 @@ class MovementController extends AbstractController
     ): Response {
         $data = json_decode($request->getContent(), true);
 
+        $movement->setDate(CarbonImmutable::createFromFormat('d/m/Y', $data['date']));
         $movement->setUser($this->getUser());
-        $movement->setRecurrence($this->entityManager->getRepository(Recurrence::class)->find($data['recurrence']));
+        $this->recurrenceService->createOrUpdateRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
 
         $this->entityManager->persist($movement);
@@ -67,14 +72,14 @@ class MovementController extends AbstractController
     #[Route('/api/movement/{movement}', name: 'show_movement', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
-    public function show(Movement $movement): Response
+    public function show(?Movement $movement): Response
     {
         return $this->json($movement, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
     }
 
-    #[Route('/api/movement/{movement}', name: 'update_movement', methods: ['PUT'])]
+    #[Route('/api/movement/{movement}', name: 'update_movement', methods: ['PATCH'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function update(
@@ -82,7 +87,6 @@ class MovementController extends AbstractController
         Request $request
     ): Response {
         $data = json_decode($request->getContent(), true);
-
         $updatedMovement = $this->serializer->deserialize(
             $request->getContent(),
             Movement::class,
@@ -93,10 +97,7 @@ class MovementController extends AbstractController
             ]
         );
 
-        if (isset($data['recurrence'])) {
-            $recurrence = $this->getEntity(Recurrence::class, $data['recurrence']);
-            $updatedMovement->setRecurrence($recurrence);
-        }
+        $this->recurrenceService->createOrUpdateRecurrence($updatedMovement, $data);
 
         if (isset($data['category'])) {
             $category = $this->getEntity(Category::class, $data['category']);
@@ -119,7 +120,7 @@ class MovementController extends AbstractController
         $this->entityManager->remove($movement);
         $this->entityManager->flush();
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        return new Response('Movement deleted!', Response::HTTP_OK);
     }
 
     private function getEntity($repository, $id)
@@ -129,5 +130,22 @@ class MovementController extends AbstractController
             throw $this->createNotFoundException('No entity found');
         }
         return $entity;
+    }
+
+    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
+    public function showTotalBetweenDates(Request $request): Response
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $user = $this->getUser();
+        $startDate = new CarbonImmutable($data['startDate']);
+        $endDate = new CarbonImmutable($data['endDate']);
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotalBetweenDates(
+            $user->getId(),
+            $startDate->startOfMonth()->format('Y-m-d H:i:s'),
+            $endDate->endOfMonth()->format('Y-m-d H:i:s'));
+
+        return $this->json($total, Response::HTTP_OK);
     }
 }
