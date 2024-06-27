@@ -1,18 +1,28 @@
 <?php
+
 namespace App\Service;
 
+use App\Entity\Movement;
 use App\Entity\Recurrence;
 use App\Enums\RecurrenceEnum;
 use Carbon\CarbonImmutable;
 
 class RecurrenceService
 {
-    public function createRecurrence($movement, $data)
+    public function createOrUpdateRecurrence(Movement $movement, array $data)
     {
-        if (isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
-            $recurrenceData = $data['recurrence'];
+        $recurrence = $movement->getRecurrence();
+        if (!$recurrence && isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
             $recurrence = new Recurrence();
-            $recurrence->setName($recurrenceData['name']);
+            $movement->setRecurrence($recurrence);
+        }
+
+        if ($recurrence) {
+            $recurrenceData = $data['recurrence'];
+
+            if (isset($recurrenceData['name'])) {
+                $recurrence->setName($recurrenceData['name']);
+            }
 
             // Convertit les dates de chaîne en objets CarbonImmutable
             if (isset($recurrenceData['startDate'])) {
@@ -21,8 +31,6 @@ class RecurrenceService
             if (isset($recurrenceData['endDate'])) {
                 $recurrence->setEndDate(CarbonImmutable::createFromFormat('d/m/Y', $recurrenceData['endDate']));
             }
-
-            $movement->setRecurrence($recurrence);
         } else {
             $movement->setRecurrence(null);
         }

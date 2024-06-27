@@ -60,7 +60,7 @@ class MovementController extends AbstractController
 
         $movement->setDate(CarbonImmutable::createFromFormat('d/m/Y', $data['date']));
         $movement->setUser($this->getUser());
-        $this->recurrenceService->createRecurrence($movement, $data);
+        $this->recurrenceService->createOrUpdateRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
 
         $this->entityManager->persist($movement);
@@ -79,7 +79,7 @@ class MovementController extends AbstractController
         ]);
     }
 
-    #[Route('/api/movement/{movement}', name: 'update_movement', methods: ['PUT'])]
+    #[Route('/api/movement/{movement}', name: 'update_movement', methods: ['PATCH'])]
     #[IsGranted("ROLE_USER")]
     #[IsGranted("MOVEMENT_EDIT", subject: "movement")]
     public function update(
@@ -87,7 +87,6 @@ class MovementController extends AbstractController
         Request $request
     ): Response {
         $data = json_decode($request->getContent(), true);
-
         $updatedMovement = $this->serializer->deserialize(
             $request->getContent(),
             Movement::class,
@@ -98,10 +97,7 @@ class MovementController extends AbstractController
             ]
         );
 
-        if (isset($data['recurrence'])) {
-            $recurrence = $this->getEntity(Recurrence::class, $data['recurrence']);
-            $updatedMovement->setRecurrence($recurrence);
-        }
+        $this->recurrenceService->createOrUpdateRecurrence($updatedMovement, $data);
 
         if (isset($data['category'])) {
             $category = $this->getEntity(Category::class, $data['category']);

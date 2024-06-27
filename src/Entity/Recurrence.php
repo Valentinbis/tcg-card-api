@@ -66,8 +66,11 @@ class Recurrence
 
     #[SerializedName('startDate')]
     #[Groups(['movements.show'])]
-    public function getFormattedStartDate(): string
+    public function getFormattedStartDate(): ?string
     {
+        if ($this->startDate === null) {
+            return null;
+        }
         return $this->startDate->format('d-m-Y');
     }
 
@@ -85,8 +88,11 @@ class Recurrence
 
     #[SerializedName('endDate')]
     #[Groups(['movements.show'])]
-    public function getFormattedEndDate(): string
+    public function getFormattedEndDate(): ?string
     {
+        if ($this->endDate === null) {
+            return null;
+        }
         return $this->endDate->format('d-m-Y');
     }
 
