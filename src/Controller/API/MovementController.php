@@ -120,7 +120,7 @@ class MovementController extends AbstractController
         $this->entityManager->remove($movement);
         $this->entityManager->flush();
 
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        return new Response('Movement deleted!', Response::HTTP_OK);
     }
 
     private function getEntity($repository, $id)
