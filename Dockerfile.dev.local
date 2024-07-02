@@ -10,11 +10,23 @@ RUN apk update \
         curl \
         bash \
         $PHPIZE_DEPS \
-        linux-headers
+        linux-headers \
+        postgresql-dev
 
 # Télécharger le CLI Symfony et le rendre exécutable
 RUN curl -sS https://get.symfony.com/cli/installer | bash
 RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
+
+# Télécharger et installer Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Installer les extensions PHP
+RUN docker-php-ext-install pdo_pgsql
+
+# Création dossier et attribution des droits
+RUN mkdir -p /app/var/cache /app/var/log && \
+    chown -R www-data:www-data /app/var && \
+    chmod -R 755 /app/var
 
 WORKDIR /app
 

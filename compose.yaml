@@ -5,7 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev.local
-    command: symfony server:start --no-tls --port=8000
+    command: symfony serve --no-tls --port=8000
+    ports:
+      - 8000:8000
     volumes:
       - .:/app
   ###< symfony ###
