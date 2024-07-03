@@ -27,20 +27,14 @@ composer install
 ```
 
 ## Lancer le serveur de développement
-Pour démarrer le serveur de développement Symfony, exécutez la commande suivante :
+Pour démarrer le serveur de développement Symfony ainsi que tout les outils utile à celui-ci, exécutez la commande suivante à la racine du projet :
 ```bash
-symfony serve
+docker-compose up --build -d
 ```
 
 ## Base de données
 
-Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker. Assurez-vous que Docker est installé et fonctionne correctement sur votre machine avant de continuer.
-
-Pour lancer la base de données PostgreSQL, exécutez la commande suivante à la racine du projet :
-
-```bash
-docker-compose up -d
-``` 
+Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker.
 
 Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
 https://dbdiagram.io/d/SuiviArgent-6554c2fe7d8bbd64653e5578
