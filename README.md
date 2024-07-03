@@ -21,10 +21,7 @@ git clone <lien-du-repo.git>
 cd <nom-du-projet>
 ```
 
-### 3. Installez les dépendances PHP à l'aide de Composer :
-```bash
-composer install
-```
+
 
 ## Lancer le serveur de développement
 Pour démarrer le serveur de développement Symfony ainsi que tout les outils utile à celui-ci, exécutez la commande suivante à la racine du projet :
@@ -32,7 +29,16 @@ Pour démarrer le serveur de développement Symfony ainsi que tout les outils ut
 docker-compose up --build -d
 ```
 
-## Base de données
+### 1. Installez les dépendances PHP à l'aide de Composer :
+Il faut commencer par entrer dans le container :
+```bash
+docker exec -it cashtrack_api bash
+```
+Une fois dans le container il faut  installer les dépendances PHP
+```bash
+composer install
+```
+### 2. Base de données
 
 Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker.
 
