@@ -2,13 +2,7 @@
 
 ## Prérequis
 
-Avant de commencer, assurez-vous d'avoir installé PHP 8.3 sur votre machine. Vous pouvez télécharger PHP 8.3 depuis le site officiel de PHP et suivre les instructions d'installation appropriées pour votre système d'exploitation.
-
-Assurez-vous également d'avoir Docker installé sur votre machine pour lancer la base de données PostgreSQL.
-
-## Configuration de l'environnement
-
-Après avoir installé PHP 8.3, ajoutez le chemin d'installation de PHP à la variable d'environnement de votre système pour pouvoir exécuter les commandes PHP depuis n'importe quel répertoire dans votre terminal.
+Avant de commencer, assurez-vous d'avoir installé Docker sur votre machine.
 
 ## Installation du projet
 ### 1. Clonez ce dépôt sur votre machine :
@@ -20,8 +14,6 @@ git clone <lien-du-repo.git>
 ```bash
 cd <nom-du-projet>
 ```
-
-
 
 ## Lancer le serveur de développement
 Pour démarrer le serveur de développement Symfony ainsi que tout les outils utile à celui-ci, exécutez la commande suivante à la racine du projet :
