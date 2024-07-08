@@ -37,6 +37,15 @@ Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier
 Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
 https://dbdiagram.io/d/SuiviArgent-6554c2fe7d8bbd64653e5578
 
+## Fixtures
+
+Cette commande sert à alimenter la base de donnée de fausse donnée générer aléatoirement
+```bash
+php bin/console doctrine:fixtures:load 
+```
+
+Si vous ne voulez pas supprimer les données déjà présentes dans votre base de donnée ajouter '--append'
+
 ## Sonarqube
 
 Après avoir démarrer le conteneur docker, vous pouvez executez cette commande pour démarrer le scan de sonarqube.
