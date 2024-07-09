@@ -25,10 +25,10 @@ class Movement
     #[Groups(['movements.create', 'movements.show'])]
     private ?float $amount = null;
 
-    #[ORM\Column(type: 'float', precision: 10, scale: 2, nullable: true)]
-    #[Assert\Type(type: 'float', message: 'Le montant doit être un nombre décimal')]
-    #[Groups(['movements.show'])]
-    private ?float $bank = null;
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Assert\Type(type: 'string', message: 'La description doit être du texte')]
+    #[Groups(['movements.create', 'movements.show'])]
+    private ?string $description = null;
 
     // The type of the movement (expense, income)
     #[Assert\Choice(choices: [MovementEnum::Expense->value, MovementEnum::Income->value])]
@@ -84,14 +84,14 @@ class Movement
         return $this;
     }
 
-    public function getBank(): ?float
+    public function getDescription(): ?string
     {
-        return $this->bank;
+        return $this->description;
     }
 
-    public function setBank(float $bank): static
+    public function setDescription(string $description): static
     {
-        $this->bank = $bank;
+        $this->description = $description;
 
         return $this;
     }

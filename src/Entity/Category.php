@@ -19,7 +19,7 @@ class Category
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['category.show', 'category.create', 'category.update'])]
+    #[Groups(['category.show', 'category.create', 'category.update', 'movements.show'])]
     private ?string $name = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
