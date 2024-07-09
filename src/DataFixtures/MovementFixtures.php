@@ -31,6 +31,7 @@ class MovementFixtures extends Fixture implements DependentFixtureInterface
             // Création d'un mouvement
             $movement = new Movement();
             $movement->setAmount($amount);
+            $movement->setDescription($faker->sentence()); 
             $movement->setDate(\DateTimeImmutable::createFromMutable($dateAleatoire));
             $movement->setCategory($category);
             if ($amount < 0) {
