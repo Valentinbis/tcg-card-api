@@ -26,7 +26,7 @@ class CategoryController extends AbstractController
     }
 
     #[Route('/api/categories', name: 'list_categories', methods: ['GET'])]
-    #[IsGranted("CATEGORY_VIEW")]
+    #[IsGranted("CATEGORY_LIST")]
     public function index(): Response
     {
         $categories = $this->entityManager->getRepository(Category::class)->findAll();

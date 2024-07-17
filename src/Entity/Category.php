@@ -16,6 +16,7 @@ class Category
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['category.show'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
