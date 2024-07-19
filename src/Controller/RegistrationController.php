@@ -109,7 +109,7 @@ class RegistrationController extends AbstractController
         );
     }
 
-    #[Route('/logout', name: 'app_logout', methods: ['POST'])]
+    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
     public function logout(Request $request): Response
     {
         // Récupérer le token de l'en-tête Authorization
