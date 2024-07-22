@@ -135,12 +135,17 @@ class MovementController extends AbstractController
     #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
     public function showTotalBetweenDates(Request $request): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $startDateStr = $request->query->get('startDate');
+        $endDateStr = $request->query->get('endDate');
+    
+        if (!$startDateStr || !$endDateStr) {
+            return $this->json(['error' => 'startDate and endDate are required'], Response::HTTP_BAD_REQUEST);
+        }
 
         $user = $this->getUser();
-        $startDate = new CarbonImmutable($data['startDate']);
-        $endDate = new CarbonImmutable($data['endDate']);
-
+        $startDate = new CarbonImmutable($startDateStr);
+        $endDate = new CarbonImmutable($endDateStr);
+        
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotalBetweenDates(
             $user->getId(),
             $startDate->startOfMonth()->format('Y-m-d H:i:s'),

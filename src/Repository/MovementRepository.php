@@ -31,7 +31,7 @@ class MovementRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    public function calculateTotalBetweenDates(int $userId, string $start, string $end): float
+    public function calculateTotalBetweenDates(int $userId, string $start, string $end): float | null
     {
     
         $query = $this->createQueryBuilder('m')
