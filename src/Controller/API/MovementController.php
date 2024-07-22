@@ -138,13 +138,6 @@ class MovementController extends AbstractController
         #[MapQueryParameter] string $startDate,
         #[MapQueryParameter] string $endDate,
     ): Response {
-        // $startDateStr = $request->query->get('startDate');
-        // $endDateStr = $request->query->get('endDate');
-
-        // if (!$startDateStr || !$endDateStr) {
-        //     return $this->json(['error' => 'startDate and endDate are required'], Response::HTTP_BAD_REQUEST);
-        // }
-
         $user = $this->getUser();
         $startDateCarbon = new CarbonImmutable($startDate);
         $endDateCarbon = new CarbonImmutable($endDate);
