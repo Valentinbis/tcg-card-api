@@ -11,6 +11,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -133,23 +134,26 @@ class MovementController extends AbstractController
     }
 
     #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
-    public function showTotalBetweenDates(Request $request): Response
-    {
-        $startDateStr = $request->query->get('startDate');
-        $endDateStr = $request->query->get('endDate');
-    
-        if (!$startDateStr || !$endDateStr) {
-            return $this->json(['error' => 'startDate and endDate are required'], Response::HTTP_BAD_REQUEST);
-        }
+    public function showTotalBetweenDates(
+        #[MapQueryParameter] string $startDate,
+        #[MapQueryParameter] string $endDate,
+    ): Response {
+        // $startDateStr = $request->query->get('startDate');
+        // $endDateStr = $request->query->get('endDate');
+
+        // if (!$startDateStr || !$endDateStr) {
+        //     return $this->json(['error' => 'startDate and endDate are required'], Response::HTTP_BAD_REQUEST);
+        // }
 
         $user = $this->getUser();
-        $startDate = new CarbonImmutable($startDateStr);
-        $endDate = new CarbonImmutable($endDateStr);
-        
+        $startDateCarbon = new CarbonImmutable($startDate);
+        $endDateCarbon = new CarbonImmutable($endDate);
+
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotalBetweenDates(
             $user->getId(),
-            $startDate->startOfMonth()->format('Y-m-d H:i:s'),
-            $endDate->endOfMonth()->format('Y-m-d H:i:s'));
+            $startDateCarbon->startOfMonth()->format('Y-m-d H:i:s'),
+            $endDateCarbon->endOfMonth()->format('Y-m-d H:i:s')
+        );
 
         return $this->json($total, Response::HTTP_OK);
     }
