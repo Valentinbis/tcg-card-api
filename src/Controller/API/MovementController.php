@@ -2,9 +2,10 @@
 
 namespace App\Controller\API;
 
+use App\DTO\MovementFilterDTO;
+use App\DTO\PaginationDTO;
 use App\Entity\Category;
 use App\Entity\Movement;
-use App\Entity\Recurrence;
 use App\Service\RecurrenceService;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,17 +34,31 @@ class MovementController extends AbstractController
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
     #[IsGranted("MOVEMENT_LIST")]
-    public function index(): Response
-    {
+    public function index(
+        #[MapQueryParameter] ?string $type,
+        #[MapQueryParameter] ?int $categoryId,
+        #[MapQueryParameter] ?string $startDate,
+        #[MapQueryParameter] ?string $endDate,
+        #[MapQueryParameter] ?int $page,
+        #[MapQueryParameter] ?int $limit,
+        #[MapQueryParameter] ?string $sort,
+        #[MapQueryParameter] ?string $order
+    ): Response {
         $user = $this->getUser();
 
-        $movements = $this->entityManager->getRepository(Movement::class)->findBy(['user' => $user]);
+        $startDateCarbon = $startDate ? new CarbonImmutable($startDate) : null;
+        $endDateCarbon = $endDate ? new CarbonImmutable($endDate) : null;
 
+
+        $movements = $this->entityManager->getRepository(Movement::class)->findByCriteria(
+            new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
+            new PaginationDTO($page, $limit, $sort, $order)
+        );
+        
         return $this->json($movements, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
     }
-
 
     #[Route('/api/movement', name: 'create_movement', methods: ['POST'])]
     #[IsGranted("ROLE_USER")]

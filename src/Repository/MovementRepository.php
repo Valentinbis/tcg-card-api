@@ -2,6 +2,8 @@
 
 namespace App\Repository;
 
+use App\DTO\MovementFilterDTO;
+use App\DTO\PaginationDTO;
 use App\Entity\Movement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -46,5 +48,44 @@ class MovementRepository extends ServiceEntityRepository
         $result = $query->getSingleScalarResult();
     
         return $result;
+    }
+
+    public function findByCriteria(MovementFilterDTO $criteria, ?PaginationDTO $pagination)
+    {
+        $qb = $this->createQueryBuilder('m')
+            ->select('m')
+            ->where('m.user = :user')
+            ->setParameter('user', $criteria->user);
+
+        if (null !== $criteria->type) {
+            $qb->andWhere('m.type = :type')
+               ->setParameter('type', $criteria->type);
+        }
+    
+        if (null !== $criteria->categoryId) {
+            $qb->andWhere('m.category = :categoryId')
+               ->setParameter('categoryId', $criteria->categoryId);
+        }
+
+        if (null !== $criteria->startDate && null !== $criteria->endDate) {
+            $qb->andWhere('m.date BETWEEN :startDate AND :endDate')
+               ->setParameter('startDate', $criteria->startDate)
+               ->setParameter('endDate', $criteria->endDate);
+        }
+
+        // Tri
+        if (null !== $pagination->sort) {
+            // foreach ($pagination->sort as $key => $value) {
+                $qb->addOrderBy('m.' . $pagination->sort, $pagination->order);
+            // }
+        }
+    
+        // Pagination
+        if (null !== $pagination->page && null !== $pagination->limit) {
+            $qb->setFirstResult(($pagination->page - 1) * $pagination->limit)
+               ->setMaxResults($pagination->limit);
+        }
+    
+        return $qb->getQuery()->getResult();
     }
 }
