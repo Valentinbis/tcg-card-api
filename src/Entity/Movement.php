@@ -17,6 +17,7 @@ class Movement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['movements.show'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'float', precision: 10, scale: 2)]
