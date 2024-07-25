@@ -78,7 +78,7 @@ class MovementController extends AbstractController
             return [
                 'category' => $movement['category'],
                 'total' => $movement['total'],
-                'percentage' => $percentage
+                'percentage' => round($percentage)
             ];
         }, $movements);
 
