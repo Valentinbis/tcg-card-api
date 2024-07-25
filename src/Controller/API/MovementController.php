@@ -54,10 +54,35 @@ class MovementController extends AbstractController
             new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
             new PaginationDTO($page, $limit, $sort, $order)
         );
-        
+
         return $this->json($movements, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
+    }
+
+    #[Route('/api/movements-by-categories', name: 'list_movements_by_categories', methods: ['GET'])]
+    public function showByCategory(
+        #[MapQueryParameter] ?string $type
+    ): Response {
+        $user = $this->getUser();
+
+        $movements = $this->entityManager->getRepository(Movement::class)->findGroupByCategories($user->getId(), $type);
+
+        $totalAmount = array_reduce($movements, function ($sum, $movement) {
+            return $sum + abs((float)$movement['total']);
+        }, 0);
+        // Calculer les pourcentages pour chaque catégorie
+        $percentages = array_map(function ($movement) use ($totalAmount) {
+            $amount = abs((float)$movement['total']);
+            $percentage = ($totalAmount > 0) ? ($amount / $totalAmount) * 100 : 0;
+            return [
+                'category' => $movement['category'],
+                'total' => $movement['total'],
+                'percentage' => $percentage
+            ];
+        }, $movements);
+
+        return $this->json($percentages, Response::HTTP_OK);
     }
 
     #[Route('/api/movement', name: 'create_movement', methods: ['POST'])]
@@ -148,7 +173,7 @@ class MovementController extends AbstractController
         return $entity;
     }
 
-    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
+    #[Route('/api/movements/total-between-dates', name: 'total_movements_between_dates', methods: ['GET'])]
     public function showTotalBetweenDates(
         #[MapQueryParameter] string $startDate,
         #[MapQueryParameter] string $endDate,
@@ -162,6 +187,16 @@ class MovementController extends AbstractController
             $startDateCarbon->startOfMonth()->format('Y-m-d H:i:s'),
             $endDateCarbon->endOfMonth()->format('Y-m-d H:i:s')
         );
+
+        return $this->json($total, Response::HTTP_OK);
+    }
+
+    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
+    public function showTotal(): Response
+    {
+        $user = $this->getUser();
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotal($user->getId());
 
         return $this->json($total, Response::HTTP_OK);
     }
