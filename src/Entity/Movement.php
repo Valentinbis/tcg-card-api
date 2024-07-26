@@ -6,6 +6,8 @@ use App\Repository\MovementRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Enums\MovementEnum;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -59,6 +61,23 @@ class Movement
     #[Groups(['movements.create', 'movements.show'])]
     private ?Category $category = null;
 
+    /**
+     * One Movement has Many Movements.
+     * @var Collection<int, Movement>
+     */
+    #[ORM\OneToMany(targetEntity: Movement::class, mappedBy: 'parent')]
+    private Collection $children;
+
+    /** Many Movements have One Movement. */
+    #[ORM\ManyToOne(targetEntity: Movement::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id')]
+    #[Groups(['movements.create'])]
+    private Movement|null $parent = null;
+
+    public function __construct() {
+        $this->children = new ArrayCollection();
+    }
+    
     #[ORM\PrePersist]
     public function updateTimestamp(): void
     {
@@ -172,5 +191,22 @@ class Movement
         $this->category = $category;
 
         return $this;
+    }
+
+    public function getParent(): ?Movement
+    {
+        return $this->parent;
+    }
+
+    public function setParent(?Movement $parent): static
+    {
+        $this->parent = $parent;
+
+        return $this;
+    }
+
+    public function getChildren(): Collection
+    {
+        return $this->children;
     }
 }
