@@ -6,6 +6,7 @@ use App\DTO\MovementFilterDTO;
 use App\DTO\PaginationDTO;
 use App\Entity\Movement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -52,7 +53,7 @@ class MovementRepository extends ServiceEntityRepository
 
     public function calculateTotalBetweenDates(int $userId, string $start, string $end): float | null
     {
-    
+
         $query = $this->createQueryBuilder('m')
             ->select('SUM(m.amount) as total')
             ->where('m.date >= :start AND m.date <= :end')
@@ -61,10 +62,30 @@ class MovementRepository extends ServiceEntityRepository
             ->setParameter('end', $end)
             ->setParameter('userId', $userId)
             ->getQuery();
-    
+
         $result = $query->getSingleScalarResult();
-    
+
         return $result;
+    }
+
+    public function calculateTotalYearlyByMonth(int $userId, string $year): array
+    {
+        $rsm = new ResultSetMapping();
+        $rsm->addScalarResult('total', 'total');
+        $rsm->addScalarResult('month', 'month');
+    
+        $query = $this->getEntityManager()->createNativeQuery(
+            'SELECT SUM(m.amount) AS total, EXTRACT(MONTH FROM m.date) AS month
+             FROM movement m
+             WHERE m.user_id = :userId
+             AND EXTRACT(YEAR FROM m.date) = :year
+             GROUP BY month',
+            $rsm
+        );
+    
+        $query->setParameter('userId', $userId);
+        $query->setParameter('year', $year);
+        return $query->getResult();
     }
 
     public function calculateTotal(int $userId): float | null
@@ -74,9 +95,9 @@ class MovementRepository extends ServiceEntityRepository
             ->where('m.user = :userId')
             ->setParameter('userId', $userId)
             ->getQuery();
-    
+
         $result = $query->getSingleScalarResult();
-    
+
         return $result;
     }
 
@@ -89,33 +110,33 @@ class MovementRepository extends ServiceEntityRepository
 
         if (null !== $criteria->type) {
             $qb->andWhere('m.type = :type')
-               ->setParameter('type', $criteria->type);
+                ->setParameter('type', $criteria->type);
         }
-    
+
         if (null !== $criteria->categoryId) {
             $qb->andWhere('m.category = :categoryId')
-               ->setParameter('categoryId', $criteria->categoryId);
+                ->setParameter('categoryId', $criteria->categoryId);
         }
 
         if (null !== $criteria->startDate && null !== $criteria->endDate) {
             $qb->andWhere('m.date BETWEEN :startDate AND :endDate')
-               ->setParameter('startDate', $criteria->startDate)
-               ->setParameter('endDate', $criteria->endDate);
+                ->setParameter('startDate', $criteria->startDate)
+                ->setParameter('endDate', $criteria->endDate);
         }
 
         // Tri
         if (null !== $pagination->sort) {
             // foreach ($pagination->sort as $key => $value) {
-                $qb->addOrderBy('m.' . $pagination->sort, $pagination->order);
+            $qb->addOrderBy('m.' . $pagination->sort, $pagination->order);
             // }
         }
-    
+
         // Pagination
         if (null !== $pagination->page && null !== $pagination->limit) {
             $qb->setFirstResult(($pagination->page - 1) * $pagination->limit)
-               ->setMaxResults($pagination->limit);
+                ->setMaxResults($pagination->limit);
         }
-    
+
         return $qb->getQuery()->getResult();
     }
 }

@@ -200,4 +200,16 @@ class MovementController extends AbstractController
 
         return $this->json($total, Response::HTTP_OK);
     }
+
+    #[Route('/api/movements/total-yearly-by-month', name: 'total_movements_yearly_by_month', methods: ['GET'])]
+    public function showTotalYearlyByMonth(
+        #[MapQueryParameter] string $year
+    ): Response
+    {
+        $user = $this->getUser();
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotalYearlyByMonth($user->getId(), $year);
+
+        return $this->json($total, Response::HTTP_OK);
+    }
 }
