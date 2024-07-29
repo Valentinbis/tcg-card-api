@@ -2,15 +2,17 @@
 
 namespace App\Controller\API;
 
+use App\DTO\MovementFilterDTO;
+use App\DTO\PaginationDTO;
 use App\Entity\Category;
 use App\Entity\Movement;
-use App\Entity\Recurrence;
 use App\Service\RecurrenceService;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\MapQueryParameter;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -32,17 +34,56 @@ class MovementController extends AbstractController
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
     #[IsGranted("MOVEMENT_LIST")]
-    public function index(): Response
-    {
+    public function index(
+        #[MapQueryParameter] ?string $type,
+        #[MapQueryParameter] ?int $categoryId,
+        #[MapQueryParameter] ?string $startDate,
+        #[MapQueryParameter] ?string $endDate,
+        #[MapQueryParameter] ?int $page,
+        #[MapQueryParameter] ?int $limit,
+        #[MapQueryParameter] ?string $sort,
+        #[MapQueryParameter] ?string $order
+    ): Response {
         $user = $this->getUser();
 
-        $movements = $this->entityManager->getRepository(Movement::class)->findBy(['user' => $user]);
+        $startDateCarbon = $startDate ? new CarbonImmutable($startDate) : null;
+        $endDateCarbon = $endDate ? new CarbonImmutable($endDate) : null;
+
+
+        $movements = $this->entityManager->getRepository(Movement::class)->findByCriteria(
+            new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
+            new PaginationDTO($page, $limit, $sort, $order)
+        );
 
         return $this->json($movements, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
     }
 
+    #[Route('/api/movements-by-categories', name: 'list_movements_by_categories', methods: ['GET'])]
+    public function showByCategory(
+        #[MapQueryParameter] ?string $type
+    ): Response {
+        $user = $this->getUser();
+
+        $movements = $this->entityManager->getRepository(Movement::class)->findGroupByCategories($user->getId(), $type);
+
+        $totalAmount = array_reduce($movements, function ($sum, $movement) {
+            return $sum + abs((float)$movement['total']);
+        }, 0);
+        // Calculer les pourcentages pour chaque catégorie
+        $percentages = array_map(function ($movement) use ($totalAmount) {
+            $amount = abs((float)$movement['total']);
+            $percentage = ($totalAmount > 0) ? ($amount / $totalAmount) * 100 : 0;
+            return [
+                'category' => $movement['category'],
+                'total' => $movement['total'],
+                'percentage' => round($percentage)
+            ];
+        }, $movements);
+
+        return $this->json($percentages, Response::HTTP_OK);
+    }
 
     #[Route('/api/movement', name: 'create_movement', methods: ['POST'])]
     #[IsGranted("ROLE_USER")]
@@ -132,24 +173,42 @@ class MovementController extends AbstractController
         return $entity;
     }
 
-    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
-    public function showTotalBetweenDates(Request $request): Response
-    {
-        $startDateStr = $request->query->get('startDate');
-        $endDateStr = $request->query->get('endDate');
-    
-        if (!$startDateStr || !$endDateStr) {
-            return $this->json(['error' => 'startDate and endDate are required'], Response::HTTP_BAD_REQUEST);
-        }
-
+    #[Route('/api/movements/total-between-dates', name: 'total_movements_between_dates', methods: ['GET'])]
+    public function showTotalBetweenDates(
+        #[MapQueryParameter] string $startDate,
+        #[MapQueryParameter] string $endDate,
+    ): Response {
         $user = $this->getUser();
-        $startDate = new CarbonImmutable($startDateStr);
-        $endDate = new CarbonImmutable($endDateStr);
-        
+        $startDateCarbon = new CarbonImmutable($startDate);
+        $endDateCarbon = new CarbonImmutable($endDate);
+
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotalBetweenDates(
             $user->getId(),
-            $startDate->startOfMonth()->format('Y-m-d H:i:s'),
-            $endDate->endOfMonth()->format('Y-m-d H:i:s'));
+            $startDateCarbon->startOfMonth()->format('Y-m-d H:i:s'),
+            $endDateCarbon->endOfMonth()->format('Y-m-d H:i:s')
+        );
+
+        return $this->json($total, Response::HTTP_OK);
+    }
+
+    #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
+    public function showTotal(): Response
+    {
+        $user = $this->getUser();
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotal($user->getId());
+
+        return $this->json($total, Response::HTTP_OK);
+    }
+
+    #[Route('/api/movements/total-yearly-by-month', name: 'total_movements_yearly_by_month', methods: ['GET'])]
+    public function showTotalYearlyByMonth(
+        #[MapQueryParameter] string $year
+    ): Response
+    {
+        $user = $this->getUser();
+
+        $total = $this->entityManager->getRepository(Movement::class)->calculateTotalYearlyByMonth($user->getId(), $year);
 
         return $this->json($total, Response::HTTP_OK);
     }
