@@ -9,30 +9,42 @@ use Carbon\CarbonImmutable;
 
 class RecurrenceService
 {
-    public function createOrUpdateRecurrence(Movement $movement, array $data)
-    {
-        $recurrence = $movement->getRecurrence();
-        if (!$recurrence && isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
-            $recurrence = new Recurrence();
+    public function createRecurrence(Movement $movement, array $data): void
+    {   
+        if (isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
+            $recurrence = $this->updateDataRecurrence($data['recurrence']);
             $movement->setRecurrence($recurrence);
         }
+    }
 
+    public function updateRecurrence(Movement $movement, array $data): void 
+    {
+        $recurrence = $movement->getRecurrence();
         if ($recurrence) {
-            $recurrenceData = $data['recurrence'];
-
-            if (isset($recurrenceData['name'])) {
-                $recurrence->setName($recurrenceData['name']);
-            }
-
-            // Convertit les dates de chaîne en objets CarbonImmutable
-            if (isset($recurrenceData['startDate'])) {
-                $recurrence->setStartDate(CarbonImmutable::createFromFormat('d/m/Y', $recurrenceData['startDate']));
-            }
-            if (isset($recurrenceData['endDate'])) {
-                $recurrence->setEndDate(CarbonImmutable::createFromFormat('d/m/Y', $recurrenceData['endDate']));
-            }
-        } else {
-            $movement->setRecurrence(null);
+            $this->updateDataRecurrence($data['recurrence'], $recurrence);
         }
+    }
+
+    public function updateDataRecurrence(array $recurrenceData, Recurrence $recurrence = null): Recurrence
+    {
+        if (!$recurrence) {
+            $recurrence = new Recurrence();
+        }
+        if (isset($recurrenceData['name'])) {
+            $recurrence->setName($recurrenceData['name']);
+        }
+        if (isset($recurrenceData['startDate'])) {
+            $recurrence->setStartDate($this->formatDate($recurrenceData['startDate']));
+        }
+        if (isset($recurrenceData['endDate'])) {
+            $recurrence->setEndDate($this->formatDate($recurrenceData['endDate']));
+        }
+
+        return $recurrence;
+    }
+
+    public function formatDate($date): CarbonImmutable
+    {
+        return CarbonImmutable::createFromFormat('d/m/Y', $date);
     }
 }

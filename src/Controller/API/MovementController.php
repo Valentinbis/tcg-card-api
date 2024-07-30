@@ -100,7 +100,7 @@ class MovementController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         $movement->setUser($this->getUser());
-        $this->recurrenceService->createOrUpdateRecurrence($movement, $data);
+        $this->recurrenceService->createRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
 
         $this->entityManager->persist($movement);
@@ -137,7 +137,7 @@ class MovementController extends AbstractController
             ]
         );
 
-        $this->recurrenceService->createOrUpdateRecurrence($updatedMovement, $data);
+        $this->recurrenceService->updateRecurrence($updatedMovement, $data);
 
         if (isset($data['category'])) {
             $category = $this->getEntity(Category::class, $data['category']);
