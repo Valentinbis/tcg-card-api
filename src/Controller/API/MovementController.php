@@ -99,7 +99,6 @@ class MovementController extends AbstractController
     ): Response {
         $data = json_decode($request->getContent(), true);
 
-        $movement->setDate(CarbonImmutable::createFromFormat('d/m/Y', $data['date']));
         $movement->setUser($this->getUser());
         $this->recurrenceService->createOrUpdateRecurrence($movement, $data);
         $movement->setCategory($this->entityManager->getRepository(Category::class)->find($data['category']));
