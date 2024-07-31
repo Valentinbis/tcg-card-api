@@ -50,9 +50,9 @@ class MovementController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $startDateCarbon = $startDate ? CarbonImmutable::createFromFormat('Y-m-d', $startDate) : null;
-        $endDateCarbon = $endDate ? CarbonImmutable::createFromFormat('Y-m-d', $endDate) : null;
-        
+        $startDateCarbon = $startDate ? new CarbonImmutable($startDate) : null;
+        $endDateCarbon = $endDate ? new CarbonImmutable($endDate) : null;
+
         $movements = $this->entityManager->getRepository(Movement::class)->findByCriteria(
             new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
             new PaginationDTO($page, $limit, $sort, $order)
@@ -60,7 +60,11 @@ class MovementController extends AbstractController
 
         return $this->json([
             'data' => $movements,
-            'meta' => $this->paginationService->paginate($movements->getTotalItemCount(), $limit, $page)
+            'meta' => $this->paginationService->paginate(
+                $movements->getTotalItemCount(),
+                $limit,
+                $page
+            )
         ], Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);

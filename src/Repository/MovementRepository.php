@@ -135,23 +135,17 @@ class MovementRepository extends ServiceEntityRepository
                 ->setParameter('endDate', $filter->endDate);
         }
 
-        // Tri
-        if ($pagination->sort) {
-            // foreach ($pagination->sort as $key => $value) {
-            // dd('m.' . $pagination->sort, $pagination->order);
-            $qb->addOrderBy('m.id', $pagination->order);
-            // }
-        }
-
-        // dd($qb->getQuery()->getSQL());
 
         $paginationResult = $this->paginator->paginate(
             $qb,
             $pagination->page,
-            $pagination->limit
+            $pagination->limit,
+            [
+                // Obliger de mettre m.date dans la requête
+                'pageParameterName' => 'sort', 'sortDirectionParameterName' => 'order',
+                'sortFieldAllowList' => ['m.date'],
+            ],
         );
-
-        dd($paginationResult);
 
         return $paginationResult;
     }
