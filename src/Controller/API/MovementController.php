@@ -6,6 +6,7 @@ use App\DTO\MovementFilterDTO;
 use App\DTO\PaginationDTO;
 use App\Entity\Category;
 use App\Entity\Movement;
+use App\Service\PaginationService;
 use App\Service\RecurrenceService;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,12 +25,14 @@ class MovementController extends AbstractController
     private $entityManager;
     private $serializer;
     private $recurrenceService;
+    private $paginationService;
 
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, RecurrenceService $recurrenceService)
+    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, RecurrenceService $recurrenceService, PaginationService $paginationService)
     {
         $this->entityManager = $entityManager;
         $this->serializer = $serializer;
         $this->recurrenceService = $recurrenceService;
+        $this->paginationService = $paginationService;
     }
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
@@ -44,18 +47,25 @@ class MovementController extends AbstractController
         #[MapQueryParameter] ?string $sort,
         #[MapQueryParameter] ?string $order
     ): Response {
+        /** @var User $user */
         $user = $this->getUser();
 
         $startDateCarbon = $startDate ? new CarbonImmutable($startDate) : null;
         $endDateCarbon = $endDate ? new CarbonImmutable($endDate) : null;
-
 
         $movements = $this->entityManager->getRepository(Movement::class)->findByCriteria(
             new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
             new PaginationDTO($page, $limit, $sort, $order)
         );
 
-        return $this->json($movements, Response::HTTP_OK, [], [
+        return $this->json([
+            'data' => $movements,
+            'meta' => $this->paginationService->paginate(
+                $movements->getTotalItemCount(),
+                $limit,
+                $page
+            )
+        ], Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
     }
@@ -64,6 +74,7 @@ class MovementController extends AbstractController
     public function showByCategory(
         #[MapQueryParameter] ?string $type
     ): Response {
+        /** @var User $user */
         $user = $this->getUser();
 
         $movements = $this->entityManager->getRepository(Movement::class)->findGroupByCategories($user->getId(), $type);
@@ -177,6 +188,7 @@ class MovementController extends AbstractController
         #[MapQueryParameter] string $startDate,
         #[MapQueryParameter] string $endDate,
     ): Response {
+        /** @var User $user */
         $user = $this->getUser();
         $startDateCarbon = new CarbonImmutable($startDate);
         $endDateCarbon = new CarbonImmutable($endDate);
@@ -193,6 +205,7 @@ class MovementController extends AbstractController
     #[Route('/api/movements/total', name: 'total_movements', methods: ['GET'])]
     public function showTotal(): Response
     {
+        /** @var User $user */
         $user = $this->getUser();
 
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotal($user->getId());
@@ -203,8 +216,8 @@ class MovementController extends AbstractController
     #[Route('/api/movements/total-yearly-by-month', name: 'total_movements_yearly_by_month', methods: ['GET'])]
     public function showTotalYearlyByMonth(
         #[MapQueryParameter] string $year
-    ): Response
-    {
+    ): Response {
+        /** @var User $user */
         $user = $this->getUser();
 
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotalYearlyByMonth($user->getId(), $year);

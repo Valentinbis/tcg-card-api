@@ -8,6 +8,8 @@ use App\Entity\Movement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\Persistence\ManagerRegistry;
+use Knp\Component\Pager\Pagination\PaginationInterface;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @extends ServiceEntityRepository<Movement>
@@ -19,9 +21,18 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class MovementRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, private PaginatorInterface $paginator)
     {
         parent::__construct($registry, Movement::class);
+    }
+
+    public function paginateMovement(int $page, int $limit): PaginationInterface
+    {
+        return $this->paginator->paginate(
+            $this->createQueryBuilder('m'),
+            $page,
+            $limit
+        );
     }
 
     public function findLatestMovement(): ?Movement
@@ -73,7 +84,7 @@ class MovementRepository extends ServiceEntityRepository
         $rsm = new ResultSetMapping();
         $rsm->addScalarResult('total', 'total');
         $rsm->addScalarResult('month', 'month');
-    
+
         $query = $this->getEntityManager()->createNativeQuery(
             'SELECT SUM(m.amount) AS total, EXTRACT(MONTH FROM m.date) AS month
              FROM movement m
@@ -82,7 +93,7 @@ class MovementRepository extends ServiceEntityRepository
              GROUP BY month',
             $rsm
         );
-    
+
         $query->setParameter('userId', $userId);
         $query->setParameter('year', $year);
         return $query->getResult();
@@ -101,42 +112,41 @@ class MovementRepository extends ServiceEntityRepository
         return $result;
     }
 
-    public function findByCriteria(MovementFilterDTO $criteria, ?PaginationDTO $pagination)
+    public function findByCriteria(MovementFilterDTO $filter, ?PaginationDTO $pagination)
     {
         $qb = $this->createQueryBuilder('m')
             ->select('m')
             ->where('m.user = :user')
-            ->setParameter('user', $criteria->user);
+            ->setParameter('user', $filter->user);
 
-        if (null !== $criteria->type) {
+        if ($filter->type) {
             $qb->andWhere('m.type = :type')
-                ->setParameter('type', $criteria->type);
+                ->setParameter('type', $filter->type);
         }
 
-        if (null !== $criteria->categoryId) {
+        if ($filter->categoryId) {
             $qb->andWhere('m.category = :categoryId')
-                ->setParameter('categoryId', $criteria->categoryId);
+                ->setParameter('categoryId', $filter->categoryId);
         }
 
-        if (null !== $criteria->startDate && null !== $criteria->endDate) {
+        if ($filter->startDate && $filter->endDate) {
             $qb->andWhere('m.date BETWEEN :startDate AND :endDate')
-                ->setParameter('startDate', $criteria->startDate)
-                ->setParameter('endDate', $criteria->endDate);
+                ->setParameter('startDate', $filter->startDate)
+                ->setParameter('endDate', $filter->endDate);
         }
 
-        // Tri
-        if (null !== $pagination->sort) {
-            // foreach ($pagination->sort as $key => $value) {
-            $qb->addOrderBy('m.' . $pagination->sort, $pagination->order);
-            // }
-        }
 
-        // Pagination
-        if (null !== $pagination->page && null !== $pagination->limit) {
-            $qb->setFirstResult(($pagination->page - 1) * $pagination->limit)
-                ->setMaxResults($pagination->limit);
-        }
+        $paginationResult = $this->paginator->paginate(
+            $qb,
+            $pagination->page,
+            $pagination->limit,
+            [
+                // Obliger de mettre m.date dans la requête
+                'pageParameterName' => 'sort', 'sortDirectionParameterName' => 'order',
+                'sortFieldAllowList' => ['m.date'],
+            ],
+        );
 
-        return $qb->getQuery()->getResult();
+        return $paginationResult;
     }
 }
