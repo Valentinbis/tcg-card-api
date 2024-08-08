@@ -1,7 +1,7 @@
 services:
   ###> symfony ###
   symfony:
-    container_name: cashtrack_api
+    container_name: api
     build:
       context: .
       dockerfile: Dockerfile.dev.local
@@ -13,6 +13,7 @@ services:
   ###< symfony ###
   ###> doctrine/doctrine-bundle ###
   database:
+    container_name: cashtrack_db
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-cashtrack}
@@ -30,7 +31,7 @@ services:
   sonarqube:
     image: sonarqube:lts-community
     hostname: sonarqube
-    container_name: sonarqube
+    container_name: cashtrack_sonarqube
     depends_on:
       db:
         condition: service_healthy
@@ -52,7 +53,7 @@ services:
       timeout: 5s
       retries: 5
     hostname: postgresql
-    container_name: postgresql
+    container_name: sonarqube_db
     environment:
       POSTGRES_USER: sonar
       POSTGRES_PASSWORD: sonar
