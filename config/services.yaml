@@ -27,8 +27,8 @@ services:
           method: onKernelRequest,
         }
 
-  # App\Serializer\CategoryNormalizer:
-  #   tags: [ 'serializer.normalizer' ]
+  App\Serializer\CategoryNormalizer:
+    tags: [ 'serializer.normalizer' ]
   # App\EventListener\MovementListener:
   #     tags:
   #         - { name: doctrine.event_listener, event: prePersist }

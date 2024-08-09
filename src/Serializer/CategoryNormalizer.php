@@ -38,6 +38,7 @@ class CategoryNormalizer implements NormalizerInterface, NormalizerAwareInterfac
         });
 
         $data = [
+            'id' => $object->getId(),
             'label' => $object->getName(),
             'children' => array_values($filteredChildren), // Réindexer les enfants filtrés
         ];

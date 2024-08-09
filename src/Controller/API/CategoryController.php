@@ -29,12 +29,12 @@ class CategoryController extends AbstractController
     #[IsGranted("CATEGORY_LIST")]
     public function index(): Response
     {
-        $categories = $this->entityManager->getRepository(Category::class)->findAll();
+        $categories = $this->entityManager->getRepository(Category::class)->findBy(['parent' => null]);
         return $this->json($categories, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
     }
-
+    
     #[Route('/api/categories/parents', name: 'list_categories_parents', methods: ['GET'])]
     #[IsGranted("CATEGORY_LIST")]
     public function showAllParent(): Response
