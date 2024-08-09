@@ -34,6 +34,7 @@ class Category
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'children')]
     #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id')]
+    #[Groups(['movements.show'])]
     private ?self $parent = null;
 
     #[ORM\OneToMany(targetEntity: Category::class, mappedBy: 'parent')]

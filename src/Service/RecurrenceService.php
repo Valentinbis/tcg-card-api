@@ -11,9 +11,11 @@ class RecurrenceService
 {
     public function createRecurrence(Movement $movement, array $data): void
     {   
-        if (isset($data['recurrence']) && RecurrenceEnum::from($data['recurrence']['name'])) {
+        if (isset($data['recurrence']['name']) && RecurrenceEnum::from($data['recurrence']['name'])) {
             $recurrence = $this->updateDataRecurrence($data['recurrence']);
             $movement->setRecurrence($recurrence);
+        } else {
+            unset($data['recurrence']);
         }
     }
 
