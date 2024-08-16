@@ -47,19 +47,31 @@ class MovementRepository extends ServiceEntityRepository
 
     public function findGroupByCategories(int $userId, string $type): array
     {
+        // return $this->createQueryBuilder('m')
+        //     ->select('c.name as category, SUM(m.amount) as total')
+        //     ->join('m.category', 'c')
+        //     ->where('m.user = :userId')
+        //     ->andWhere('m.type = :type')
+        //     // ->andWhere('m.date >= :start AND m.date <= :end')
+        //     ->groupBy('category')
+        //     ->setParameter('userId', $userId)
+        //     ->setParameter('type', $type)
+        //     // ->setParameter('start', date('Y-m-01'))
+        //     // ->setParameter('end', date('Y-m-t'))
+        //     ->getQuery()
+        //     ->getResult();
+
         return $this->createQueryBuilder('m')
-            ->select('c.name as category, SUM(m.amount) as total')
-            ->join('m.category', 'c')
-            ->where('m.user = :userId')
-            ->andWhere('m.type = :type')
-            // ->andWhere('m.date >= :start AND m.date <= :end')
-            ->groupBy('category')
-            ->setParameter('userId', $userId)
-            ->setParameter('type', $type)
-            // ->setParameter('start', date('Y-m-01'))
-            // ->setParameter('end', date('Y-m-t'))
-            ->getQuery()
-            ->getResult();
+        ->select('parent.name as category, SUM(m.amount) as total')
+        ->join('m.category', 'c')
+        ->leftJoin('c.parent', 'parent') // Joindre la table parent
+        ->where('m.user = :userId')
+        ->andWhere('m.type = :type')
+        ->groupBy('parent.id')
+        ->setParameter('userId', $userId)
+        ->setParameter('type', $type)
+        ->getQuery()
+        ->getResult();
     }
 
     public function calculateTotalBetweenDates(int $userId, string $start, string $end): float | null
