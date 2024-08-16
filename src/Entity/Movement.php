@@ -6,21 +6,32 @@ use App\Repository\MovementRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Enums\MovementEnum;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Symfony\Component\Serializer\Annotation\SerializedName;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: MovementRepository::class)]
+#[ORM\Table(name: 'movement')]
+#[ORM\HasLifecycleCallbacks]
 class Movement
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['movements.show'])]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'float', precision: 10, scale: 2)]
     #[Assert\NotBlank(message: 'Merci de renseigner un montant')]
-    #[Assert\Type(type: 'integer', message: 'Le montant doit être un nombre entier')]
+    #[Assert\Type(type: 'float', message: 'Le montant doit être un nombre décimal')]
     #[Groups(['movements.create', 'movements.show'])]
-    private ?int $amount = null;
+    private ?float $amount = null;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    #[Assert\Type(type: 'string', message: 'La description doit être du texte')]
+    #[Groups(['movements.create', 'movements.show'])]
+    private ?string $description = null;
 
     // The type of the movement (expense, income)
     #[Assert\Choice(choices: [MovementEnum::Expense->value, MovementEnum::Income->value])]
@@ -28,17 +39,21 @@ class Movement
     #[Groups(['movements.create', 'movements.show'])]
     private ?string $type = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    #[Groups(['movements.create'])]
+    private ?\DateTimeImmutable $date = null;
+
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'movements')]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(inversedBy: 'movements') ]
-    #[Groups(['movements.create', 'movements.show'])]
+    #[ORM\ManyToOne(targetEntity: Recurrence::class, inversedBy: 'movements', cascade: ['persist', 'remove']) ]
+    #[Groups(['movements.show'])]
     private ?Recurrence $recurrence = null;
 
     #[ORM\ManyToOne(inversedBy: 'movements')]
@@ -46,12 +61,27 @@ class Movement
     #[Groups(['movements.create', 'movements.show'])]
     private ?Category $category = null;
 
-    #[ORM\OneToOne(mappedBy: 'movement', cascade: ['persist', 'remove'])]
-    private ?History $history = null;
+    /**
+     * One Movement has Many Movements.
+     * @var Collection<int, Movement>
+     */
+    #[ORM\OneToMany(targetEntity: Movement::class, mappedBy: 'parent')]
+    private Collection $children;
 
-    public function __construct()
+    /** Many Movements have One Movement. */
+    #[ORM\ManyToOne(targetEntity: Movement::class, inversedBy: 'children')]
+    #[ORM\JoinColumn(name: 'parent_id', referencedColumnName: 'id')]
+    #[Groups(['movements.create'])]
+    private Movement|null $parent = null;
+
+    public function __construct() {
+        $this->children = new ArrayCollection();
+    }
+    
+    #[ORM\PrePersist]
+    public function updateTimestamp(): void
     {
-        if (empty($this->createdAt)) {
+        if ($this->createdAt === null) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->updatedAt = new \DateTimeImmutable();
@@ -62,14 +92,26 @@ class Movement
         return $this->id;
     }
 
-    public function getAmount(): ?int
+    public function getAmount(): ?float
     {
         return $this->amount;
     }
 
-    public function setAmount(int $amount): static
+    public function setAmount(float $amount): static
     {
         $this->amount = $amount;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }
@@ -86,28 +128,33 @@ class Movement
         return $this;
     }
 
+    public function getDate(): ?\DateTimeImmutable
+    {
+        return $this->date;
+    }
+
+    #[SerializedName('date')]
+    #[Groups(['movements.show'])]
+    public function getFormattedDate(): string
+    {
+        return $this->date->format('d-m-Y');
+    }
+
+    public function setDate(\DateTimeImmutable $date): static
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
     public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
-    }
-
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
-    }
-
-    public function setUpdatedAt(\DateTimeImmutable $updatedAt): static
-    {
-        $this->updatedAt = $updatedAt;
-
-        return $this;
     }
 
     public function getUser(): ?User
@@ -146,25 +193,20 @@ class Movement
         return $this;
     }
 
-    public function getHistory(): ?History
+    public function getParent(): ?Movement
     {
-        return $this->history;
+        return $this->parent;
     }
 
-    public function setHistory(?History $history): static
+    public function setParent(?Movement $parent): static
     {
-        // unset the owning side of the relation if necessary
-        if ($history === null && $this->history !== null) {
-            $this->history->setMovement(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($history !== null && $history->getMovement() !== $this) {
-            $history->setMovement($this);
-        }
-
-        $this->history = $history;
+        $this->parent = $parent;
 
         return $this;
+    }
+
+    public function getChildren(): Collection
+    {
+        return $this->children;
     }
 }

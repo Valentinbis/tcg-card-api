@@ -14,11 +14,10 @@ class MovementVoter extends Voter
     public const EDIT = 'MOVEMENT_EDIT';
     public const VIEW = 'MOVEMENT_VIEW';
     public const LIST = 'MOVEMENT_LIST';
-    public const LIST_ALL = 'MOVEMENT_LIST_ALL';
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, [self::CREATE, self::LIST, self::LIST_ALL]) ||
+        return in_array($attribute, [self::CREATE, self::LIST]) ||
             (
                 in_array($attribute, [self::EDIT, self::VIEW])
                 && $subject instanceof Movement
@@ -44,7 +43,6 @@ class MovementVoter extends Voter
             case self::LIST:
                 return true;
                 break;
-            case self::LIST_ALL:
             case self::VIEW:
                 return $subject instanceof Movement && $subject->getUser() === $user;
                 break;
