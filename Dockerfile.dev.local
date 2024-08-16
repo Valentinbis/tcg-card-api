@@ -22,7 +22,10 @@ RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Installer les extensions PHP
-RUN docker-php-ext-install pdo_pgsql
+RUN docker-php-ext-install pdo_pgsql intl opcache
+RUN docker-php-ext-configure intl
+
+ADD opcache.ini $PHP_INI_DIR/conf.d
 
 # Création dossier et attribution des droits
 RUN mkdir -p /app/var/cache /app/var/log && \
