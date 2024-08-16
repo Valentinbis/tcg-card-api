@@ -74,6 +74,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->movements = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        return $this->email;
+    }
+
     #[ORM\PrePersist]
     public function updateTimestamp(): void
     {

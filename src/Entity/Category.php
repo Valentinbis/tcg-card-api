@@ -46,6 +46,11 @@ class Category
         $this->children = new ArrayCollection();
     }
 
+    public function __toString()
+    {
+        return $this->name;
+    }
+
     #[ORM\PrePersist]
     public function updateTimestamp(): void
     {

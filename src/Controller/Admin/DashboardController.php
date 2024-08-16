@@ -2,6 +2,11 @@
 
 namespace App\Controller\Admin;
 
+use App\Entity\Category;
+use App\Entity\Movement;
+use App\Entity\Recurrence;
+use App\Entity\User;
+use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
@@ -10,37 +15,39 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DashboardController extends AbstractDashboardController
 {
+    protected $userRepository;
+
+    public function __construct(UserRepository $userRepository)
+    {
+        $this->userRepository = $userRepository;
+    }
+
     #[Route('/admin', name: 'admin')]
     public function index(): Response
     {
-        return parent::index();
+        return $this->render('admin/dashboard.html.twig', [
+            'countUsers' => $this->userRepository->countUsers()
+        ]);
 
-        // Option 1. You can make your dashboard redirect to some common page of your backend
-        //
-        // $adminUrlGenerator = $this->container->get(AdminUrlGenerator::class);
-        // return $this->redirect($adminUrlGenerator->setController(OneOfYourCrudController::class)->generateUrl());
-
-        // Option 2. You can make your dashboard redirect to different pages depending on the user
-        //
-        // if ('jane' === $this->getUser()->getUsername()) {
-        //     return $this->redirect('...');
-        // }
-
-        // Option 3. You can render some custom template to display a proper dashboard with widgets, etc.
-        // (tip: it's easier if your template extends from @EasyAdmin/page/content.html.twig)
-        //
-        // return $this->render('some/path/my-dashboard.html.twig');
     }
 
     public function configureDashboard(): Dashboard
     {
         return Dashboard::new()
-            ->setTitle('Api');
+            ->setTitle('Administration');
     }
 
     public function configureMenuItems(): iterable
     {
-        yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        // yield MenuItem::linkToCrud('The Label', 'fas fa-list', EntityClass::class);
+        yield MenuItem::section('Menu');
+        yield MenuItem::linkToRoute('Back to the website', 'fa-solid fa-arrow-left', 'home');
+        yield MenuItem::linkToRoute('Logout', 'fa-solid fa-sign-out-alt', 'app_logout');
+        yield MenuItem::section('Dashboard');
+        yield MenuItem::linkToDashboard('Dashboard', 'fa-solid fa-chart-line');
+        yield MenuItem::section('Tables');
+        yield MenuItem::linkToCrud('Users', 'fas fa-user', User::class);
+        yield MenuItem::linkToCrud('Category', 'fas fa-list', Category::class);
+        yield MenuItem::linkToCrud('Transaction', 'fas fa-money-bill-wave', Movement::class);
+        yield MenuItem::linkToCrud('Recurrence', 'fas fa-redo-alt', Recurrence::class);
     }
 }
