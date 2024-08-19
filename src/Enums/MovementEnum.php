@@ -6,4 +6,5 @@ enum MovementEnum: string
 {
     case Expense = "expense";
     case Income = "income";
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller;
+namespace App\Controller\API;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
@@ -31,7 +31,7 @@ class RegistrationController extends AbstractController
         $this->validator = $validator;
     }
 
-    #[Route('/register', name: 'app_register', methods: ['POST'])]
+    #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, APIAuthenticator $authenticator): Response
     {
         if (empty($request->getContent())) {
@@ -76,7 +76,7 @@ class RegistrationController extends AbstractController
         );
     }
 
-    #[Route('/login', name: 'app_login', methods: ['POST'])]
+    #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request, UserPasswordHasherInterface $passwordHasher): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -109,7 +109,7 @@ class RegistrationController extends AbstractController
         );
     }
 
-    #[Route('/logout', name: 'app_logout', methods: ['GET'])]
+    #[Route('/api/logout', name: 'api_logout', methods: ['GET'])]
     public function logout(Request $request): Response
     {
         // Récupérer le token de l'en-tête Authorization

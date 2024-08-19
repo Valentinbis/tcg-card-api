@@ -42,7 +42,7 @@ class MovementFixtures extends Fixture implements DependentFixtureInterface
             $movement->setUser($user);
 
             // Ajout aléatoire d'une récurrence
-            if (rand(0, 1)) { // 50% de chance
+            if (rand(0, 10)) { // 10% de chance
                 $recurrence = new Recurrence();
                 $recurrenceName = RecurrenceEnum::cases()[array_rand(RecurrenceEnum::cases())];
                 $recurrence->setName($recurrenceName->value);
