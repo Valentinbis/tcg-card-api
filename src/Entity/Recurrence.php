@@ -13,6 +13,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RecurrenceRepository::class)]
 #[ORM\Table(name: 'recurrence')]
+// The HasLifecycleCallbacks annotation is used to enable lifecycle callbacks, allowing specific methods to be executed before the entity is persisted, as specified by #[ORM\PrePersist].
+#[ORM\HasLifecycleCallbacks]
 class Recurrence
 {
     #[ORM\Id]
@@ -21,7 +23,14 @@ class Recurrence
     private ?int $id = null;
 
     // We use the RecurrenceEnum to define the possible values (daily, weekly, bimonthly, quarterly, monthly, yearly)
-    #[Assert\Choice(choices: [RecurrenceEnum::Daily->value, RecurrenceEnum::Weekly->value, RecurrenceEnum::Bimonthly->value, RecurrenceEnum::Quarterly->value, RecurrenceEnum::Monthly->value, RecurrenceEnum::Yearly->value])]
+    #[Assert\Choice(choices: [
+        RecurrenceEnum::Daily->value,
+        RecurrenceEnum::Weekly->value,
+        RecurrenceEnum::Bimonthly->value,
+        RecurrenceEnum::Quarterly->value, 
+        RecurrenceEnum::Monthly->value, 
+        RecurrenceEnum::Yearly->value
+        ])]
     #[ORM\Column(length: 255)]
     #[Groups(['movements.show'])]
     private ?string $name = null;
@@ -33,6 +42,12 @@ class Recurrence
     #[Assert\DateTime('d/m/Y')]
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $endDate;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private ?\DateTimeImmutable $updatedAt = null;
     
     #[ORM\OneToMany(mappedBy: 'recurrence', targetEntity: Movement::class)]
     private Collection $movements;
@@ -45,6 +60,15 @@ class Recurrence
     public function __toString()
     {
         return $this->name;
+    }
+
+    #[ORM\PrePersist]
+    public function updateTimestamp(): void
+    {
+        if ($this->createdAt === null) {
+            $this->createdAt = new \DateTimeImmutable();
+        }
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -106,6 +130,16 @@ class Recurrence
         $this->endDate = $endDate;
 
         return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
+    {
+        return $this->createdAt;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 
     /**
