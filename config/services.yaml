@@ -1,5 +1,6 @@
 parameters:
   timezone: "%env(APP_TIMEZONE)%"
+  front_url: "%env(FRONT_URL)%"
 
 services:
   # default configuration for services in *this* file
@@ -28,7 +29,7 @@ services:
         }
 
   App\Serializer\CategoryNormalizer:
-    tags: [ 'serializer.normalizer' ]
+    tags: ["serializer.normalizer"]
   # App\EventListener\MovementListener:
   #     tags:
   #         - { name: doctrine.event_listener, event: prePersist }
