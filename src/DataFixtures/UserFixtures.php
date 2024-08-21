@@ -24,12 +24,7 @@ class UserFixtures extends Fixture
             // Création d'un user
             $user = new User();
             $user->setEmail($faker->email());
-            $user->setPassword(
-                $this->userPasswordHasher->hashPassword(
-                    $user,
-                    $faker->password()
-                )
-            );
+            $user->setPassword($faker->password());
             $user->setFirstName($faker->firstName());
             $user->setLastName($faker->lastName());
 
@@ -47,6 +42,7 @@ class UserFixtures extends Fixture
         );
         $user->setFirstName('Valentin');
         $user->setLastName('Bissay');
+        $user->setRoles(['ROLE_ADMIN']);
         $manager->persist($user);
 
         $manager->flush();
