@@ -29,6 +29,7 @@ class CategoryNormalizer implements NormalizerInterface, NormalizerAwareInterfac
             return [
                 'value' => $child->getId(),
                 'label' => $child->getName(),
+                'type' => $child->getType(),
             ];
         }, $object->getChildren()->toArray());
 
@@ -40,6 +41,7 @@ class CategoryNormalizer implements NormalizerInterface, NormalizerAwareInterfac
         $data = [
             'id' => $object->getId(),
             'label' => $object->getName(),
+            'type' => $object->getType(),
             'children' => array_values($filteredChildren), // Réindexer les enfants filtrés
         ];
 
