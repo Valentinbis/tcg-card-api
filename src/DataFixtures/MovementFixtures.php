@@ -25,8 +25,8 @@ class MovementFixtures extends Fixture implements DependentFixtureInterface
             $user = $users[array_rand($users)];
             $category = $categories[array_rand($categories)];
 
-            $dateAleatoire = $faker->dateTimeBetween('-3 years', 'now', 'Europe/Paris');
-            $amount = $faker->randomFloat(2, -2000, 2000);
+            $dateAleatoire = $faker->dateTimeBetween('-1 months', 'now', 'Europe/Paris');
+            $amount = $faker->numberBetween(-2000, 2000);
 
             // Création d'un mouvement
             $movement = new Movement();
@@ -42,7 +42,7 @@ class MovementFixtures extends Fixture implements DependentFixtureInterface
             $movement->setUser($user);
 
             // Ajout aléatoire d'une récurrence
-            if (rand(0, 10)) { // 10% de chance
+            if (rand(0, 10) == 0) { // 10% de chance
                 $recurrence = new Recurrence();
                 $recurrenceName = RecurrenceEnum::cases()[array_rand(RecurrenceEnum::cases())];
                 $recurrence->setName($recurrenceName->value);
