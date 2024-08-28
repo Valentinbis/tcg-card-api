@@ -1,6 +1,5 @@
 FROM php:8-fpm-alpine
 
-
 ENV APACHE_SSL=1
 
 RUN apk update \
@@ -13,6 +12,20 @@ RUN apk update \
         $PHPIZE_DEPS \
         linux-headers \
         postgresql-dev
+
+## Cron
+# Copier le fichier crontab
+COPY configs/cron/generate_movements /etc/cron.d/generate_movements
+
+# Appliquer les permissions et configurer le cron
+RUN chmod 0644 /etc/cron.d/generate_movements
+RUN crontab /etc/cron.d/generate_movements
+
+# Créer le fichier de log
+RUN touch /var/log/cron.log
+
+# Commande pour démarrer le cron et le PHP-FPM
+CMD cron && tail -f /var/log/cron.log
 
 # Télécharger le CLI Symfony et le rendre exécutable
 RUN curl -sS https://get.symfony.com/cli/installer | bash
