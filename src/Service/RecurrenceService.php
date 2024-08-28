@@ -66,95 +66,86 @@ class RecurrenceService
 
     public function generateNextMonthMovements()
     {
+        // Récupérer toutes les récurrences actives
         $recurrences = $this->recurrenceRepository->findActiveRecurrences();
-        
-        
-        try {
-            foreach ($recurrences as $recurrence) {
-                $this->entityManager->beginTransaction();
-                $now = new \DateTimeImmutable();
-                $nextMonth = (clone $now)->modify('+1 month');
-                $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
-                
-                while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
-                    $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
-                    $lastMovement = $this->getLastMovement($recurrence);
 
-                    $movement = new Movement();
-                    $movement->setAmount($lastMovement->getAmount());
-                    $movement->setDate($nextGenerationDate);
-                    $movement->setRecurrence($recurrence);
-                    $movement->setDescription($lastMovement->getDescription());
-                    $movement->setType($lastMovement->getType());
-                    $movement->setUser($lastMovement->getUser());
-                    $movement->setCategory($lastMovement->getCategory());
-                    $this->entityManager->persist($movement);
-
-                    // Mettre à jour la dernière date de génération
-                    $lastGeneratedDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
-
-                    $recurrence->setLastGeneratedDate($lastGeneratedDate);
-                }
-                // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
-                $this->entityManager->persist($recurrence);
-                $this->entityManager->flush();
+        foreach ($recurrences as $recurrence) {
+            $this->entityManager->beginTransaction();
+            try {
+                // Générer les mouvements pour chaque récurrence
+                $this->generateMovementsForRecurrence($recurrence);
                 $this->entityManager->commit();
+            } catch (\Exception $e) {
+                // En cas d'erreur, annuler la transaction et loguer l'erreur
+                $this->entityManager->rollback();
+                $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
+                throw $e;
             }
-        } catch (\Exception $e) {
-            $this->entityManager->rollback();
-            $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
-            throw $e;
         }
 
+        // Loguer le succès de la génération des mouvements
         $this->logger->info('Recurring movements for the next month have been generated successfully.');
     }
 
-    private function shouldGenerateMovement($recurrence, $lastGeneratedDate, $now)
+    private function generateMovementsForRecurrence(Recurrence $recurrence)
+    {
+        $now = new \DateTimeImmutable();
+        $nextMonth = (clone $now)->modify('+1 month');
+        $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
+
+        // Générer les mouvements jusqu'à la fin du mois prochain
+        while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
+            $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
+            $lastMovement = $this->getLastMovement($recurrence);
+
+            // Créer un nouveau mouvement basé sur le dernier mouvement
+            $movement = new Movement();
+            $movement->setAmount($lastMovement->getAmount());
+            $movement->setDate($nextGenerationDate);
+            $movement->setRecurrence($recurrence);
+            $movement->setDescription($lastMovement->getDescription());
+            $movement->setType($lastMovement->getType());
+            $movement->setUser($lastMovement->getUser());
+            $movement->setCategory($lastMovement->getCategory());
+            $this->entityManager->persist($movement);
+
+            // Mettre à jour la dernière date de génération
+            $lastGeneratedDate = $nextGenerationDate;
+            $recurrence->setLastGeneratedDate($lastGeneratedDate);
+        }
+
+        // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
+        $this->entityManager->persist($recurrence);
+        $this->entityManager->flush();
+    }
+
+    private function shouldGenerateMovement(Recurrence $recurrence, \DateTimeImmutable $lastGeneratedDate, \DateTimeImmutable $now): bool
     {
         $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
-
+        // Vérifier si la prochaine date de génération est avant la date actuelle
         return $now > $nextGenerationDate;
     }
 
-    private function getNextGenerationDate($recurrence, $lastGeneratedDate)
+    private function getNextGenerationDate(Recurrence $recurrence, \DateTimeImmutable $lastGeneratedDate): \DateTimeImmutable
     {
         $frequency = $recurrence->getName();
-        $interval = null;
+        $interval = match ($frequency) {
+            RecurrenceEnum::Daily->value => new \DateInterval('P1D'),
+            RecurrenceEnum::Weekly->value => new \DateInterval('P1W'),
+            RecurrenceEnum::Bimonthly->value => new \DateInterval('P2M'),
+            RecurrenceEnum::Quarterly->value => new \DateInterval('P3M'),
+            RecurrenceEnum::Monthly->value => new \DateInterval('P1M'),
+            RecurrenceEnum::Yearly->value => new \DateInterval('P1Y'),
+            default => throw new \InvalidArgumentException("Unknown frequency: $frequency"),
+        };
 
-        switch ($frequency) {
-            case RecurrenceEnum::Daily->value:
-                // P1D = Period 1 Day
-                $interval = new \DateInterval('P1D');
-                break;
-            case RecurrenceEnum::Weekly->value:
-                // P1W = Period 1 Week
-                $interval = new \DateInterval('P1W');
-                break;
-            case RecurrenceEnum::Bimonthly->value:
-                // P2M = Period 2 Month
-                $interval = new \DateInterval('P2M');
-                break;
-            case RecurrenceEnum::Quarterly->value:
-                // P3M = Period 3 Month
-                $interval = new \DateInterval('P3M');
-                break;
-            case RecurrenceEnum::Monthly->value:
-                // P1M = Period 1 Month
-                $interval = new \DateInterval('P1M');
-                break;
-            case RecurrenceEnum::Yearly->value:
-                // P1Y = Period 1 Year
-                $interval = new \DateInterval('P1Y');
-                break;
-            default:
-                throw new \InvalidArgumentException("Unknown frequency: $frequency");
-        }
-
+        // Calculer la prochaine date de génération en ajoutant l'intervalle à la dernière date générée
         return (clone $lastGeneratedDate)->add($interval);
     }
 
-    private function getLastMovement($recurrence)
+    private function getLastMovement(Recurrence $recurrence): Movement
     {
+        // Récupérer le dernier mouvement pour une récurrence donnée
         return $this->entityManager->getRepository(Movement::class)
             ->findOneBy(['recurrence' => $recurrence], ['date' => 'DESC']);
     }
