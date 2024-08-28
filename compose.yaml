@@ -1,4 +1,11 @@
 services:
+  ###> php ###
+  php:
+    image: php:8-fpm-alpine
+    container_name: cashtrack_php
+    volumes:
+      - './configs/php.ini:/usr/local/etc/php/php.ini'
+  ###< php ###
   ###> symfony ###
   symfony:
     container_name: api
@@ -10,6 +17,7 @@ services:
       - 8000:8000
     volumes:
       - .:/app
+      - './configs/php.ini:/usr/local/etc/php/php.ini'
   ###< symfony ###
   ###> doctrine/doctrine-bundle ###
   database:

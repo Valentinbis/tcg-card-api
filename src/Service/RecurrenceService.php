@@ -22,9 +22,9 @@ class RecurrenceService
         $this->entityManager = $entityManager;
         $this->logger = $logger;
     }
-    
+
     public function createRecurrence(Movement $movement, array $data): void
-    {   
+    {
         if (isset($data['recurrence']['name']) && RecurrenceEnum::from($data['recurrence']['name'])) {
             $recurrence = $this->updateDataRecurrence($data['recurrence']);
             $movement->setRecurrence($recurrence);
@@ -33,7 +33,7 @@ class RecurrenceService
         }
     }
 
-    public function updateRecurrence(Movement $movement, array $data): void 
+    public function updateRecurrence(Movement $movement, array $data): void
     {
         $recurrence = $movement->getRecurrence();
         if ($recurrence) {
@@ -66,17 +66,17 @@ class RecurrenceService
 
     public function generateNextMonthMovements()
     {
-        $this->entityManager->beginTransaction();
+        $recurrences = $this->recurrenceRepository->findActiveRecurrences();
 
-        try {
-            $recurrences = $this->recurrenceRepository->findActiveRecurrences();
+        foreach ($recurrences as $recurrence) {
+            $now = new \DateTimeImmutable();
+            $nextMonth = (clone $now)->modify('+1 month');
+            $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
 
-            foreach ($recurrences as $recurrence) {
-                $now = new \DateTimeImmutable();
-                $nextMonth = (clone $now)->modify('+1 month');
-                $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
+            while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
+                $this->entityManager->beginTransaction();
 
-                while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
+                try {
                     $lastMovement = $this->getLastMovement($recurrence);
 
                     $movement = new Movement();
@@ -91,21 +91,30 @@ class RecurrenceService
 
                     // Mettre à jour la dernière date de génération
                     $lastGeneratedDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
+
+                    $recurrence->setLastGeneratedDate($lastGeneratedDate);
+                    // $this->entityManager->persist($recurrence);
+
+                    $this->entityManager->flush();
+                    $this->entityManager->commit();
+
+                    // Détacher les entités pour libérer la mémoire
+                    $this->entityManager->detach($movement);
+                    $this->entityManager->detach($recurrence);
+                } catch (\Exception $e) {
+                    $this->entityManager->rollback();
+                    $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
+                    throw $e;
                 }
-
-                $recurrence->setLastGeneratedDate($lastGeneratedDate);
-                $this->entityManager->persist($recurrence);
             }
-
+            
+            // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
+            $this->entityManager->persist($recurrence);
             $this->entityManager->flush();
             $this->entityManager->commit();
-
-            $this->logger->info('Recurring movements for the next month have been generated successfully.');
-        } catch (\Exception $e) {
-            $this->entityManager->rollback();
-            $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
-            throw $e;
         }
+
+        $this->logger->info('Recurring movements for the next month have been generated successfully.');
     }
 
     private function shouldGenerateMovement($recurrence, $lastGeneratedDate, $now)
@@ -117,31 +126,31 @@ class RecurrenceService
 
     private function getNextGenerationDate($recurrence, $lastGeneratedDate)
     {
-        $frequency = $recurrence->getFrequency();
+        $frequency = $recurrence->getName();
         $interval = null;
 
         switch ($frequency) {
-            case 'daily':
+            case RecurrenceEnum::Daily->value:
                 // P1D = Period 1 Day
                 $interval = new \DateInterval('P1D');
                 break;
-            case 'weekly':
+            case RecurrenceEnum::Weekly->value:
                 // P1W = Period 1 Week
                 $interval = new \DateInterval('P1W');
                 break;
-            case 'bimonthly':
+            case RecurrenceEnum::Bimonthly->value:
                 // P2M = Period 2 Month
                 $interval = new \DateInterval('P2M');
                 break;
-            case 'quarterly':
+            case RecurrenceEnum::Quarterly->value:
                 // P3M = Period 3 Month
                 $interval = new \DateInterval('P3M');
                 break;
-            case 'monthly':
+            case RecurrenceEnum::Monthly->value:
                 // P1M = Period 1 Month
                 $interval = new \DateInterval('P1M');
                 break;
-            case 'yearly':
+            case RecurrenceEnum::Yearly->value:
                 // P1Y = Period 1 Year
                 $interval = new \DateInterval('P1Y');
                 break;
