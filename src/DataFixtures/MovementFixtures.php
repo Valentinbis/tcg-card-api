@@ -17,7 +17,7 @@ class MovementFixtures extends Fixture implements DependentFixtureInterface
     public function load(ObjectManager $manager): void
     {
         $users = $manager->getRepository(User::class)->findAll();
-        $categories = $manager->getRepository(Category::class)->findAll();
+        $categories = $manager->getRepository(Category::class)->findCategoriesWithoutParent();
         $faker = Factory::create('fr_FR');
 
         for ($i = 0; $i < 1000; $i++) {
