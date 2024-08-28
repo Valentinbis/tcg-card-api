@@ -67,16 +67,18 @@ class RecurrenceService
     public function generateNextMonthMovements()
     {
         $recurrences = $this->recurrenceRepository->findActiveRecurrences();
-
-        foreach ($recurrences as $recurrence) {
-            $now = new \DateTimeImmutable();
-            $nextMonth = (clone $now)->modify('+1 month');
-            $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
-
-            while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
+        
+        
+        try {
+            foreach ($recurrences as $recurrence) {
                 $this->entityManager->beginTransaction();
+                $now = new \DateTimeImmutable();
+                $nextMonth = (clone $now)->modify('+1 month');
+                $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
 
-                try {
+                while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
+
+
                     $lastMovement = $this->getLastMovement($recurrence);
 
                     $movement = new Movement();
@@ -93,25 +95,17 @@ class RecurrenceService
                     $lastGeneratedDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
 
                     $recurrence->setLastGeneratedDate($lastGeneratedDate);
-                    // $this->entityManager->persist($recurrence);
-
-                    $this->entityManager->flush();
-                    $this->entityManager->commit();
-
-                    // Détacher les entités pour libérer la mémoire
-                    $this->entityManager->detach($movement);
-                    $this->entityManager->detach($recurrence);
-                } catch (\Exception $e) {
-                    $this->entityManager->rollback();
-                    $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
-                    throw $e;
                 }
+
+                // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
+                $this->entityManager->persist($recurrence);
+                $this->entityManager->flush();
+                $this->entityManager->commit();
             }
-            
-            // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
-            $this->entityManager->persist($recurrence);
-            $this->entityManager->flush();
-            $this->entityManager->commit();
+        } catch (\Exception $e) {
+            $this->entityManager->rollback();
+            $this->logger->error('An error occurred while generating recurring movements: ' . $e->getMessage());
+            throw $e;
         }
 
         $this->logger->info('Recurring movements for the next month have been generated successfully.');
