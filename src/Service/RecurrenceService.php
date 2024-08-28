@@ -75,20 +75,19 @@ class RecurrenceService
                 $now = new \DateTimeImmutable();
                 $nextMonth = (clone $now)->modify('+1 month');
                 $lastGeneratedDate = $recurrence->getLastGeneratedDate() ?: $recurrence->getStartDate();
-
+                
                 while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
-
-
+                    $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
                     $lastMovement = $this->getLastMovement($recurrence);
 
                     $movement = new Movement();
                     $movement->setAmount($lastMovement->getAmount());
-                    $movement->setDate($lastGeneratedDate);
+                    $movement->setDate($nextGenerationDate);
                     $movement->setRecurrence($recurrence);
+                    $movement->setDescription($lastMovement->getDescription());
                     $movement->setType($lastMovement->getType());
                     $movement->setUser($lastMovement->getUser());
                     $movement->setCategory($lastMovement->getCategory());
-
                     $this->entityManager->persist($movement);
 
                     // Mettre à jour la dernière date de génération
@@ -96,7 +95,6 @@ class RecurrenceService
 
                     $recurrence->setLastGeneratedDate($lastGeneratedDate);
                 }
-
                 // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence
                 $this->entityManager->persist($recurrence);
                 $this->entityManager->flush();
@@ -115,7 +113,7 @@ class RecurrenceService
     {
         $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
 
-        return $now >= $nextGenerationDate;
+        return $now > $nextGenerationDate;
     }
 
     private function getNextGenerationDate($recurrence, $lastGeneratedDate)
