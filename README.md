@@ -65,3 +65,9 @@ docker run \
 ```bash
 php bin/phpunit --coverage-html tests/Coverage
 ```
+
+## Tâche cron
+
+```bash
+/usr/local/bin/php /app/bin/console app:generate-next-month-movements
+```

@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Enums\MovementEnum;
 use App\Repository\CategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -22,6 +23,10 @@ class Category
     #[ORM\Column(length: 255)]
     #[Groups(['category.show', 'category.create', 'category.update', 'movements.show'])]
     private ?string $name = null;
+
+    #[ORM\Column(length: 10)]
+    #[Groups(['category.show', 'category.create', 'category.update', 'movements.show'])]
+    private ?MovementEnum $type = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $createdAt = null;
@@ -73,6 +78,18 @@ class Category
     public function setName(string $name): static
     {
         $this->name = $name;
+
+        return $this;
+    }
+
+    public function getType(): ?MovementEnum
+    {
+        return $this->type;
+    }
+
+    public function setType(MovementEnum $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }
