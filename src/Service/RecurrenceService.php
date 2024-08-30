@@ -97,13 +97,12 @@ class RecurrenceService
         while ($this->shouldGenerateMovement($recurrence, $lastGeneratedDate, $nextMonth)) {
             $nextGenerationDate = $this->getNextGenerationDate($recurrence, $lastGeneratedDate);
             $lastMovement = $this->getLastMovement($recurrence);
-
             // Créer un nouveau mouvement basé sur le dernier mouvement
             $movement = new Movement();
             $movement->setAmount($lastMovement->getAmount());
             $movement->setDate($nextGenerationDate);
             $movement->setRecurrence($recurrence);
-            $movement->setDescription($lastMovement->getDescription());
+            $movement->setDescription($lastMovement->getDescription() ?: '');
             $movement->setType($lastMovement->getType());
             $movement->setUser($lastMovement->getUser());
             $movement->setCategory($lastMovement->getCategory());
@@ -112,6 +111,7 @@ class RecurrenceService
             // Mettre à jour la dernière date de génération
             $lastGeneratedDate = $nextGenerationDate;
             $recurrence->setLastGeneratedDate($lastGeneratedDate);
+            $recurrence->setUpdatedAt($now);
         }
 
         // Persist et flush la récurrence mise à jour après avoir traité tous les mouvements pour cette récurrence

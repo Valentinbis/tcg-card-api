@@ -145,6 +145,13 @@ class Recurrence
         return $this->updatedAt;
     }
 
+    public function setUpdatedAt(?\DateTimeImmutable $updatedAt): static
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
     public function getLastGeneratedDate(): ?\DateTimeImmutable
     {
         return $this->lastGeneratedDate;
