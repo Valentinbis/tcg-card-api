@@ -135,7 +135,7 @@ class Movement
 
     #[SerializedName('date')]
     #[Groups(['movements.show'])]
-    public function getFormattedDate(): string
+    public function getFormatedDate(): string
     {
         return $this->date->format('d-m-Y');
     }
