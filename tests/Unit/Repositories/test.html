@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page avec fond et images</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("https://crm.omb-informatique.fr:4443/ArtisWeb/resources/images/login/Arriere-fond-artis.net_vague6.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        position: relative;
+      }
+
+      .fixed-image {
+        background-image: url("https://crm.omb-informatique.fr:4443/ArtisWeb/resources/images/login/baseline.svg");
+        background-size: 700px 130px;
+        position: fixed;
+        top: 80px;
+        right: 50px;
+        width: 700px;
+        height: 130px;
+        background-repeat: no-repeat;
+      }
+
+      .additional-image {
+        width: 369.969px;
+        height: 148.609px;
+        position: absolute;
+        top: 180px; /* 180px au-dessus de l'image */
+        left: 340.016px; /* 340.016px à gauche */
+        right: 340.016px; /* 340.016px à droite */
+        margin-bottom: 30px;
+      }
+      .form {
+        position: absolute; /* Position absolue pour contrôler la distance par rapport au haut */
+        top: 358.609px; /* 358.609px à partir du haut */
+        left: 300; /* Aligné avec l'image */
+        width: 1050px;
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: block;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 275.125px;
+        line-height: 19.5px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .cardmx-auto {
+        background-attachment: scroll;
+        background-clip: border-box;
+        background-color: rgb(255, 255, 255);
+        background-image: none;
+        background-origin: padding-box;
+        background-position-x: 0%;
+        background-position-y: 0%;
+        background-repeat: repeat;
+        background-size: auto;
+
+        border-bottom-color: rgba(0, 0, 0, 0.176);
+        border-bottom-left-radius: 11.05px;
+        border-bottom-right-radius: 11.05px;
+        border-bottom-style: solid;
+        border-bottom-width: 0px;
+        border-left-color: rgba(0, 0, 0, 0.176);
+        border-left-style: solid;
+        border-left-width: 0px;
+        border-right-color: rgba(0, 0, 0, 0.176);
+        border-right-style: solid;
+        border-right-width: 0px;
+        border-top-color: rgba(0, 0, 0, 0.176);
+        border-top-left-radius: 11.05px;
+        border-top-right-radius: 11.05px;
+        border-top-style: solid;
+        border-top-width: 0px;
+
+        box-shadow: rgba(56, 71, 109, 0.08) 0px 10px 35px 0px;
+        box-sizing: border-box;
+
+        color: rgb(33, 37, 41);
+        display: flex;
+        flex-direction: column;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 265.125px;
+        line-height: 19.5px;
+        margin-bottom: 10px;
+        margin-left: 295px;
+        margin-right: 295px;
+        margin-top: 0px;
+        min-width: 0px;
+
+        overflow-wrap: break-word;
+        position: relative;
+
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 460px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+      .card-body {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: block;
+        flex-basis: auto;
+        flex-grow: 1;
+        flex-shrink: 1;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 220.25px;
+        line-height: 19.5px;
+        overflow-wrap: break-word;
+        padding-bottom: 24.375px;
+        padding-left: 39px;
+        padding-right: 39px;
+        padding-top: 24.375px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 460px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .row.form-group.has-feedback.has-feedback-left {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: flex;
+        flex-wrap: wrap;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 40px;
+        line-height: 19.5px;
+        margin-bottom: 2px;
+        margin-left: -9.75px;
+        margin-right: -9.75px;
+        margin-top: 10px;
+        overflow-wrap: break-word;
+        position: relative;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 401.5px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .col {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: block;
+        flex-basis: 0%;
+        flex-grow: 1;
+        flex-shrink: 0;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 40px;
+        line-height: 19.5px;
+        margin-top: 0px;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        padding-left: 9.75px;
+        padding-right: 9.75px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 401.5px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .form-control-feedback {
+        box-sizing: border-box;
+        color: rgb(51, 51, 51);
+        display: block;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 38px;
+        left: 21px;
+        line-height: 38px;
+        overflow-wrap: break-word;
+        pointer-events: none;
+        position: absolute;
+        right: 364.5px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: center;
+        text-size-adjust: 100%;
+        top: 0px;
+        width: 16px;
+        z-index: 3;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+      .mdi-account {
+        box-sizing: border-box;
+        color: rgb(51, 51, 51);
+        display: inline-block;
+        font-family: "Material Design Icons";
+        font-feature-settings: normal;
+        font-kerning: auto;
+        font-optical-sizing: auto;
+        font-size: 24px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-alternates: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-variant-position: normal;
+        font-variation-settings: normal;
+        font-weight: 400;
+        height: 28.7969px;
+        line-height: 28.8px;
+        margin-top: 6px;
+        overflow-wrap: break-word;
+        pointer-events: none;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: center;
+        text-rendering: auto;
+        text-size-adjust: 100%;
+        width: 24px;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .form-control {
+        appearance: none;
+        background-attachment: scroll;
+        background-clip: border-box;
+        background-color: rgb(245, 245, 245);
+        background-image: none;
+        background-origin: padding-box;
+        background-position-x: 0%;
+        background-position-y: 0%;
+        background-repeat: repeat;
+        background-size: auto;
+        border-bottom-color: rgb(221, 221, 221);
+        border-bottom-left-radius: 4.875px;
+        border-bottom-right-radius: 4.875px;
+        border-bottom-style: solid;
+        border-bottom-width: 1px;
+        border-image-outset: 0;
+        border-image-repeat: stretch;
+        border-image-slice: 100%;
+        border-image-source: none;
+        border-image-width: 1;
+        border-left-color: rgb(221, 221, 221);
+        border-left-style: solid;
+        border-left-width: 1px;
+        border-right-color: rgb(221, 221, 221);
+        border-right-style: solid;
+        border-right-width: 1px;
+        border-top-color: rgb(221, 221, 221);
+        border-top-left-radius: 4.875px;
+        border-top-right-radius: 4.875px;
+        border-top-style: solid;
+        border-top-width: 1px;
+        box-shadow: none;
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        cursor: text;
+        display: block;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-feature-settings: normal;
+        font-kerning: auto;
+        font-optical-sizing: auto;
+        font-size: 13px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-alternates: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-variant-position: normal;
+        font-variation-settings: normal;
+        font-weight: 400;
+        height: 40px;
+        letter-spacing: normal;
+        line-height: 19.5px;
+        margin-bottom: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+        margin-top: 0px;
+        overflow-wrap: break-word;
+        padding-block-end: 2px;
+        padding-block-start: 2px;
+        padding-bottom: 2px;
+        padding-inline-end: 0px;
+        padding-inline-start: 4px;
+        padding-left: 4px;
+        padding-right: 0px;
+        padding-top: 2px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-indent: 40px;
+        text-rendering: auto;
+        text-shadow: none;
+        text-size-adjust: 100%;
+        text-transform: none;
+        transition-behavior: normal, normal;
+        transition-delay: 0s, 0s;
+        transition-duration: 0.15s, 0.15s;
+        transition-property: border-color, box-shadow;
+        transition-timing-function: ease-in-out, ease-in-out;
+        width: 382px;
+        word-spacing: 0px;
+        -webkit-rtl-ordering: logical;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        -webkit-border-image: none;
+      }
+
+      .row.form-actions {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: flex;
+        flex-wrap: wrap;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 41.5px;
+        line-height: 19.5px;
+        margin-bottom: 5px;
+        margin-left: -9.75px;
+        margin-right: -9.75px;
+        margin-top: 25px;
+        overflow-wrap: break-word;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 401.5px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+      .col.d-flex.align-items-center {
+        align-items: center;
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: flex;
+        flex-basis: 0%;
+        flex-grow: 1;
+        flex-shrink: 0;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 41.5px;
+        line-height: 19.5px;
+        margin-top: 0px;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        padding-left: 9.75px;
+        padding-right: 9.75px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 200.75px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .checkbox-label {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        cursor: pointer;
+        display: block;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 23.3906px;
+        line-height: 23.4px;
+        margin-bottom: 0px;
+        overflow-wrap: break-word;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        /* width: 116.453px; */
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .checkbox {
+        border-bottom-color: rgb(95, 95, 95);
+        border-bottom-left-radius: 2px;
+        border-bottom-right-radius: 2px;
+        border-bottom-style: solid;
+        border-bottom-width: 2px;
+        border-image-outset: 0;
+        border-image-repeat: stretch;
+        border-image-slice: 100%;
+        border-image-source: none;
+        border-image-width: 1;
+        border-left-color: rgb(95, 95, 95);
+        border-left-style: solid;
+        border-left-width: 2px;
+        border-right-color: rgb(95, 95, 95);
+        border-right-style: solid;
+        border-right-width: 2px;
+        border-top-color: rgb(95, 95, 95);
+        border-top-left-radius: 2px;
+        border-top-right-radius: 2px;
+        border-top-style: solid;
+        border-top-width: 2px;
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        cursor: pointer;
+        display: inline;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: auto;
+        line-height: normal;
+        margin-bottom: 7px;
+        margin-left: 0px;
+        margin-right: 5px;
+        margin-top: 7px;
+        max-height: 14.3px;
+        overflow-wrap: break-word;
+        padding-bottom: 0px;
+        padding-left: 1px;
+        padding-right: 1px;
+        padding-top: 0px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        transition-behavior: normal;
+        transition-delay: 0s;
+        transition-duration: 0.5s;
+        transition-property: all;
+        transition-timing-function: ease;
+        width: auto;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .mdi-check-bold {
+        box-sizing: border-box;
+        color: rgba(0, 0, 0, 0); /* Icône invisible si ce style est appliqué */
+        cursor: pointer;
+        display: inline-block;
+        font-family: "Material Design Icons";
+        font-feature-settings: normal;
+        font-kerning: auto;
+        font-optical-sizing: auto;
+        font-size: 11.7px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-alternates: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-variant-position: normal;
+        font-variation-settings: normal;
+        font-weight: 400;
+        height: 14.0312px;
+        line-height: 14.04px;
+        overflow-wrap: break-word;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-rendering: auto;
+        text-size-adjust: 100%;
+        width: 11.7031px;
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .col.btn-action-login {
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: flex;
+        flex-basis: 0%;
+        flex-grow: 1;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 41.5px;
+        justify-content: flex-end;
+        line-height: 19.5px;
+        margin-top: 0px;
+        max-width: 100%;
+        overflow-wrap: break-word;
+        padding-left: 9.75px;
+        padding-right: 9.75px;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        width: 200.75px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .btn-group.ms-auto {
+        border-bottom-left-radius: 4.875px;
+        border-bottom-right-radius: 4.875px;
+        border-top-left-radius: 4.875px;
+        border-top-right-radius: 4.875px;
+        box-sizing: border-box;
+        color: rgb(33, 37, 41);
+        display: flex;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 13px;
+        font-weight: 400;
+        height: 41.5px;
+        line-height: 19.5px;
+        margin-left: 67.3438px;
+        overflow-wrap: break-word;
+        position: relative;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: start;
+        text-size-adjust: 100%;
+        vertical-align: middle;
+        width: 113.906px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+      }
+
+      .btn.btn-info.btn-raised.mdc-ripple-surface.mdc-ripple-upgraded {
+        align-items: center;
+        appearance: button;
+        background-color: rgb(73, 175, 205);
+        border-bottom-color: rgb(73, 175, 205);
+        border-bottom-left-radius: 4.875px;
+        border-bottom-right-radius: 0px;
+        border-bottom-style: solid;
+        border-bottom-width: 0px;
+        border-image-outset: 0;
+        border-image-repeat: stretch;
+        border-image-slice: 100%;
+        border-image-source: none;
+        border-image-width: 1;
+        border-left-color: rgb(73, 175, 205);
+        border-left-style: solid;
+        border-left-width: 0px;
+        border-right-color: rgb(73, 175, 205);
+        border-right-style: solid;
+        border-right-width: 0px;
+        border-top-color: rgb(73, 175, 205);
+        border-top-left-radius: 4.875px;
+        border-top-right-radius: 0px;
+        border-top-style: solid;
+        border-top-width: 0px;
+        box-shadow: rgba(0, 0, 0, 0.12) 0px 3px 3px 0px,
+          rgba(0, 0, 0, 0.12) 3px 3px 14px 0px;
+        box-sizing: border-box;
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+        display: flex;
+        flex-basis: auto;
+        flex-grow: 1;
+        flex-shrink: 1;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-feature-settings: normal;
+        font-kerning: auto;
+        font-optical-sizing: auto;
+        font-size: 13px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-alternates: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-variant-position: normal;
+        font-variation-settings: normal;
+        font-weight: 500;
+        height: 41.5px;
+        letter-spacing: normal;
+        line-height: 19.5px;
+        margin-bottom: 0px;
+        margin-left: 0px;
+        margin-right: 0px;
+        margin-top: 0px;
+        outline-color: rgb(255, 255, 255);
+        outline-style: none;
+        outline-width: 0px;
+        overflow-wrap: break-word;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        padding-block-end: 11px;
+        padding-block-start: 11px;
+        padding-bottom: 11px;
+        padding-inline-end: 17px;
+        padding-inline-start: 17px;
+        padding-left: 17px;
+        padding-right: 17px;
+        padding-top: 11px;
+        position: relative;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: center;
+        text-decoration-color: rgb(255, 255, 255);
+        text-decoration-line: none;
+        text-decoration-style: solid;
+        text-decoration-thickness: auto;
+        text-indent: 0px;
+        text-rendering: auto;
+        text-shadow: none;
+        text-size-adjust: 100%;
+        text-transform: none;
+        transition-behavior: normal;
+        transition-delay: 0s;
+        transition-duration: 0.15s;
+        transition-property: all;
+        transition-timing-function: ease-in-out;
+        user-select: none;
+        vertical-align: middle;
+        width: 68.9062px;
+        will-change: transform, opacity;
+        word-spacing: 0px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        -webkit-border-image: none;
+      }
+
+      .btn.btn-info.btn-icon.btn-raised.tip.mdc-ripple-surface.mdc-ripple-upgraded {
+        align-items: center;
+        appearance: button;
+        background-color: rgb(73, 175, 205);
+        border-bottom-color: rgb(73, 175, 205);
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 4.875px;
+        border-bottom-style: solid;
+        border-bottom-width: 0px;
+        border-image-outset: 0;
+        border-image-repeat: stretch;
+        border-image-slice: 100%;
+        border-image-source: none;
+        border-image-width: 1;
+        border-left-color: rgb(73, 175, 205);
+        border-left-style: solid;
+        border-left-width: 0px;
+        border-right-color: rgb(73, 175, 205);
+        border-right-style: solid;
+        border-right-width: 0px;
+        border-top-color: rgb(73, 175, 205);
+        border-top-left-radius: 0px;
+        border-top-right-radius: 4.875px;
+        border-top-style: solid;
+        border-top-width: 0px;
+        box-shadow: rgba(0, 0, 0, 0.12) 0px 3px 3px 0px,
+          rgba(0, 0, 0, 0.12) 3px 3px 14px 0px;
+        box-sizing: border-box;
+        color: rgb(255, 255, 255);
+        cursor: pointer;
+        display: flex;
+        flex-basis: auto;
+        flex-grow: 1;
+        flex-shrink: 1;
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-feature-settings: normal;
+        font-kerning: auto;
+        font-optical-sizing: auto;
+        font-size: 13px;
+        font-stretch: 100%;
+        font-style: normal;
+        font-variant-alternates: normal;
+        font-variant-caps: normal;
+        font-variant-east-asian: normal;
+        font-variant-ligatures: normal;
+        font-variant-numeric: normal;
+        font-variant-position: normal;
+        font-variation-settings: normal;
+        font-weight: 500;
+        height: 41.5px;
+        letter-spacing: normal;
+        line-height: 19.5px;
+        margin-bottom: 0px;
+        margin-left: 1px;
+        margin-right: 0px;
+        margin-top: 0px;
+        outline-color: rgb(255, 255, 255);
+        outline-style: none;
+        outline-width: 0px;
+        overflow-wrap: break-word;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        padding-block-end: 7px;
+        padding-block-start: 7px;
+        padding-bottom: 7px;
+        padding-inline-end: 10px;
+        padding-inline-start: 10px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 7px;
+        position: relative;
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230);
+        scrollbar-width: thin;
+        text-align: center;
+        text-decoration-color: rgb(255, 255, 255);
+        text-decoration-line: none;
+        text-decoration-style: solid;
+        text-decoration-thickness: auto;
+        text-indent: 0px;
+        text-rendering: auto;
+        text-shadow: none;
+        text-size-adjust: 100%;
+        text-transform: none;
+        transition-behavior: normal;
+        transition-delay: 0s;
+        transition-duration: 0.15s;
+        transition-property: all;
+        transition-timing-function: ease-in-out;
+        user-select: none;
+        vertical-align: middle;
+        width: 44px;
+        will-change: transform, opacity;
+        word-spacing: 0px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        -webkit-border-image: none;
+      }
+
+      .card-footer.flex-wrap.justify-content-around {
+        background-color: rgba(0, 0, 0, 0); /* Couleur de fond transparente */
+        border-bottom-left-radius: 0px; /* Aucun rayon pour le coin inférieur gauche */
+        border-bottom-right-radius: 0px; /* Aucun rayon pour le coin inférieur droit */
+        border-top-color: rgba(
+          0,
+          0,
+          0,
+          0.125
+        ); /* Couleur de la bordure supérieure avec une opacité */
+        border-top-left-radius: 0px; /* Aucun rayon pour le coin supérieur gauche */
+        border-top-right-radius: 0px; /* Aucun rayon pour le coin supérieur droit */
+        border-top-style: solid; /* Style de la bordure supérieure */
+        border-top-width: 1px; /* Largeur de la bordure supérieure */
+        box-sizing: border-box; /* Inclut la bordure et le padding dans la largeur et la hauteur totales */
+        color: rgb(33, 37, 41); /* Couleur du texte */
+        display: flex; /* Utilise Flexbox pour l'alignement */
+        flex-wrap: wrap; /* Permet au contenu de se replier sur plusieurs lignes si nécessaire */
+        font-family: Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif; /* Police de caractères */
+        font-size: 13px; /* Taille de la police */
+        font-weight: 400; /* Poids de la police */
+        height: 44.875px; /* Hauteur de l'élément */
+        justify-content: space-around; /* Aligne les éléments enfants avec de l'espace autour */
+        line-height: 19.5px; /* Hauteur de ligne */
+        overflow-wrap: break-word; /* Gère le retour à la ligne des mots longs */
+        padding-bottom: 12.1875px; /* Padding en bas */
+        padding-left: 24.375px; /* Padding à gauche */
+        padding-right: 24.375px; /* Padding à droite */
+        padding-top: 12.1875px; /* Padding en haut */
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230); /* Couleurs des barres de défilement */
+        scrollbar-width: thin; /* Largeur des barres de défilement */
+        text-align: start; /* Alignement du texte au début */
+        text-size-adjust: 100%; /* Ajuste la taille du texte pour les appareils tactiles */
+        width: 460px; /* Largeur de l'élément */
+        -webkit-tap-highlight-color: rgba(
+          0,
+          0,
+          0,
+          0
+        ); /* Couleur de surbrillance pour les éléments tactiles */
+      }
+
+      .mdi.mdi-information-outline {
+        width: 24px; /* Largeur de l'icône */
+        height: 24px; /* Hauteur de l'icône */
+        display: inline-block; /* Affiche l'icône comme un bloc en ligne */
+        background: url("information-outline.svg") no-repeat center center; /* Chemin vers le fichier SVG */
+        background-size: contain; /* Ajuste la taille du SVG pour qu'il s'adapte à l'élément */
+        color: rgb(255, 255, 255); /* Couleur de l'icône */
+        box-sizing: border-box; /* Inclut les bordures et le padding dans les dimensions totales */
+        cursor: pointer; /* Curseur de la souris au survol */
+        font-family: "Material Design Icons"; /* Assure la police correcte si nécessaire */
+        font-size: 24px; /* Taille de la police (peut être utile si vous utilisez une font pour les icônes) */
+        text-align: center; /* Aligne le contenu au centre */
+        -webkit-font-smoothing: antialiased; /* Lissage de la police pour les navigateurs WebKit */
+        -webkit-tap-highlight-color: rgba(
+          0,
+          0,
+          0,
+          0
+        ); /* Couleur de surbrillance pour les éléments tactiles */
+      }
+
+      .mdi.mdi-account {
+        box-sizing: border-box; /* Inclut les bordures et le padding dans les dimensions totales */
+        color: rgb(51, 51, 51); /* Couleur de l'icône */
+        background: url("account.svg") no-repeat center center;
+        display: inline-block; /* Affiche l'icône comme un bloc en ligne */
+        font-family: "Material Design Icons"; /* Police utilisée pour les icônes */
+        font-feature-settings: normal; /* Paramètres de fonctionnalités de police */
+        font-kerning: auto; /* Gestion du crénage de la police */
+        font-optical-sizing: auto; /* Dimensionnement optique de la police */
+        font-size: 24px; /* Taille de la police de l'icône */
+        font-stretch: 100%; /* Étirement de la police */
+        font-style: normal; /* Style de la police */
+        font-variant-alternates: normal; /* Variantes de police alternatives */
+        font-variant-caps: normal; /* Variantes de majuscules */
+        font-variant-east-asian: normal; /* Variantes est-asiatiques de la police */
+        font-variant-ligatures: normal; /* Ligatures de la police */
+        font-variant-numeric: normal; /* Variantes numériques */
+        font-variant-position: normal; /* Position des variantes de la police */
+        font-variation-settings: normal; /* Paramètres de variation de la police */
+        font-weight: 400; /* Poids de la police */
+        height: 28.7969px; /* Hauteur de l'icône */
+        line-height: 28.8px; /* Hauteur de ligne de l'icône */
+        margin-top: 6px; /* Marge au-dessus de l'icône */
+        overflow-wrap: break-word; /* Gestion de l'enroulement des mots */
+        pointer-events: none; /* Désactive les événements de pointeur */
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230); /* Couleurs de la barre de défilement */
+        scrollbar-width: thin; /* Largeur de la barre de défilement */
+        text-align: center; /* Alignement du texte à l'intérieur de l'icône */
+        text-rendering: auto; /* Rendu du texte */
+        text-size-adjust: 100%; /* Ajustement de la taille du texte */
+        width: 24px; /* Largeur de l'icône */
+        -webkit-font-smoothing: antialiased; /* Lissage de la police pour les navigateurs WebKit */
+        -webkit-tap-highlight-color: rgba(
+          0,
+          0,
+          0,
+          0
+        ); /* Couleur de surbrillance pour les éléments tactiles */
+      }
+
+      .mdi.mdi-lock {
+        box-sizing: border-box; /* Inclut les bordures et le padding dans les dimensions totales */
+        color: rgb(51, 51, 51); /* Couleur de l'icône */
+        display: inline-block; /* Affiche l'icône comme un bloc en ligne */
+        background: url("lock.svg") no-repeat center center;
+        font-family: "Material Design Icons"; /* Police utilisée pour les icônes */
+        font-feature-settings: normal; /* Paramètres de fonctionnalités de police */
+        font-kerning: auto; /* Gestion du crénage de la police */
+        font-optical-sizing: auto; /* Dimensionnement optique de la police */
+        font-size: 24px; /* Taille de la police de l'icône */
+        font-stretch: 100%; /* Étirement de la police */
+        font-style: normal; /* Style de la police */
+        font-variant-alternates: normal; /* Variantes de police alternatives */
+        font-variant-caps: normal; /* Variantes de majuscules */
+        font-variant-east-asian: normal; /* Variantes est-asiatiques de la police */
+        font-variant-ligatures: normal; /* Ligatures de la police */
+        font-variant-numeric: normal; /* Variantes numériques */
+        font-variant-position: normal; /* Position des variantes de la police */
+        font-variation-settings: normal; /* Paramètres de variation de la police */
+        font-weight: 400; /* Poids de la police */
+        height: 28.7969px; /* Hauteur de l'icône */
+        line-height: 28.8px; /* Hauteur de ligne de l'icône */
+        margin-top: 6px; /* Marge au-dessus de l'icône */
+        overflow-wrap: break-word; /* Gestion de l'enroulement des mots */
+        pointer-events: none; /* Désactive les événements de pointeur */
+        scrollbar-color: rgb(179, 179, 179) rgb(230, 230, 230); /* Couleurs de la barre de défilement */
+        scrollbar-width: thin; /* Largeur de la barre de défilement */
+        text-align: center; /* Alignement du texte à l'intérieur de l'icône */
+        text-rendering: auto; /* Rendu du texte */
+        text-size-adjust: 100%; /* Ajustement de la taille du texte */
+        width: 24px; /* Largeur de l'icône */
+        -webkit-font-smoothing: antialiased; /* Lissage de la police pour les navigateurs WebKit */
+        -webkit-tap-highlight-color: rgba(
+          0,
+          0,
+          0,
+          0
+        ); /* Couleur de surbrillance pour les éléments tactiles */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fixed-image"></div>
+    <img
+      src="https://crm.omb-informatique.fr:4443/ArtisWeb/resources/images/Artis-Net-bleu-blanc.svg"
+      alt="Image Artis-Net"
+      class="additional-image"
+    />
+    <form
+      class="form"
+      method="POST"
+      name="loginForm"
+      id="loginForm"
+      novalidate="novalidate"
+    >
+      <div class="cardmx-auto">
+        <div class="card-body">
+          <div class="row form-group has-feedback has-feedback-left">
+            <div class="col">
+              <div class="form-control-feedback">
+                <i class="mdi mdi-account"></i>
+              </div>
+              <input
+                type="text"
+                tabindex="1"
+                autocomplete="off"
+                id="login_form"
+                name="login"
+                value=""
+                placeholder="Identifiant"
+                class="form-control"
+                required="required"
+              />
+            </div>
+          </div>
+          <div class="row form-group has-feedback has-feedback-left">
+            <div class="col">
+              <div class="form-control-feedback">
+                <i class="mdi mdi-lock"></i>
+              </div>
+              <input
+                type="password"
+                tabindex="2"
+                autocomplete="off"
+                name="password"
+                value=""
+                placeholder="Mot de passe"
+                class="form-control"
+                required="required"
+              />
+            </div>
+          </div>
+          <div class="row form-actions">
+            <div class="col d-flex align-items-center">
+                <label class="checkbox-label d-flex align-items-center">
+                  <span class="checkbox">
+                    <input
+                      tabindex="-1"
+                      name="resterConnecter"
+                      id="resterConnecter_checkbox_hidden"
+                      type="hidden"
+                      value="false" />
+                    <i class="mdi mdi-check-bold"></i>
+                  </span>
+                  <span class="label-text">Rester connecté</span>
+                </label>
+              </div>
+
+            <div class="col btn-action-login">
+              <div class="btn-group ms-auto">
+                <button
+                  id="b_Entrer"
+                  type="submit"
+                  tabindex="4"
+                  class="btn btn-info btn-raised mdc-ripple-surface mdc-ripple-upgraded"
+                >
+                  Entrer
+                </button>
+
+                <button
+                  class="btn btn-info btn-icon btn-raised tip mdc-ripple-surface mdc-ripple-upgraded"
+                  tabindex="5"
+                  data-bs-placement="auto"
+                  id="aProposModalLoginLink"
+                  aria-label="A propos"
+                  data-bs-original-title="A propos"
+                >
+                  <i class="mdi mdi-information-outline"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer flex-wrap justify-content-around">
+          <a href="#" id="mdpOublieModalLoginLink">Mot de passe oublié ?</a>
+        </div>
+      </div>
+    </form>
+  </body>
+</html>

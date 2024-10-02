@@ -3,28 +3,34 @@
 namespace App\Controller\API;
 
 use Doctrine\DBAL\Connection;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Routing\Annotation\Route;
 
-class InfosController extends AbstractController
+class InfosController
 {
-    #[Route('/api', name: 'app_infos')]
-    public function index(Connection $connection): Response
+    private Connection $connection;
+
+    public function __construct(Connection $connection)
+    {
+        $this->connection = $connection;
+    }
+
+    #[Route('/api', name: 'app_infos', methods: ['GET'])]
+    public function index(): Response
     {
         try {
-            $connection->executeQuery('SELECT 1');
+            $this->connection->executeQuery('SELECT 1');
             $isConnected = true;
         } catch (\Exception $e) {
             $isConnected = false;
         }
 
-        return $this->json([
+        return new Response(json_encode([
             'name' => $_ENV['APP_NAME'],
             'env' => $_ENV['APP_ENV'],
             'database' => [
                 'connected' => $isConnected
             ]
-        ]);
+        ]), 200, ['Content-Type' => 'application/json']);
     }
 }

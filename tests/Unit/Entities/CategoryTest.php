@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\Category;
 use App\Entity\Movement;
+use App\Enums\MovementEnum;
 use App\Tests\TestTraits;
 use Doctrine\Common\Collections\Collection;
 use PHPUnit\Framework\TestCase;
@@ -18,6 +19,7 @@ class CategoryTest extends TestCase
     {
         $category = new Category();
         $category->setName('Nom par défaut');
+        $category->setType(MovementEnum::Expense);
         $category->setParent(new Category());
         $category->addMovement(new Movement());
         $category->addChild(new Category());
@@ -34,6 +36,11 @@ class CategoryTest extends TestCase
     public function testName(): void
     {
         $this->assertIsString($this->category->getName());
+    }
+
+    public function testType(): void
+    {
+        $this->assertInstanceOf(MovementEnum::class, $this->category->getType());
     }
 
     public function testParent(): void
@@ -108,5 +115,10 @@ class CategoryTest extends TestCase
     {
         $this->category->updateTimestamp();    
         $this->assertInstanceOf(\DateTimeImmutable::class, $this->category->getUpdatedAt());
+    }
+
+    public function testToString(): void
+    {
+        $this->assertIsString($this->category->__toString());
     }
 }

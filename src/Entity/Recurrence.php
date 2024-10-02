@@ -98,7 +98,7 @@ class Recurrence
 
     #[SerializedName('startDate')]
     #[Groups(['movements.show'])]
-    public function getFormattedStartDate(): ?string
+    public function getFormatedStartDate(): ?string
     {
         if ($this->startDate === null) {
             return null;
@@ -120,7 +120,7 @@ class Recurrence
 
     #[SerializedName('endDate')]
     #[Groups(['movements.show'])]
-    public function getFormattedEndDate(): ?string
+    public function getFormatedEndDate(): ?string
     {
         if ($this->endDate === null) {
             return null;
