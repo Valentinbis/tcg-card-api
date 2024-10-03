@@ -6,6 +6,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\APIAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,24 +23,33 @@ class RegistrationController extends AbstractController
     private $userRepository;
     private $serializer;
     private $validator;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager, UserRepository $userRepository, SerializerInterface $serializer, ValidatorInterface $validator)
-    {
+    public function __construct(
+        EntityManagerInterface $entityManager,
+        UserRepository $userRepository,
+        SerializerInterface $serializer,
+        ValidatorInterface $validator,
+        LoggerInterface $logger
+    ) {
         $this->entityManager = $entityManager;
         $this->userRepository = $userRepository;
         $this->serializer = $serializer;
         $this->validator = $validator;
+        $this->logger = $logger;
     }
 
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, APIAuthenticator $authenticator): Response
     {
         if (empty($request->getContent())) {
+            $this->logger->warning('Registration attempt with empty request body');
             return new Response('The request is empty', 400);
         }
         $data = $this->serializer->deserialize($request->getContent(), User::class, 'json');
         $errors = $this->validator->validate($data);
         if (count($errors) > 0) {
+            $this->logger->warning('Registration attempt with invalid data', ['errors' => (string) $errors]);
             return new Response((string) $errors, 400);
         }
 
@@ -55,6 +65,7 @@ class RegistrationController extends AbstractController
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        $this->logger->info('User registered successfully', ['user_id' => $user->getId()]);
 
         $authenticateUser = $userAuthenticator->authenticateUser(
             $user,
@@ -81,12 +92,14 @@ class RegistrationController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         if (empty($data['email']) || empty($data['password'])) {
+            $this->logger->warning('Login attempt with missing email or password');
             return new JsonResponse(['error' => 'Missing email or password'], Response::HTTP_BAD_REQUEST);
         }
         // Trouver l'utilisateur par son nom d'utilisateur
         $user = $this->userRepository->findOneBy(['email' => $data['email']]);
 
         if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
+            $this->logger->warning('Invalid login attempt', ['email' => $data['email']]);
             return new JsonResponse(['error' => 'Invalid email or password'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -97,6 +110,7 @@ class RegistrationController extends AbstractController
         $user->setApiToken($token);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        $this->logger->info('User logged in successfully', ['user_id' => $user->getId()]);
 
         // Renvoyer le token à l'utilisateur
         return $this->json(
@@ -119,6 +133,7 @@ class RegistrationController extends AbstractController
         $user = $this->userRepository->findOneBy(['apiToken' => $token]);
 
         if (!$user) {
+            $this->logger->warning('Logout attempt with invalid token');
             return new JsonResponse(['error' => 'Invalid token'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -126,6 +141,7 @@ class RegistrationController extends AbstractController
         $user->setApiToken('');
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        $this->logger->info('User logged out successfully', ['user_id' => $user->getId()]);
 
         return new JsonResponse(['message' => 'Logout successful'], Response::HTTP_OK);
     }

@@ -4,6 +4,7 @@ namespace App\Controller\API;
 
 use App\Entity\Category;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,16 +14,15 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
-// Uniquement disponible pour les utilisateurs ayant le rôle ROLE_ADMIN
-// Peut être à ajouter plus tard une liste de categories par default(ou fait par un admin) et
-// la possibilité aux utilisateurs de créer des categories
 class CategoryController extends AbstractController
 {
     private $entityManager;
+    private $logger;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
     {
         $this->entityManager = $entityManager;
+        $this->logger = $logger;
     }
 
     #[Route('/api/categories', name: 'list_categories', methods: ['GET'])]
@@ -30,6 +30,9 @@ class CategoryController extends AbstractController
     public function index(): Response
     {
         $categories = $this->entityManager->getRepository(Category::class)->findBy(['parent' => null]);
+
+        $this->logger->info('Categories fetched successfully', ['count' => count($categories)]);
+        
         return $this->json($categories, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
@@ -40,6 +43,9 @@ class CategoryController extends AbstractController
     public function showAllParent(): Response
     {
         $categories = $this->entityManager->getRepository(Category::class)->findBy(['parent' => null]);
+
+        $this->logger->info('Parent categories fetched successfully', ['count' => count($categories)]);
+
         return $this->json($categories, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
@@ -50,6 +56,9 @@ class CategoryController extends AbstractController
     public function showChildren(Category $category): Response
     {
         $categories = $this->entityManager->getRepository(Category::class)->findBy(['parent' => $category]);
+
+        $this->logger->info('Children categories fetched successfully', ['count' => count($categories)]);
+
         return $this->json($categories, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
@@ -59,6 +68,8 @@ class CategoryController extends AbstractController
     #[IsGranted("CATEGORY_VIEW", subject: "category")]
     public function show(Category $category): Response
     {
+        $this->logger->info('Fetching category details', ['category_id' => $category->getId()]);
+
         return $this->json($category, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
@@ -75,6 +86,7 @@ class CategoryController extends AbstractController
 
         $this->entityManager->persist($category);
         $this->entityManager->flush();
+        $this->logger->info('Category created successfully', ['category_id' => $category->getId()]);
 
         return new Response('Category created!', Response::HTTP_CREATED);
     }
@@ -92,6 +104,7 @@ class CategoryController extends AbstractController
 
         $this->entityManager->persist($updatedCategory);
         $this->entityManager->flush();
+        $this->logger->info('Category updated successfully', ['category_id' => $updatedCategory->getId()]);
 
         return new Response('Category updated!', Response::HTTP_OK);
     }
@@ -102,6 +115,7 @@ class CategoryController extends AbstractController
     {
         $this->entityManager->remove($category);
         $this->entityManager->flush();
+        $this->logger->info('Category deleted successfully', ['category_id' => $category->getId()]);
 
         return new Response('Category deleted!', Response::HTTP_NO_CONTENT);
     }
