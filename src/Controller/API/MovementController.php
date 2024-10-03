@@ -10,6 +10,7 @@ use App\Service\PaginationService;
 use App\Service\RecurrenceService;
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,18 +23,13 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class MovementController extends AbstractController
 {
-    private $entityManager;
-    private $serializer;
-    private $recurrenceService;
-    private $paginationService;
-
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, RecurrenceService $recurrenceService, PaginationService $paginationService)
-    {
-        $this->entityManager = $entityManager;
-        $this->serializer = $serializer;
-        $this->recurrenceService = $recurrenceService;
-        $this->paginationService = $paginationService;
-    }
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private SerializerInterface $serializer,
+        private RecurrenceService $recurrenceService,
+        private PaginationService $paginationService,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
     #[IsGranted("MOVEMENT_LIST")]
@@ -57,6 +53,8 @@ class MovementController extends AbstractController
             new MovementFilterDTO($user->getId(), $type, $categoryId, $startDateCarbon, $endDateCarbon),
             new PaginationDTO($page, $limit, $sort, $order)
         );
+
+        $this->logger->info('Movements fetched successfully');
 
         return $this->json([
             'data' => $movements,
@@ -93,6 +91,8 @@ class MovementController extends AbstractController
             ];
         }, $movements);
 
+        $this->logger->info('Movements by categories fetched successfully');
+
         return $this->json($percentages, Response::HTTP_OK);
     }
 
@@ -117,6 +117,8 @@ class MovementController extends AbstractController
         $this->entityManager->persist($movement);
         $this->entityManager->flush();
 
+        $this->logger->info('Movement created successfully', ['movement_id' => $movement->getId()]);
+
         return new Response('Movement created!', Response::HTTP_CREATED);
     }
 
@@ -125,6 +127,8 @@ class MovementController extends AbstractController
     #[IsGranted("MOVEMENT_VIEW", subject: "movement")]
     public function show(?Movement $movement): Response
     {
+        $this->logger->info('Fetching movement details', ['movement_id' => $movement->getId()]);
+
         return $this->json($movement, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
@@ -158,6 +162,9 @@ class MovementController extends AbstractController
         $this->entityManager->persist($updatedMovement);
         $this->entityManager->flush();
 
+        $this->logger->info('Movement updated successfully', ['movement_id' => $updatedMovement->getId()]);
+
+
         return $this->json($updatedMovement, Response::HTTP_OK, [], [
             'groups' => ['movements.show']
         ]);
@@ -171,6 +178,8 @@ class MovementController extends AbstractController
         $this->entityManager->remove($movement);
         $this->entityManager->flush();
 
+        $this->logger->info('Movement deleted successfully', ['movement_id' => $movement->getId()]);
+
         return new Response('Movement deleted!', Response::HTTP_OK);
     }
 
@@ -178,6 +187,7 @@ class MovementController extends AbstractController
     {
         $entity = $this->entityManager->getRepository($repository)->find($id);
         if (!$entity) {
+            $this->logger->error('Entity not found', ['repository' => $repository, 'id' => $id]);
             throw $this->createNotFoundException('No entity found');
         }
         return $entity;
@@ -199,6 +209,8 @@ class MovementController extends AbstractController
             $endDateCarbon->endOfMonth()->format('Y-m-d H:i:s')
         );
 
+        $this->logger->info('Total movements calculated successfully', ['total' => $total]);
+
         return $this->json($total, Response::HTTP_OK);
     }
 
@@ -209,6 +221,8 @@ class MovementController extends AbstractController
         $user = $this->getUser();
 
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotal($user->getId());
+
+        $this->logger->info('Total movements calculated successfully', ['total' => $total]);
 
         return $this->json($total, Response::HTTP_OK);
     }
@@ -221,6 +235,8 @@ class MovementController extends AbstractController
         $user = $this->getUser();
 
         $total = $this->entityManager->getRepository(Movement::class)->calculateTotalYearlyByMonth($user->getId(), $year);
+
+        $this->logger->info('Total yearly movements by month calculated successfully', ['total' => $total]);
 
         return $this->json($total, Response::HTTP_OK);
     }

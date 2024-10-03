@@ -18,6 +18,7 @@ services:
     volumes:
       - .:/app
       - './configs/php.ini:/usr/local/etc/php/php.ini'
+      - ./var/log:/app/var/log
   ###< symfony ###
   ###> doctrine/doctrine-bundle ###
   database:

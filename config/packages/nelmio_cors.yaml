@@ -8,7 +8,7 @@ nelmio_cors:
         max_age: 3600
     paths:
         '^/api/':
-            allow_origin: ['http://localhost:3000']
+            allow_origin: ['%env(FRONT_URL)%']
             allow_headers: ['X-Custom-Auth']
             allow_methods: ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']
             max_age: 3600
