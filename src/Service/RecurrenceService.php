@@ -12,16 +12,11 @@ use Psr\Log\LoggerInterface;
 
 class RecurrenceService
 {
-    private $recurrenceRepository;
-    private $entityManager;
-    private $logger;
-
-    public function __construct(RecurrenceRepository $recurrenceRepository, EntityManagerInterface $entityManager, LoggerInterface $logger)
-    {
-        $this->recurrenceRepository = $recurrenceRepository;
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
-    }
+    public function __construct(
+        private RecurrenceRepository $recurrenceRepository,
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger
+    ) {}
 
     public function createRecurrence(Movement $movement, array $data): void
     {

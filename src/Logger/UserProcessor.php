@@ -11,12 +11,9 @@ use Monolog\LogRecord;
  */
 class UserProcessor
 {
-    private $security;
-
-    public function __construct(Security $security)
-    {
-        $this->security = $security;
-    }
+    public function __construct(
+        private Security $security
+    ) {}
 
     // this method is called for each log record; optimize it to not hurt performance
     public function __invoke(LogRecord $record): LogRecord
