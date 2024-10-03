@@ -16,16 +16,11 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class UserController extends AbstractController
 {
-    private $entityManager;
-    private $serializer;
-    private $logger;
-
-    public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, LoggerInterface $logger)
-    {
-        $this->entityManager = $entityManager;
-        $this->serializer = $serializer;
-        $this->logger = $logger;
-    }
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private SerializerInterface $serializer,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api/me', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]

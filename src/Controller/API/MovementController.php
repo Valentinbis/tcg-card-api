@@ -23,25 +23,13 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class MovementController extends AbstractController
 {
-    private $entityManager;
-    private $serializer;
-    private $recurrenceService;
-    private $paginationService;
-    private $logger;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        SerializerInterface $serializer,
-        RecurrenceService $recurrenceService,
-        PaginationService $paginationService,
-        LoggerInterface $logger
-    ) {
-        $this->entityManager = $entityManager;
-        $this->serializer = $serializer;
-        $this->recurrenceService = $recurrenceService;
-        $this->paginationService = $paginationService;
-        $this->logger = $logger;
-    }
+        private EntityManagerInterface $entityManager,
+        private SerializerInterface $serializer,
+        private RecurrenceService $recurrenceService,
+        private PaginationService $paginationService,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api/movements', name: 'list_movements', methods: ['GET'])]
     #[IsGranted("MOVEMENT_LIST")]

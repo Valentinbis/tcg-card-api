@@ -16,14 +16,10 @@ use Symfony\Component\Serializer\SerializerInterface;
 
 class CategoryController extends AbstractController
 {
-    private $entityManager;
-    private $logger;
-
-    public function __construct(EntityManagerInterface $entityManager, LoggerInterface $logger)
-    {
-        $this->entityManager = $entityManager;
-        $this->logger = $logger;
-    }
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api/categories', name: 'list_categories', methods: ['GET'])]
     #[IsGranted("CATEGORY_LIST")]
@@ -32,12 +28,12 @@ class CategoryController extends AbstractController
         $categories = $this->entityManager->getRepository(Category::class)->findBy(['parent' => null]);
 
         $this->logger->info('Categories fetched successfully', ['count' => count($categories)]);
-        
+
         return $this->json($categories, Response::HTTP_OK, [], [
             'groups' => ['category.show']
         ]);
     }
-    
+
     #[Route('/api/categories/parents', name: 'list_categories_parents', methods: ['GET'])]
     #[IsGranted("CATEGORY_LIST")]
     public function showAllParent(): Response

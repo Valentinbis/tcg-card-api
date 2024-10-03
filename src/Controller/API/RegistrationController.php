@@ -19,25 +19,13 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
 {
-    private $entityManager;
-    private $userRepository;
-    private $serializer;
-    private $validator;
-    private $logger;
-
     public function __construct(
-        EntityManagerInterface $entityManager,
-        UserRepository $userRepository,
-        SerializerInterface $serializer,
-        ValidatorInterface $validator,
-        LoggerInterface $logger
-    ) {
-        $this->entityManager = $entityManager;
-        $this->userRepository = $userRepository;
-        $this->serializer = $serializer;
-        $this->validator = $validator;
-        $this->logger = $logger;
-    }
+        private EntityManagerInterface $entityManager,
+        private UserRepository $userRepository,
+        private SerializerInterface $serializer,
+        private ValidatorInterface $validator,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, APIAuthenticator $authenticator): Response

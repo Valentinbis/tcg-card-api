@@ -9,14 +9,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class InfosController
 {
-    private Connection $connection;
-    private LoggerInterface $logger;
-
-    public function __construct(Connection $connection, LoggerInterface $logger)
-    {
-        $this->connection = $connection;
-        $this->logger = $logger;
-    }
+    public function __construct(
+        private Connection $connection,
+        private LoggerInterface $logger
+    ) {}
 
     #[Route('/api', name: 'app_infos', methods: ['GET'])]
     public function index(): Response
