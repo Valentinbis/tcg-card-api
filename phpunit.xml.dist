@@ -16,7 +16,7 @@
         <server name="SYMFONY_PHPUNIT_REMOVE" value="" />
         <server name="SYMFONY_PHPUNIT_VERSION" value="9.6" />
         <!-- <env name="APP_ENV" value="test" force="true" />
-        <env name="DATABASE_URL" value="postgresql://cashtrack:cashtrack@host.docker.internal:5432/cashtrack?serverVersion=16&charset=utf8" /> -->
+        <env name="DATABASE_URL" value="postgresql://tcgcard:tcgcard@host.docker.internal:5432/tcgcard?serverVersion=16&charset=utf8" /> -->
     </php>
 
     <testsuites>

@@ -2,13 +2,13 @@ services:
   ###> php ###
   php:
     image: php:8-fpm-alpine
-    container_name: cashtrack_php
+    container_name: tcgcard_php
     volumes:
       - './configs/php.ini:/usr/local/etc/php/php.ini'
   ###< php ###
   ###> symfony ###
   symfony:
-    container_name: api
+    container_name: tcgcard_api
     build:
       context: .
       dockerfile: Dockerfile.dev.local
@@ -22,13 +22,13 @@ services:
   ###< symfony ###
   ###> doctrine/doctrine-bundle ###
   database:
-    container_name: cashtrack_db
+    container_name: tcgcard_db
     image: postgres:${POSTGRES_VERSION:-16}-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-cashtrack}
+      POSTGRES_DB: ${POSTGRES_DB:-tcgcard}
       # You should definitely change the password in production
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cashtrack}
-      POSTGRES_USER: ${POSTGRES_USER:-cashtrack}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tcgcard}
+      POSTGRES_USER: ${POSTGRES_USER:-tcgcard}
     volumes:
       - database_data:/var/lib/postgresql/data:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
@@ -40,7 +40,7 @@ services:
   sonarqube:
     image: sonarqube:lts-community
     hostname: sonarqube
-    container_name: cashtrack_sonarqube
+    container_name: tcgcard_sonarqube
     depends_on:
       db:
         condition: service_healthy

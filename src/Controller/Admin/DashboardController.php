@@ -2,9 +2,6 @@
 
 namespace App\Controller\Admin;
 
-use App\Entity\Category;
-use App\Entity\Movement;
-use App\Entity\Recurrence;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
@@ -49,8 +46,5 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Dashboard', 'fa-solid fa-chart-line');
         yield MenuItem::section('Tables');
         yield MenuItem::linkToCrud('Users', 'fas fa-user', User::class);
-        yield MenuItem::linkToCrud('Category', 'fas fa-list', Category::class);
-        yield MenuItem::linkToCrud('Transaction', 'fas fa-money-bill-wave', Movement::class);
-        yield MenuItem::linkToCrud('Recurrence', 'fas fa-redo-alt', Recurrence::class);
     }
 }

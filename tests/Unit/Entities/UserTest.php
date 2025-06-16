@@ -23,7 +23,6 @@ class UserTest extends TestCase
         $user->setFirstName('test');
         $user->setLastName('test');
         $user->setApiToken('test');
-        $user->addMovement(new Movement());
 
         return $user;
     }
@@ -46,7 +45,7 @@ class UserTest extends TestCase
 
     public function testUpdateTimestamp(): void
     {
-        $this->user->updateTimestamp();    
+        $this->user->updateTimestamp();
         $this->assertInstanceOf(\DateTimeImmutable::class, $this->user->getUpdatedAt());
     }
 

@@ -3,8 +3,6 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -57,9 +55,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['user.show'])]
     private ?string $lastName = null;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Movement::class)]
-    private Collection $movements;
-
     #[ORM\Column(type: 'datetime_immutable')]
     private ?\DateTimeImmutable $updatedAt = null;
 
@@ -71,7 +66,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (empty($this->apiToken)) {
             $this->apiToken = bin2hex(random_bytes(60));
         }
-        $this->movements = new ArrayCollection();
     }
 
     public function __toString()
@@ -195,33 +189,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastName(string $lastName): static
     {
         $this->lastName = $lastName;
-
-        return $this;
-    }
-
-    public function getMovements(): Collection
-    {
-        return $this->movements;
-    }
-
-    public function addMovement(Movement $movement): self
-    {
-        if (!$this->movements->contains($movement)) {
-            $this->movements[] = $movement;
-            $movement->setUser($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMovement(Movement $movement): self
-    {
-        if ($this->movements->removeElement($movement)) {
-            // set the owning side to null (unless already changed)
-            if ($movement->getUser() === $this) {
-                $movement->setUser(null);
-            }
-        }
 
         return $this;
     }

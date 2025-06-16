@@ -24,7 +24,7 @@ docker-compose up --build -d
 ### 1. Installez les dépendances PHP à l'aide de Composer :
 Il faut commencer par entrer dans le container :
 ```bash
-docker exec -it cashtrack_api bash
+docker exec -it tcgcard_api bash
 ```
 Une fois dans le container il faut  installer les dépendances PHP
 ```bash
@@ -35,7 +35,7 @@ composer install
 Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker.
 
 Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
-https://dbdiagram.io/d/SuiviArgent-6554c2fe7d8bbd64653e5578
+//insérer lien bdd
 
 ## Fixtures
 
@@ -53,9 +53,9 @@ Après avoir démarrer le conteneur docker, vous pouvez executez cette commande 
 docker run \
     --rm \
     -e SONAR_HOST_URL="http://host.docker.internal:9000" \
-    -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=CashTrack" \
+    -e SONAR_SCANNER_OPTS="-Dsonar.projectKey=tcgcard" \
     -e SONAR_TOKEN="sqp_e83cbfa705278f8b8258af66522960cad618c909" \
-    -v "/Users/v.bissay/Documents/dev/perso/Cashtrack/api/src:/usr/src" \
+    -v "/Users/v.bissay/Documents/dev/perso/tcgcard/api/src:/usr/src" \
     sonarsource/sonar-scanner-cli K
 ``` 
 
@@ -64,10 +64,4 @@ docker run \
 
 ```bash
 php bin/phpunit --coverage-html tests/Coverage
-```
-
-## Tâche cron
-
-```bash
-/usr/local/bin/php /app/bin/console app:generate-next-month-movements
 ```

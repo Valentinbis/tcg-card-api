@@ -50,7 +50,7 @@ WORKDIR /app
 VOLUME /app/var/
 
 # Installer Xdebug, spécifier une version compatible si nécessaire
-RUN pecl install xdebug-3.3.2 \
+RUN pecl install xdebug-3.4.0 \
     && docker-php-ext-enable xdebug \
     && echo "zend_extension=xdebug.so" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
     && echo "xdebug.mode=develop,debug,coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
