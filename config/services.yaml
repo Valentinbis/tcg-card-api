@@ -2,6 +2,7 @@ parameters:
   timezone: "%env(APP_TIMEZONE)%"
   front_url: "%env(FRONT_URL)%"
   kernel.logs_dir: '%kernel.project_dir%/var/log'
+  pokemon_tcg_api_key: '%env(POKEMONTCG_API_KEY)%'
 
 services:
   # default configuration for services in *this* file
