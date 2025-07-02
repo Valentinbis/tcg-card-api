@@ -30,14 +30,6 @@ services:
     class: Monolog\Formatter\LineFormatter
     arguments:
       - "[%%datetime%%][%%extra.user%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
-
-  App\EventListener\RequestListener:
-    tags:
-      - {
-          name: kernel.event_listener,
-          event: kernel.request,
-          method: onKernelRequest,
-        }
         
   # App\EventListener\MovementListener:
   #     tags:
