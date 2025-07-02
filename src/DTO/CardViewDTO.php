@@ -13,7 +13,7 @@ class CardViewDTO
     public string $name;
 
     #[Groups(['card:read'])]
-    public string $number;
+    public int $number;
 
     #[Groups(['card:read'])]
     public string $rarity;
@@ -30,7 +30,7 @@ class CardViewDTO
     public function __construct(
         int $id,
         string $name,
-        string $number,
+        int $number,
         string $rarity,
         array $nationalPokedexNumbers,
         array $images,

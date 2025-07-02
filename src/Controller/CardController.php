@@ -23,7 +23,7 @@ class CardController extends AbstractController
         }
 
         // 1. Toutes les cartes
-        $cards = $em->getRepository(Card::class)->findAll();
+        $cards = $em->getRepository(Card::class)->findBy([], ['number' => 'ASC']);
 
         // 2. Tous les UserCard pour cet utilisateur
         /** @var User $user */

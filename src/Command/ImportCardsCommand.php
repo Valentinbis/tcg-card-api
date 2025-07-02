@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Command;
 
 use App\Entity\Card;
@@ -123,9 +124,12 @@ class ImportCardsCommand extends Command
         // Download images and set paths
         $this->downloadImage($data->getImages()->getSmall(), 'public/images/cards/small/', $data->getId());
         $this->downloadImage($data->getImages()->getLarge(), 'public/images/cards/large/', $data->getId());
+        $smallExt = $this->getImageExtension($data->getImages()->getSmall());
+        $largeExt = $this->getImageExtension($data->getImages()->getLarge());
+
         $card->setImages([
-            'small' => '/images/cards/small/' . $data->getId() . '.jpg',
-            'large' => '/images/cards/large/' . $data->getId() . '.jpg',
+            'small' => '/images/cards/small/' . $data->getId() . '.' . $smallExt,
+            'large' => '/images/cards/large/' . $data->getId() . '.' . $largeExt,
         ]);
     }
 
@@ -133,6 +137,9 @@ class ImportCardsCommand extends Command
     {
         $this->downloadImage($setData->getImages()->getSymbol(), 'public/images/set/symbol/', $setId);
         $this->downloadImage($setData->getImages()->getLogo(), 'public/images/set/logo/', $setId);
+
+        $symbolExt = $this->getImageExtension($setData->getImages()->getSymbol());
+        $logoExt = $this->getImageExtension($setData->getImages()->getLogo());
 
         $set
             ->setId($setData->getId())
@@ -145,22 +152,10 @@ class ImportCardsCommand extends Command
             ->setUpdatedAt($setData->getUpdatedAt() ? new \DateTime($setData->getUpdatedAt()) : null)
             ->setReleaseDate($setData->getReleaseDate() ? new \DateTime($setData->getReleaseDate()) : null)
             ->setImages([
-                'symbol' => '/images/set/symbol/' . $setId . '.jpg',
-                'logo' => '/images/set/logo/' . $setId . '.jpg',
+                'symbol' => "/images/set/symbol/{$setId}.{$symbolExt}",
+                'logo' => "/images/set/logo/{$setId}.{$logoExt}",
             ]);
     }
-
-    // private function updateBoosterFromData(Booster $booster, $setData, string $cardId): void
-    // {
-    //     $this->downloadImage($setData->getLogo() ?? '', 'public/images/boosters/logo/', $cardId);
-    //     $this->downloadImage($setData->getArtworkFront() ?? '', 'public/images/boosters/ArtworkFront/', $cardId);
-    //     $this->downloadImage($setData->getArtworkBack() ?? '', 'public/images/boosters/ArtworkBack/', $cardId);
-
-    //     $booster
-    //         ->setLogo('/images/boosters/logo/' . $cardId . '.jpg')
-    //         ->setArtworkFront('/images/boosters/ArtworkFront/' . $cardId . '.jpg')
-    //         ->setArtworkBack('/images/boosters/ArtworkBack/' . $cardId . '.jpg');
-    // }
 
     private function downloadImage(string $url, string $dir, string $name): void
     {
@@ -173,12 +168,17 @@ class ImportCardsCommand extends Command
         }
 
         // Détecter l'extension à partir de l'URL (par défaut .jpg si non trouvée)
-        $extension = pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+        $extension = $this->getImageExtension($url);
         $filePath = "$dir/$name.$extension";
 
         if (!file_exists($filePath)) {
             file_put_contents($filePath, @file_get_contents($url));
         }
+    }
+
+    private function getImageExtension(string $url): string
+    {
+        return pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
     }
 
     private function objectsToArray($items): ?array

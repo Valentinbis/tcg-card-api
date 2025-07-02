@@ -63,9 +63,9 @@ class Card
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $convertedRetreatCost = null;
 
-    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[ORM\Column(type: 'integer', nullable: true)]
     #[Groups(['card:read'])]
-    private ?string $number = null;
+    private ?int $number = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $artist = null;
@@ -170,8 +170,8 @@ class Card
     public function getConvertedRetreatCost(): ?int { return $this->convertedRetreatCost; }
     public function setConvertedRetreatCost(?int $convertedRetreatCost): self { $this->convertedRetreatCost = $convertedRetreatCost; return $this; }
 
-    public function getNumber(): ?string { return $this->number; }
-    public function setNumber(?string $number): self { $this->number = $number; return $this; }
+    public function getNumber(): ?int { return $this->number; }
+    public function setNumber(?int $number): self { $this->number = $number; return $this; }
 
     public function getArtist(): ?string { return $this->artist; }
     public function setArtist(?string $artist): self { $this->artist = $artist; return $this; }

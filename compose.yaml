@@ -13,6 +13,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev.local
     command: symfony serve --no-tls --port=8000
+    # command: php -S 0.0.0.0:8000 -t public
     ports:
       - 8000:8000
     volumes:

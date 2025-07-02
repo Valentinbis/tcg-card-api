@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250701215711 extends AbstractMigration
+final class Version20250702223256 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -33,7 +33,7 @@ final class Version20250701215711 extends AbstractMigration
             CREATE TABLE boosters (name VARCHAR(50) NOT NULL, logo VARCHAR(255) DEFAULT NULL, artwork_front VARCHAR(255) DEFAULT NULL, artwork_back VARCHAR(255) DEFAULT NULL, PRIMARY KEY(name))
         SQL);
         $this->addSql(<<<'SQL'
-            CREATE TABLE cards (id VARCHAR(50) NOT NULL, set_id VARCHAR(20) NOT NULL, name VARCHAR(255) NOT NULL, supertype VARCHAR(50) DEFAULT NULL, subtypes JSON DEFAULT NULL, hp VARCHAR(10) DEFAULT NULL, types JSON DEFAULT NULL, evolves_from VARCHAR(50) DEFAULT NULL, evolves_to JSON DEFAULT NULL, rules JSON DEFAULT NULL, ancient_trait JSON DEFAULT NULL, abilities JSON DEFAULT NULL, attacks JSON DEFAULT NULL, weaknesses JSON DEFAULT NULL, resistances JSON DEFAULT NULL, retreat_cost JSON DEFAULT NULL, converted_retreat_cost INT DEFAULT NULL, number VARCHAR(20) DEFAULT NULL, artist VARCHAR(255) DEFAULT NULL, rarity VARCHAR(100) DEFAULT NULL, flavor_text TEXT DEFAULT NULL, national_pokedex_numbers JSON DEFAULT NULL, legalities JSON DEFAULT NULL, regulation_mark VARCHAR(5) DEFAULT NULL, images JSON DEFAULT NULL, tcgplayer JSON DEFAULT NULL, cardmarket JSON DEFAULT NULL, PRIMARY KEY(id))
+            CREATE TABLE cards (id VARCHAR(50) NOT NULL, set_id VARCHAR(20) NOT NULL, name VARCHAR(255) NOT NULL, supertype VARCHAR(50) DEFAULT NULL, subtypes JSON DEFAULT NULL, hp VARCHAR(10) DEFAULT NULL, types JSON DEFAULT NULL, evolves_from VARCHAR(50) DEFAULT NULL, evolves_to JSON DEFAULT NULL, rules JSON DEFAULT NULL, ancient_trait JSON DEFAULT NULL, abilities JSON DEFAULT NULL, attacks JSON DEFAULT NULL, weaknesses JSON DEFAULT NULL, resistances JSON DEFAULT NULL, retreat_cost JSON DEFAULT NULL, converted_retreat_cost INT DEFAULT NULL, number INT DEFAULT NULL, artist VARCHAR(255) DEFAULT NULL, rarity VARCHAR(100) DEFAULT NULL, flavor_text TEXT DEFAULT NULL, national_pokedex_numbers JSON DEFAULT NULL, legalities JSON DEFAULT NULL, regulation_mark VARCHAR(5) DEFAULT NULL, images JSON DEFAULT NULL, tcgplayer JSON DEFAULT NULL, cardmarket JSON DEFAULT NULL, PRIMARY KEY(id))
         SQL);
         $this->addSql(<<<'SQL'
             CREATE INDEX IDX_4C258FD10FB0D18 ON cards (set_id)
@@ -73,6 +73,9 @@ final class Version20250701215711 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             COMMENT ON COLUMN "user".created_at IS '(DC2Type:datetime_immutable)'
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE TABLE user_card (user_id INT NOT NULL, card_id INT NOT NULL, languages JSON DEFAULT NULL, PRIMARY KEY(user_id, card_id))
         SQL);
         $this->addSql(<<<'SQL'
             ALTER TABLE cards ADD CONSTRAINT FK_4C258FD10FB0D18 FOREIGN KEY (set_id) REFERENCES sets (id) NOT DEFERRABLE INITIALLY IMMEDIATE
@@ -132,6 +135,9 @@ final class Version20250701215711 extends AbstractMigration
         SQL);
         $this->addSql(<<<'SQL'
             DROP TABLE "user"
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP TABLE user_card
         SQL);
     }
 }
