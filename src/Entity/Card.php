@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'cards')]
@@ -13,9 +14,11 @@ class Card
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'string', length: 50)]
+    #[Groups(['card:read'])]
     private string $id;
 
     #[ORM\Column(type: 'string', length: 255)]
+    #[Groups(['card:read'])]
     private string $name;
 
     #[ORM\Column(type: 'string', length: 50, nullable: true)]
@@ -61,18 +64,21 @@ class Card
     private ?int $convertedRetreatCost = null;
 
     #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    #[Groups(['card:read'])]
     private ?string $number = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $artist = null;
 
     #[ORM\Column(type: 'string', length: 100, nullable: true)]
+    #[Groups(['card:read'])]
     private ?string $rarity = null;
 
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $flavorText = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['card:read'])]
     private ?array $nationalPokedexNumbers = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
@@ -82,6 +88,7 @@ class Card
     private ?string $regulationMark = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['card:read'])]
     private ?array $images;
 
     #[ORM\Column(type: 'json', nullable: true)]

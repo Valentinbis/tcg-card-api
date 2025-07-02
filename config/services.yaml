@@ -31,8 +31,3 @@ services:
     arguments:
       - "[%%datetime%%][%%extra.user%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
         
-  # App\EventListener\MovementListener:
-  #     tags:
-  #         - { name: doctrine.event_listener, event: prePersist }
-  #         - { name: doctrine.event_listener, event: preUpdate }
-  #         - { name: doctrine.event_listener, event: preRemove }
