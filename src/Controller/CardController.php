@@ -45,7 +45,8 @@ class CardController extends AbstractController
             fn(Card $card) => new CardViewDTO(
                 $card->getId(),
                 $card->getName() ?? '',
-                $card->getNumber() ?? '',
+                $card->getNameFr() ?? '',
+                (int)($card->getNumber() ?? 0),
                 $card->getRarity() ?? '',
                 $card->getNationalPokedexNumbers() ?? [],
                 $card->getImages() ?? [],

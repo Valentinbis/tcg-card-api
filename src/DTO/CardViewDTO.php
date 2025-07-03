@@ -13,6 +13,9 @@ class CardViewDTO
     public string $name;
 
     #[Groups(['card:read'])]
+    public string $nameFr;
+
+    #[Groups(['card:read'])]
     public int $number;
 
     #[Groups(['card:read'])]
@@ -30,6 +33,7 @@ class CardViewDTO
     public function __construct(
         int $id,
         string $name,
+        string $nameFr,
         int $number,
         string $rarity,
         array $nationalPokedexNumbers,
@@ -39,6 +43,7 @@ class CardViewDTO
     {
         $this->id = $id;
         $this->name = $name;
+        $this->nameFr = $nameFr;
         $this->number = $number;
         $this->rarity = $rarity;
         $this->nationalPokedexNumbers = $nationalPokedexNumbers;
