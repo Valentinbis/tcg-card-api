@@ -1,0 +1,53 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Composer
+/vendor/
+
+# Cache et logs
+/var/
+/public/bundles/
+
+# Tests
+/tests/
+/phpunit.xml.dist
+/.phpunit.result.cache
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environnement
+.env.local
+.env.*.local
+
+# Documentation
+README.md
+*.md
+
+# Docker
+docker-compose.override.yml
+compose.override.yaml
+Dockerfile*
+!Dockerfile.dev.local
+
+# CI/CD
+.github/
+sonar-project.properties
+
+# Node modules (si vous avez du JS/TS)
+node_modules/
+
+# Fichiers temporaires
+*.log
+*.tmp
+*.bak

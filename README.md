@@ -21,6 +21,31 @@ Pour démarrer le serveur de développement Symfony ainsi que tout les outils ut
 docker-compose up --build -d
 ```
 
+### Configuration pour Windows
+
+Si vous utilisez Windows, suivez ces étapes supplémentaires :
+
+#### 1. Configuration Git pour les fins de ligne
+Avant de cloner le projet, configurez Git pour utiliser LF :
+```bash
+git config --global core.autocrlf false
+git config --global core.eol lf
+```
+
+#### 2. Configuration de l'environnement
+Copiez le fichier de configuration Windows :
+```bash
+copy .env.windows .env.local
+```
+
+Sur macOS/Linux, la configuration par défaut du `.env` suffit.
+
+#### 3. WSL2 (Recommandé pour Windows)
+Pour de meilleures performances, il est fortement recommandé d'utiliser WSL2 :
+- Installez WSL2 et Docker Desktop avec l'intégration WSL2
+- Clonez le projet dans le système de fichiers WSL2 (ex: `/home/user/projets/`)
+- Lancez VS Code avec WSL: `code .` depuis WSL
+
 ### 1. Installez les dépendances PHP à l'aide de Composer :
 Il faut commencer par entrer dans le container :
 ```bash
@@ -33,6 +58,16 @@ composer install
 ### 2. Base de données
 
 Cette API utilise PostgreSQL comme base de données. Nous fournissons un fichier docker-compose.yml qui vous permettra de lancer une instance de PostgreSQL avec Docker.
+
+#### Initialisation automatique
+Lors du premier démarrage, la base de données sera automatiquement initialisée avec les données de sauvegarde situées dans `docker/db/init/`.
+
+#### Réinitialiser la base de données
+Pour repartir avec une base de données fraîche :
+```bash
+docker compose down -v
+docker compose up -d
+```
 
 Pour voir le schéma de la base de donnée veuillez cliquez sur ce lien :
 //insérer lien bdd
