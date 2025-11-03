@@ -2,28 +2,46 @@
 
 namespace App\Logger;
 
-use App\Security\User;
-use Symfony\Bundle\SecurityBundle\Security;
 use Monolog\LogRecord;
+use Monolog\Processor\ProcessorInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 
 /**
- * Add login name in logger
+ * Ajoute les informations de l'utilisateur connecté aux logs
  */
-class UserProcessor
+class UserProcessor implements ProcessorInterface
 {
     public function __construct(
-        private Security $security
+        private readonly Security $security
     ) {}
 
-    // this method is called for each log record; optimize it to not hurt performance
     public function __invoke(LogRecord $record): LogRecord
     {
         try {
-            /** @var User $user */
             $user = $this->security->getUser();
-            $record->extra['user'] = $user ? $user->getUserIdentifier() : 'anonymous';
+            
+            if ($user) {
+                $record->extra['user'] = [
+                    'identifier' => $user->getUserIdentifier(),
+                    'roles' => $user->getRoles(),
+                ];
+                
+                // Ajoute l'ID si c'est une entité User avec getId()
+                if (is_object($user) && method_exists($user, 'getId')) {
+                    /** @var User $user */
+                    $record->extra['user']['id'] = $user->getId();
+                }
+            } else {
+                $record->extra['user'] = [
+                    'identifier' => 'anonymous',
+                    'roles' => ['ROLE_ANONYMOUS'],
+                ];
+            }
         } catch (\Throwable $e) {
-            $record->extra['user'] = 'anonymous';
+            $record->extra['user'] = [
+                'identifier' => 'error',
+                'error' => $e->getMessage(),
+            ];
         }
 
         return $record;

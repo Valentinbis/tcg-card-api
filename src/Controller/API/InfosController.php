@@ -2,8 +2,9 @@
 
 namespace App\Controller\API;
 
+use App\Attribute\LogAction;
+use App\Attribute\LogPerformance;
 use Doctrine\DBAL\Connection;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -11,19 +12,18 @@ use Symfony\Component\Routing\Annotation\Route;
 class InfosController extends AbstractController
 {
     public function __construct(
-        private Connection $connection,
-        private LoggerInterface $logger
+        private readonly Connection $connection,
     ) {}
 
     #[Route('/api', name: 'app_infos', methods: ['GET'])]
+    #[LogAction('health_check', 'API health check performed')]
+    #[LogPerformance(threshold: 0.2)]
     public function index(): Response
     {
         try {
             $this->connection->executeQuery('SELECT 1');
             $isConnected = true;
-            $this->logger->info('Database connection successful');
         } catch (\Exception $e) {
-            $this->logger->error('Database connection failed', ['exception' => $e->getMessage()]);
             $isConnected = false;
         }
 
