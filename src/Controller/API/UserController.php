@@ -2,9 +2,11 @@
 
 namespace App\Controller\API;
 
+use App\Attribute\LogAction;
+use App\Attribute\LogPerformance;
+use App\Attribute\LogSecurity;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,29 +19,49 @@ use Symfony\Component\Serializer\SerializerInterface;
 class UserController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private SerializerInterface $serializer,
-        private LoggerInterface $logger
+        private readonly EntityManagerInterface $entityManager,
+        private readonly SerializerInterface $serializer,
     ) {}
 
     #[Route('/api/me', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
+    #[LogAction('view_profile', 'User profile accessed')]
     public function me(): JsonResponse
     {
-        $user = $this->getUser();
         /** @var User $user */
-        $this->logger->info('Fetching current user details', ['user_id' => $user->getId()]);
+        $user = $this->getUser();
+        
         return $this->json($user, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
     }
 
+    #[Route('/api/user/me', methods: ['GET'])]
+    #[IsGranted("ROLE_USER")]
+    #[LogSecurity('verify_token', 'Token verification requested')]
+    public function getCurrentUser(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+        
+        return $this->json([
+            'id' => $user->getId(),
+            'email' => $user->getEmail(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'apiToken' => $user->getApiToken(),
+            'roles' => $user->getRoles()
+        ], Response::HTTP_OK);
+    }
+
     #[Route('/api/users', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
+    #[LogAction('list_users', 'Users list retrieved')]
+    #[LogPerformance(threshold: 0.3)]
     public function users(): JsonResponse
     {
         $users = $this->entityManager->getRepository(User::class)->findAll();
-        $this->logger->info('Users fetched successfully', ['count' => count($users)]);
+        
         return $this->json($users, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
@@ -47,9 +69,9 @@ class UserController extends AbstractController
 
     #[Route('/api/user/{id}', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
+    #[LogAction('view_user', 'User details accessed')]
     public function user(User $user): JsonResponse
     {
-        $this->logger->info('Fetching user details', ['user_id' => $user->getId()]);
         return $this->json($user, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
@@ -57,29 +79,39 @@ class UserController extends AbstractController
 
     #[Route('/api/user/{id}', methods: ['DELETE'])]
     #[IsGranted("ROLE_ADMIN")]
+    #[LogAction('delete_user', 'User deleted', 'warning')]
+    #[LogSecurity('delete_user', 'User deletion performed', 'warning')]
     public function deleteUser(User $user): JsonResponse
     {
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
-        $this->logger->info('User deleted successfully', ['user_id' => $user->getId()]);
-
-        return new Response(null, Response::HTTP_NO_CONTENT);
+        try {
+            $this->entityManager->remove($user);
+            $this->entityManager->flush();
+            
+            return new Response(null, Response::HTTP_NO_CONTENT);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed to delete user'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 
     #[Route('/api/user/{id}', name: "updateUser", methods: ['PUT'])]
     #[IsGranted("ROLE_USER")]
+    #[LogAction('update_user', 'User updated')]
     public function update(Request $request, User $user): JsonResponse
     {
-        $updatedUser = $this->serializer->deserialize(
-            $request->getContent(),
-            User::class,
-            'json',
-            [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
-        );
-        $this->entityManager->persist($updatedUser);
-        $this->entityManager->flush();
-        $this->logger->info('User updated successfully', ['user_id' => $updatedUser->getId()]);
+        try {
+            $updatedUser = $this->serializer->deserialize(
+                $request->getContent(),
+                User::class,
+                'json',
+                [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
+            );
+            
+            $this->entityManager->persist($updatedUser);
+            $this->entityManager->flush();
 
-        return new Response('User updated!', Response::HTTP_OK);
+            return new Response('User updated!', Response::HTTP_OK);
+        } catch (\Exception $e) {
+            return $this->json(['error' => 'Failed to update user'], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

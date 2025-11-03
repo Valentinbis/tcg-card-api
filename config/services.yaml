@@ -22,12 +22,27 @@ services:
   # add more service definitions when explicit configuration is needed
   # please note that last definitions always *replace* previous ones
 
+  # Processeurs Monolog
   App\Logger\UserProcessor:
     tags:
       - { name: monolog.processor }
 
+  App\Logger\RequestProcessor:
+    tags:
+      - { name: monolog.processor }
+
+  # Service de logging centralisé avec channels dédiés
+  App\Service\LoggerService:
+    arguments:
+      $logger: '@monolog.logger'
+      $actionLogger: '@monolog.logger.action'
+      $securityLogger: '@monolog.logger.security'
+      $requestLogger: '@monolog.logger.request'
+      $performanceLogger: '@monolog.logger.performance'
+
+  # Formatters personnalisés
   monolog.formatter.monformat:
     class: Monolog\Formatter\LineFormatter
     arguments:
-      - "[%%datetime%%][%%extra.user%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
+      - "[%%datetime%%][%%extra.user.identifier%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
         
