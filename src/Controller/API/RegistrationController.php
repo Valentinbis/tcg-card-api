@@ -2,15 +2,19 @@
 
 namespace App\Controller\API;
 
+use App\DTO\LoginRequestDTO;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\APIAuthenticator;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Nelmio\ApiDocBundle\Attribute\Model;
+use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
@@ -82,18 +86,17 @@ class RegistrationController extends AbstractController
      * Connexion d'un utilisateur et génération d'un token API
      */
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
-    public function login(Request $request, UserPasswordHasherInterface $passwordHasher): Response
+    #[OA\RequestBody(content: new Model(type: LoginRequestDTO::class))]
+    public function login(
+        #[MapRequestPayload] LoginRequestDTO $loginData,
+        UserPasswordHasherInterface $passwordHasher
+    ): Response
     {
-        $data = json_decode($request->getContent(), true);
-        if (empty($data['email']) || empty($data['password'])) {
-            $this->logger->warning('Login attempt with missing email or password');
-            return new JsonResponse(['error' => 'Missing email or password'], Response::HTTP_BAD_REQUEST);
-        }
         // Trouver l'utilisateur par son nom d'utilisateur
-        $user = $this->userRepository->findOneBy(['email' => $data['email']]);
+        $user = $this->userRepository->findOneBy(['email' => $loginData->email]);
 
-        if (!$user || !$passwordHasher->isPasswordValid($user, $data['password'])) {
-            $this->logger->warning('Invalid login attempt', ['email' => $data['email']]);
+        if (!$user || !$passwordHasher->isPasswordValid($user, $loginData->password)) {
+            $this->logger->warning('Invalid login attempt', ['email' => $loginData->email]);
             return new JsonResponse(['error' => 'Invalid email or password'], Response::HTTP_UNAUTHORIZED);
         }
 
