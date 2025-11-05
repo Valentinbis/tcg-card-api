@@ -24,6 +24,9 @@ class UserController extends AbstractController
         private readonly SerializerInterface $serializer,
     ) {}
 
+    /**
+     * Récupère le profil de l'utilisateur connecté
+     */
     #[Route('/api/me', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('view_profile', 'User profile accessed')]
@@ -38,6 +41,9 @@ class UserController extends AbstractController
         ]);
     }
 
+    /**
+     * Liste tous les utilisateurs
+     */
     #[Route('/api/users', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('list_users', 'Users list retrieved')]
@@ -51,6 +57,9 @@ class UserController extends AbstractController
         ]);
     }
 
+    /**
+     * Récupère les détails d'un utilisateur par son ID
+     */
     #[Route('/api/user/{id}', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('view_user', 'User details accessed')]
@@ -61,6 +70,9 @@ class UserController extends AbstractController
         ]);
     }
 
+    /**
+     * Supprime un utilisateur (admin uniquement)
+     */
     #[Route('/api/user/{id}', methods: ['DELETE'])]
     #[IsGranted("ROLE_ADMIN")]
     #[LogAction('delete_user', 'User deleted', 'warning')]
@@ -77,6 +89,9 @@ class UserController extends AbstractController
         }
     }
 
+    /**
+     * Modifie les informations d'un utilisateur
+     */
     #[Route('/api/user/{id}', name: "updateUser", methods: ['PUT'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('update_user', 'User updated')]

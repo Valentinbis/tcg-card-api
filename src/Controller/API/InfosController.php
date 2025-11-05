@@ -15,6 +15,9 @@ class InfosController extends AbstractController
         private readonly Connection $connection,
     ) {}
 
+    /**
+     * Informations système et statut de l'API
+     */
     #[Route('/api', name: 'app_infos', methods: ['GET'])]
     #[LogAction('health_check', 'API health check performed')]
     #[LogPerformance(threshold: 0.2)]

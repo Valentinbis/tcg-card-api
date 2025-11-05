@@ -10,6 +10,9 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
 {
+    /**
+     * Page de connexion utilisateur
+     */
     #[Route(path: '/login', name: 'app_login')]
     #[LogSecurity('login_page', 'Login page accessed')]
     public function login(AuthenticationUtils $authenticationUtils): Response
@@ -23,6 +26,9 @@ class SecurityController extends AbstractController
         ]);
     }
 
+    /**
+     * Déconnexion utilisateur
+     */
     #[Route(path: '/logout', name: 'app_logout')]
     #[LogSecurity('logout', 'User logout initiated')]
     public function logout(): void

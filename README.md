@@ -1,5 +1,21 @@
 # README - API Symfony 7
 
+## 📖 Vue d'ensemble
+
+API REST de gestion de collection de cartes Pokémon TCG développée avec **Symfony 7** et **PostgreSQL 16**.
+
+### 🌟 Fonctionnalités
+- 🔐 Authentification par token API
+- 🃏 Gestion de collection de cartes Pokémon
+- 👥 Gestion multi-utilisateurs avec permissions (User/Admin)
+- 📊 Pagination et filtres avancés
+- 🌍 Support multi-langues pour les cartes
+- 📖 Documentation API interactive (Swagger/OpenAPI)
+- 🧪 Tests unitaires et fonctionnels
+- 🐳 Containerisé avec Docker
+
+---
+
 ## Prérequis
 
 Avant de commencer, assurez-vous d'avoir installé Docker sur votre machine.
@@ -94,6 +110,56 @@ docker run \
     sonarsource/sonar-scanner-cli K
 ``` 
 
+
+## 📖 Documentation API
+
+Une documentation interactive complète de l'API est disponible via Swagger UI :
+
+**URL** : http://localhost:8000/api/documentation
+
+### Installation du bundle de documentation
+```bash
+docker exec -it tcgcard_api composer require nelmio/api-doc-bundle
+docker exec -it tcgcard_api php bin/console cache:clear
+```
+
+### Accès à la documentation
+- **Interface Swagger UI** : http://localhost:8000/api/documentation
+- **Spécification OpenAPI (JSON)** : http://localhost:8000/api/doc.json
+
+### Authentification dans Swagger
+1. Connectez-vous via l'endpoint `/api/login`
+2. Copiez le token API retourné
+3. Cliquez sur "Authorize" 🔓 dans Swagger UI
+4. Collez votre token dans le champ `X-AUTH-TOKEN`
+5. Testez les endpoints protégés directement depuis l'interface
+
+### Voir aussi
+- [SWAGGER_SETUP.md](SWAGGER_SETUP.md) - Guide détaillé Swagger
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture du projet
+- [CONTRIBUTING.md](CONTRIBUTING.md) - Guide de contribution
+- [SECURITY.md](SECURITY.md) - Politique de sécurité
+
+---
+
+## 🔧 Outils de diagnostic
+
+### Script de diagnostic automatique
+```bash
+./bin/diagnose.sh
+```
+
+Ce script vérifie :
+- ✅ Docker et Docker Compose
+- ✅ État des containers
+- ✅ PHP et ses extensions
+- ✅ Composer et dépendances
+- ✅ Connexion PostgreSQL
+- ✅ Accessibilité de l'API
+- ✅ Configuration et permissions
+- ✅ Erreurs dans les logs
+
+---
 
 ## Commande de test
 
