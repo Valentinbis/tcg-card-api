@@ -1,0 +1,19 @@
+# Données Grafana (dashboards personnalisés créés via UI)
+# Les dashboards provisionnés sont versionnés
+monitoring/grafana/data/
+
+# Données Loki (logs stockés)
+monitoring/loki/data/
+monitoring/loki/chunks/
+monitoring/loki/tsdb-*
+monitoring/loki/compactor/
+monitoring/loki/rules-temp/
+
+# Données Prometheus (métriques)
+monitoring/prometheus/data/
+
+# Fichiers de positions Promtail (état de lecture)
+monitoring/promtail/positions.yaml
+
+# Logs des containers
+*.log
