@@ -15,3 +15,15 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
 ###< symfony/mailer ###
+
+###> symfony - Windows optimizations ###
+  symfony:
+    # Amélioration des performances sur Windows avec des volumes délégués
+    volumes:
+      - .:/app:cached
+      - './configs/php.ini:/usr/local/etc/php/php.ini:ro'
+      - ./var/log:/app/var/log:delegated
+      # Exclure les dossiers qui n'ont pas besoin d'être synchronisés
+      - /app/var/cache
+      - /app/vendor
+###< symfony - Windows optimizations ###

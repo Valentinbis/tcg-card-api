@@ -32,6 +32,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-tcgcard}
     volumes:
       - database_data:/var/lib/postgresql/data:rw
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
     ports:
