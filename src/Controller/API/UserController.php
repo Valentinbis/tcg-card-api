@@ -7,6 +7,7 @@ use App\Attribute\LogPerformance;
 use App\Attribute\LogSecurity;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bridge\Doctrine\Attribute\MapEntity;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,32 +27,15 @@ class UserController extends AbstractController
     #[Route('/api/me', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('view_profile', 'User profile accessed')]
+    #[LogSecurity('verify_token', 'Token verification requested')]
     public function me(): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
-        
-        return $this->json($user, Response::HTTP_OK, [], [
-            'groups' => ['user.show']
-        ]);
-    }
 
-    #[Route('/api/user/me', methods: ['GET'])]
-    #[IsGranted("ROLE_USER")]
-    #[LogSecurity('verify_token', 'Token verification requested')]
-    public function getCurrentUser(): JsonResponse
-    {
-        /** @var User $user */
-        $user = $this->getUser();
-        
-        return $this->json([
-            'id' => $user->getId(),
-            'email' => $user->getEmail(),
-            'firstName' => $user->getFirstName(),
-            'lastName' => $user->getLastName(),
-            'apiToken' => $user->getApiToken(),
-            'roles' => $user->getRoles()
-        ], Response::HTTP_OK);
+        return $this->json($user, Response::HTTP_OK, [], [
+            'groups' => ['user.show', 'user.token']
+        ]);
     }
 
     #[Route('/api/users', methods: ['GET'])]
@@ -61,7 +45,7 @@ class UserController extends AbstractController
     public function users(): JsonResponse
     {
         $users = $this->entityManager->getRepository(User::class)->findAll();
-        
+
         return $this->json($users, Response::HTTP_OK, [], [
             'groups' => ['user.show']
         ]);
@@ -70,7 +54,7 @@ class UserController extends AbstractController
     #[Route('/api/user/{id}', methods: ['GET'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('view_user', 'User details accessed')]
-    public function user(User $user): JsonResponse
+    public function user(#[MapEntity] User $user): JsonResponse
     {
         return $this->json($user, Response::HTTP_OK, [], [
             'groups' => ['user.show']
@@ -81,12 +65,12 @@ class UserController extends AbstractController
     #[IsGranted("ROLE_ADMIN")]
     #[LogAction('delete_user', 'User deleted', 'warning')]
     #[LogSecurity('delete_user', 'User deletion performed', 'warning')]
-    public function deleteUser(User $user): JsonResponse
+    public function deleteUser(#[MapEntity] User $user): Response|JsonResponse
     {
         try {
             $this->entityManager->remove($user);
             $this->entityManager->flush();
-            
+
             return new Response(null, Response::HTTP_NO_CONTENT);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to delete user'], Response::HTTP_INTERNAL_SERVER_ERROR);
@@ -96,7 +80,7 @@ class UserController extends AbstractController
     #[Route('/api/user/{id}', name: "updateUser", methods: ['PUT'])]
     #[IsGranted("ROLE_USER")]
     #[LogAction('update_user', 'User updated')]
-    public function update(Request $request, User $user): JsonResponse
+    public function update(Request $request, #[MapEntity] User $user): JsonResponse
     {
         try {
             $updatedUser = $this->serializer->deserialize(
@@ -105,11 +89,11 @@ class UserController extends AbstractController
                 'json',
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $user]
             );
-            
+
             $this->entityManager->persist($updatedUser);
             $this->entityManager->flush();
 
-            return new Response('User updated!', Response::HTTP_OK);
+            return $this->json(['message' => 'User updated!'], Response::HTTP_OK);
         } catch (\Exception $e) {
             return $this->json(['error' => 'Failed to update user'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }

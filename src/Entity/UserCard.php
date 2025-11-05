@@ -3,10 +3,11 @@
 namespace App\Entity;
 
 use App\Enum\LanguageEnum;
+use App\Repository\UserCardRepository;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: UserCardRepository::class)]
 #[ORM\Table(name: 'user_card')]
 class UserCard
 {

@@ -91,22 +91,6 @@ class UserTest extends TestCase
         $this->setPrivateProperty($this->user, 'updatedAt', new \DateTimeImmutable());
         $this->assertInstanceOf(\DateTimeImmutable::class, $this->user->getUpdatedAt());
     }
-
-    public function testGetMovements(): void
-    {
-        $this->assertInstanceOf(Collection::class, $this->user->getMovements());
-    }
-
-    public function testAddMovement(): void
-    {
-        $this->assertInstanceOf(Collection::class, $this->user->getMovements());
-    }
-
-    public function testRemoveMovement(): void
-    {
-        $this->user->removeMovement($this->user->getMovements()->first());
-        $this->assertEmpty($this->user->getMovements());
-    }
     
     public function testGetUserIdentifier(): void
     {

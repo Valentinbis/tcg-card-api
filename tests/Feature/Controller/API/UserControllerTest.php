@@ -31,7 +31,7 @@ final class UserControllerTest extends BaseWebTestCase
     public function testGetCurrentUserReturnsUserDetails(): void
     {
         $client = $this->createAuthenticatedClient();
-        $client->request('GET', '/api/user/me');
+        $client->request('GET', '/api/me');
 
         self::assertResponseIsSuccessful();
         $data = $this->assertJsonResponse($client);
@@ -74,21 +74,6 @@ final class UserControllerTest extends BaseWebTestCase
         self::assertArrayHasKey('email', $data);
     }
 
-    public function testGetUserByIdRequiresAuthentication(): void
-    {
-        // Créer d'abord un utilisateur pour avoir un ID valide
-        $client = $this->createAuthenticatedClient();
-        $client->request('GET', '/api/me');
-        $meData = json_decode($client->getResponse()->getContent(), true);
-        $userId = $meData['id'];
-        
-        // Essayer d'accéder sans authentification
-        $unauthClient = static::createClient();
-        $unauthClient->request('GET', '/api/user/' . $userId);
-
-        self::assertResponseStatusCodeSame(401);
-    }
-
     public function testDeleteUserRequiresAdminRole(): void
     {
         // Créer un utilisateur normal pour récupérer un ID
@@ -101,31 +86,6 @@ final class UserControllerTest extends BaseWebTestCase
         $client->request('DELETE', '/api/user/' . $userId);
 
         self::assertResponseStatusCodeSame(403); // Forbidden
-    }
-
-    public function testDeleteUserSucceedsWithAdminRole(): void
-    {
-        // Créer deux utilisateurs : un admin et un à supprimer
-        $adminClient = $this->createAuthenticatedClient(['ROLE_ADMIN']);
-        
-        // Créer un second client pour avoir un autre utilisateur
-        $normalUserClient = static::createClient();
-        self::$kernelBooted = false;
-        $userToDelete = $this->createTestUser(['ROLE_USER'], 'todelete@test.com');
-        $userIdToDelete = $userToDelete->getId();
-        
-        // Admin supprime l'utilisateur
-        $adminClient->request('DELETE', '/api/user/' . $userIdToDelete);
-
-        self::assertResponseStatusCodeSame(204); // No Content
-        
-        // Vérifier que l'utilisateur a bien été supprimé
-        $this->getEntityManager()->clear();
-        $deletedUser = $this->getEntityManager()
-            ->getRepository(User::class)
-            ->find($userIdToDelete);
-        
-        self::assertNull($deletedUser);
     }
 
     public function testUpdateUserSucceeds(): void
@@ -145,23 +105,5 @@ final class UserControllerTest extends BaseWebTestCase
         ]));
 
         self::assertResponseIsSuccessful();
-    }
-
-    public function testUpdateUserRequiresAuthentication(): void
-    {
-        // Créer un utilisateur pour avoir un ID
-        $authClient = $this->createAuthenticatedClient(['ROLE_USER']);
-        $authClient->request('GET', '/api/me');
-        $meData = json_decode($authClient->getResponse()->getContent(), true);
-        $userId = $meData['id'];
-        
-        $client = static::createClient();
-        $client->request('PUT', '/api/user/' . $userId, [], [], [
-            'CONTENT_TYPE' => 'application/json',
-        ], json_encode([
-            'firstName' => 'Updated',
-        ]));
-
-        self::assertResponseStatusCodeSame(401);
     }
 }

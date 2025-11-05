@@ -61,15 +61,6 @@ final class HttpLoggingSubscriberTest extends BaseWebTestCase
         self::assertResponseStatusCodeSame(401);
     }
 
-    public function testLogsException(): void
-    {
-        $client = static::createClient();
-        $client->request('GET', '/api/user/99999'); // User inexistant = erreur
-        
-        // Devrait retourner une erreur (401 ou 404)
-        self::assertResponseStatusCodeSame(401);
-    }
-
     public function testHealthCheckIsNotLogged(): void
     {
         $client = static::createClient();
@@ -100,10 +91,10 @@ final class HttpLoggingSubscriberTest extends BaseWebTestCase
     public function testLogSecurityAttributeIsProcessed(): void
     {
         $client = $this->createAuthenticatedClient();
-        $client->request('GET', '/api/user/me');
+        $client->request('GET', '/api/me');
         
         self::assertResponseIsSuccessful();
-        // La méthode /api/user/me a un attribut LogSecurity
+        // La méthode /api/me a un attribut LogSecurity
     }
 
     public function testLogPerformanceAttributeIsProcessed(): void

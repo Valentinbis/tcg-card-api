@@ -21,6 +21,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\GeneratedValue(strategy: 'SEQUENCE')]
     #[ORM\SequenceGenerator(sequenceName: 'user_id_seq', allocationSize: 1)]
     #[ORM\Column(type: 'integer')]
+    #[Groups(['user.show'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
@@ -30,6 +31,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $email = null;
 
     #[ORM\Column]
+    #[Groups(['user.show'])]
     private array $roles = [];
 
     /**
@@ -152,6 +154,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
+    #[\Deprecated(message: 'eraseCredentials() is deprecated since Symfony 7.3')]
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here

@@ -19,6 +19,9 @@ doctrine:
     auto_mapping: false
     controller_resolver:
       enabled: false
+    # Configuration pour PostgreSQL - évite la dépréciation DBAL 3->4
+    id_generation_preferences:
+      Doctrine\DBAL\Platforms\PostgreSQLPlatform: SEQUENCE
 
     mappings:
       App:
