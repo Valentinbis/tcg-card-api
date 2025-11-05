@@ -1,0 +1,279 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: TCG Card API Alerts
+    folder: Alertes
+    interval: 1m
+    rules:
+      # Alerte : Temps de réponse élevé
+      - uid: slow_response_time
+        title: ⚠️ Temps de réponse lent
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: '{job="symfony_requests"} | json | unwrap duration_ms | __error__="" | avg_over_time [5m]'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 2000
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "Le temps de réponse moyen de l'API dépasse 2 secondes depuis 5 minutes"
+          summary: "Performance dégradée détectée"
+        labels:
+          severity: warning
+
+      # Alerte : Taux d'erreurs 5xx élevé
+      - uid: high_error_rate
+        title: 🔥 Taux d'erreurs élevé
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: '100 * (sum(rate({job="symfony_requests", status=~"5.."}[5m])) / sum(rate({job="symfony_requests"}[5m])))'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 5
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 2m
+        annotations:
+          description: "Le taux d'erreurs 5xx dépasse 5% depuis 2 minutes"
+          summary: "Pic d'erreurs serveur détecté"
+        labels:
+          severity: critical
+
+      # Alerte : Logs ERROR accumulés
+      - uid: error_logs_spike
+        title: ❌ Pic de logs ERROR
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Loki
+            model:
+              expr: 'sum(rate({job=~"symfony.*", level="ERROR"}[5m]))'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 10
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 3m
+        annotations:
+          description: "Plus de 10 logs ERROR par minute détectés"
+          summary: "Activité anormale de logs d'erreur"
+        labels:
+          severity: warning
+
+      # Alerte : Utilisation mémoire container élevée
+      - uid: high_container_memory
+        title: 🧠 Mémoire container élevée
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              expr: '(sum(container_memory_usage_bytes{name=~"tcgcard.*"}) / sum(container_spec_memory_limit_bytes{name=~"tcgcard.*"})) * 100'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 80
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "L'utilisation mémoire d'un container dépasse 80% depuis 5 minutes"
+          summary: "Risque de saturation mémoire"
+        labels:
+          severity: warning
+
+      # Alerte : CPU container élevé
+      - uid: high_container_cpu
+        title: 💻 CPU container élevé
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              expr: 'rate(container_cpu_usage_seconds_total{name=~"tcgcard.*"}[5m]) * 100'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 90
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          description: "L'utilisation CPU d'un container dépasse 90% depuis 5 minutes"
+          summary: "Charge CPU anormalement élevée"
+        labels:
+          severity: critical
+
+      # Alerte : Disque presque plein
+      - uid: disk_space_low
+        title: 💾 Espace disque faible
+        condition: B
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: Prometheus
+            model:
+              expr: '100 - ((node_filesystem_avail_bytes{mountpoint="/"} * 100) / node_filesystem_size_bytes{mountpoint="/"})'
+              queryType: range
+              refId: A
+          - refId: B
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: classic_conditions
+              refId: B
+              conditions:
+                - evaluator:
+                    params:
+                      - 85
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  type: query
+        noDataState: NoData
+        execErrState: Error
+        for: 10m
+        annotations:
+          description: "L'espace disque disponible est inférieur à 15%"
+          summary: "Risque de saturation disque"
+        labels:
+          severity: warning
+
+contactPoints:
+  - orgId: 1
+    name: Default Email
+    receivers:
+      - uid: default-email
+        type: email
+        settings:
+          addresses: "admin@example.com"
+        disableResolveMessage: false
+
+policies:
+  - orgId: 1
+    receiver: Default Email
+    group_by:
+      - alertname
+      - severity
+    group_wait: 30s
+    group_interval: 5m
+    repeat_interval: 12h

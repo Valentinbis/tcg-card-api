@@ -137,8 +137,47 @@ docker exec -it tcgcard_api php bin/console cache:clear
 ### Voir aussi
 - [SWAGGER_SETUP.md](SWAGGER_SETUP.md) - Guide détaillé Swagger
 - [ARCHITECTURE.md](ARCHITECTURE.md) - Architecture du projet
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Guide de contribution
-- [SECURITY.md](SECURITY.md) - Politique de sécurité
+- [MONITORING.md](MONITORING.md) - Stack de monitoring et alertes
+
+---
+
+## 📊 Monitoring et Observabilité
+
+Une stack complète de monitoring est disponible avec **Grafana + Loki + Prometheus** :
+
+### Démarrage rapide
+```bash
+# Démarrer la stack de monitoring
+./bin/monitoring.sh start
+
+# Vérifier le statut
+./bin/monitoring.sh status
+```
+
+### Accès aux dashboards
+- **Grafana** : http://localhost:3000 (admin/admin)
+- **Prometheus** : http://localhost:9090
+- **Loki** : http://localhost:3100
+
+### Dashboards disponibles
+1. **TCG Card API - Vue d'ensemble**
+   - Requêtes/sec, temps de réponse, taux d'erreurs
+   - Percentiles (p50, p95, p99)
+   - Logs en temps réel
+   - Top endpoints lents
+
+2. **Infrastructure Système**
+   - CPU, RAM, Disk, Network
+   - Métriques Docker containers
+
+### Alertes configurées
+- ⚠️ Temps de réponse > 2s
+- 🔥 Taux d'erreurs 5xx > 5%
+- ❌ Pic de logs ERROR
+- 🧠 Mémoire container > 80%
+- 💻 CPU container > 90%
+
+📖 **Guide complet** : Voir [MONITORING.md](MONITORING.md)
 
 ---
 

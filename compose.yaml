@@ -1,3 +1,5 @@
+name: tcgcard-api
+
 services:
   ###> php ###
   php:
