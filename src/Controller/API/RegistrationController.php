@@ -27,6 +27,9 @@ class RegistrationController extends AbstractController
         private LoggerInterface $logger
     ) {}
 
+    /**
+     * Inscription d'un nouvel utilisateur
+     */
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, APIAuthenticator $authenticator): Response
     {
@@ -75,6 +78,9 @@ class RegistrationController extends AbstractController
         );
     }
 
+    /**
+     * Connexion d'un utilisateur et génération d'un token API
+     */
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request, UserPasswordHasherInterface $passwordHasher): Response
     {
@@ -111,6 +117,9 @@ class RegistrationController extends AbstractController
         );
     }
 
+    /**
+     * Déconnexion d'un utilisateur et invalidation du token
+     */
     #[Route('/api/logout', name: 'api_logout', methods: ['GET'])]
     public function logout(Request $request): Response
     {

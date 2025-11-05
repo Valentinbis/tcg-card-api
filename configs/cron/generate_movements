@@ -1,1 +1,0 @@
-0 10 * * * /usr/local/bin/php /app/bin/console app:generate-next-month-movements >> /var/log/cron.log 2>&1

@@ -23,6 +23,9 @@ class CardController extends AbstractController
         private PaginationService $paginationService
     ) {}
 
+    /**
+     * Liste des cartes avec filtres et pagination
+     */
     #[Route('/api/cards', name: 'api_cards', methods: ['GET'])]
     public function index(Request $request): JsonResponse
     {
@@ -67,6 +70,9 @@ class CardController extends AbstractController
         ], Response::HTTP_OK, [], ['groups' => ['card:read']]);
     }
 
+    /**
+     * Mise à jour des langues pour une carte utilisateur
+     */
     #[Route('/api/cards/{id}/languages', name: 'api_card_languages', methods: ['POST'])]
     public function updateLanguages(int $id, Request $request): JsonResponse
     {
