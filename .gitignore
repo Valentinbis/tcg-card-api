@@ -26,3 +26,8 @@
 ###> phpstan/phpstan ###
 /phpstan-baseline.neon
 ###< phpstan/phpstan ###
+
+###> deployment ###
+/.env.production
+/coverage/
+###< deployment ###
