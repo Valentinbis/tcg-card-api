@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -85,7 +87,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function updateTimestamp(): void
     {
-        if ($this->createdAt === null) {
+        if (null === $this->createdAt) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->updatedAt = new \DateTimeImmutable();
@@ -221,12 +223,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTokenExpiresAt(?\DateTimeImmutable $tokenExpiresAt): static
     {
         $this->tokenExpiresAt = $tokenExpiresAt;
+
         return $this;
     }
 
     public function isTokenExpired(): bool
     {
-        return $this->tokenExpiresAt !== null && $this->tokenExpiresAt < new \DateTimeImmutable();
+        return null !== $this->tokenExpiresAt && $this->tokenExpiresAt < new \DateTimeImmutable();
     }
 
     public function getLastActivityAt(): ?\DateTimeImmutable
@@ -237,12 +240,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLastActivityAt(?\DateTimeImmutable $lastActivityAt): static
     {
         $this->lastActivityAt = $lastActivityAt;
+
         return $this;
     }
 
     public function updateLastActivity(): static
     {
         $this->lastActivityAt = new \DateTimeImmutable();
+
         return $this;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
 use App\Entity\Card;
@@ -34,13 +36,14 @@ class TranslateCardNamesCommand extends Command
 
             if ($translated) {
                 $card->setNameFr($translated);
-                $updated++;
+                ++$updated;
                 $output->writeln("Translated: {$card->getName()} → $translated");
             }
         }
 
         $this->em->flush();
         $output->writeln("Done. $updated names translated.");
+
         return Command::SUCCESS;
     }
 }

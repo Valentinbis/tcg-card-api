@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\API;
 
 use App\Attribute\LogAction;
@@ -13,10 +15,11 @@ class InfosController extends AbstractController
 {
     public function __construct(
         private readonly Connection $connection,
-    ) {}
+    ) {
+    }
 
     /**
-     * Informations système et statut de l'API
+     * Informations système et statut de l'API.
      */
     #[Route('/api', name: 'app_infos', methods: ['GET'])]
     #[LogAction('health_check', 'API health check performed')]
@@ -34,8 +37,8 @@ class InfosController extends AbstractController
             'name' => $_ENV['APP_NAME'],
             'env' => $_ENV['APP_ENV'],
             'database' => [
-                'connected' => $isConnected
-            ]
+                'connected' => $isConnected,
+            ],
         ]), 200, ['Content-Type' => 'application/json']);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\DTO\CardViewDTO;
@@ -11,7 +13,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class CardService
 {
-    public function __construct(private EntityManagerInterface $em) {}
+    public function __construct(private EntityManagerInterface $em)
+    {
+    }
 
     public function getUserCardsWithFilters(
         User $user,
@@ -26,7 +30,7 @@ class CardService
     ): array {
         // 1. Récupère toutes les cartes triées (sans pagination)
         $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c')
-            ->orderBy('c.' . $sort, $order);
+            ->orderBy('c.'.$sort, $order);
 
         $allCards = $qb->getQuery()->getResult();
 
@@ -39,7 +43,7 @@ class CardService
         $ownedLanguagesByCardId = [];
         foreach ($userCards as $uc) {
             $ownedLanguagesByCardId[$uc->getCardId()] = array_map(
-                fn(LanguageEnum $langEnum) => $langEnum->value,
+                fn (LanguageEnum $langEnum) => $langEnum->value,
                 $uc->getLanguages()
             );
         }
@@ -50,29 +54,32 @@ class CardService
         if ($type) {
             $allCards = array_filter($allCards, function ($card) use ($type) {
                 $types = $card->getTypes() ?? [];
+
                 return in_array($type, $types, true);
             });
             $allCards = array_values($allCards);
         }
 
         // Filtre par numéro
-        if ($number !== null && $number !== '') {
+        if (null !== $number && '' !== $number) {
             $allCards = array_filter($allCards, function ($card) use ($number) {
-                return (string)$card->getNumber() === (string)$number;
+                return (string) $card->getNumber() === (string) $number;
             });
             $allCards = array_values($allCards);
         }
 
         // Filtre owned/lang
-        if ($owned !== null) {
+        if (null !== $owned) {
             $allCards = array_filter($allCards, function ($card) use ($ownedLanguagesByCardId, $lang, $owned) {
                 $ownedLangs = $ownedLanguagesByCardId[$card->getId()] ?? [];
                 if ($lang) {
                     $hasLang = in_array($lang, $ownedLangs, true);
-                    return $owned === 'true' ? $hasLang : !$hasLang;
+
+                    return 'true' === $owned ? $hasLang : !$hasLang;
                 } else {
                     $hasAny = !empty($ownedLangs);
-                    return $owned === 'true' ? $hasAny : !$hasAny;
+
+                    return 'true' === $owned ? $hasAny : !$hasAny;
                 }
             });
             $allCards = array_values($allCards);
@@ -86,11 +93,11 @@ class CardService
 
         // 7. Construire la réponse paginée
         $cardViews = array_map(
-            fn(Card $card) => new CardViewDTO(
+            fn (Card $card) => new CardViewDTO(
                 $card->getId(),
                 $card->getName() ?? '',
                 $card->getNameFr() ?? '',
-                (int)($card->getNumber() ?? 0),
+                (int) ($card->getNumber() ?? 0),
                 $card->getRarity() ?? '',
                 $card->getNationalPokedexNumbers() ?? [],
                 $card->getImages() ?? [],
@@ -108,7 +115,7 @@ class CardService
     public function updateUserCardLanguages(User $user, int $cardId, array $languages): void
     {
         $enumLanguages = array_map(
-            fn(string $lang) => LanguageEnum::from($lang),
+            fn (string $lang) => LanguageEnum::from($lang),
             $languages
         );
 

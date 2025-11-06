@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
 use App\Attribute\LogSecurity;
@@ -11,7 +13,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 class SecurityController extends AbstractController
 {
     /**
-     * Page de connexion utilisateur
+     * Page de connexion utilisateur.
      */
     #[Route(path: '/login', name: 'app_login')]
     #[LogSecurity('login_page', 'Login page accessed')]
@@ -27,7 +29,7 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * Déconnexion utilisateur
+     * Déconnexion utilisateur.
      */
     #[Route(path: '/logout', name: 'app_logout')]
     #[LogSecurity('logout', 'User logout initiated')]

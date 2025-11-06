@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\API;
 
 use App\Attribute\LogAction;
@@ -22,13 +24,14 @@ class UserController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly SerializerInterface $serializer,
-    ) {}
+    ) {
+    }
 
     /**
-     * Récupère le profil de l'utilisateur connecté
+     * Récupère le profil de l'utilisateur connecté.
      */
     #[Route('/api/me', methods: ['GET'])]
-    #[IsGranted("ROLE_USER")]
+    #[IsGranted('ROLE_USER')]
     #[LogAction('view_profile', 'User profile accessed')]
     #[LogSecurity('verify_token', 'Token verification requested')]
     public function me(): JsonResponse
@@ -37,15 +40,15 @@ class UserController extends AbstractController
         $user = $this->getUser();
 
         return $this->json($user, Response::HTTP_OK, [], [
-            'groups' => ['user.show', 'user.token']
+            'groups' => ['user.show', 'user.token'],
         ]);
     }
 
     /**
-     * Liste tous les utilisateurs
+     * Liste tous les utilisateurs.
      */
     #[Route('/api/users', methods: ['GET'])]
-    #[IsGranted("ROLE_USER")]
+    #[IsGranted('ROLE_USER')]
     #[LogAction('list_users', 'Users list retrieved')]
     #[LogPerformance(threshold: 0.3)]
     public function users(): JsonResponse
@@ -53,28 +56,28 @@ class UserController extends AbstractController
         $users = $this->entityManager->getRepository(User::class)->findAll();
 
         return $this->json($users, Response::HTTP_OK, [], [
-            'groups' => ['user.show']
+            'groups' => ['user.show'],
         ]);
     }
 
     /**
-     * Récupère les détails d'un utilisateur par son ID
+     * Récupère les détails d'un utilisateur par son ID.
      */
     #[Route('/api/user/{id}', methods: ['GET'])]
-    #[IsGranted("ROLE_USER")]
+    #[IsGranted('ROLE_USER')]
     #[LogAction('view_user', 'User details accessed')]
     public function user(#[MapEntity] User $user): JsonResponse
     {
         return $this->json($user, Response::HTTP_OK, [], [
-            'groups' => ['user.show']
+            'groups' => ['user.show'],
         ]);
     }
 
     /**
-     * Supprime un utilisateur (admin uniquement)
+     * Supprime un utilisateur (admin uniquement).
      */
     #[Route('/api/user/{id}', methods: ['DELETE'])]
-    #[IsGranted("ROLE_ADMIN")]
+    #[IsGranted('ROLE_ADMIN')]
     #[LogAction('delete_user', 'User deleted', 'warning')]
     #[LogSecurity('delete_user', 'User deletion performed', 'warning')]
     public function deleteUser(#[MapEntity] User $user): Response|JsonResponse
@@ -90,10 +93,10 @@ class UserController extends AbstractController
     }
 
     /**
-     * Modifie les informations d'un utilisateur
+     * Modifie les informations d'un utilisateur.
      */
-    #[Route('/api/user/{id}', name: "updateUser", methods: ['PUT'])]
-    #[IsGranted("ROLE_USER")]
+    #[Route('/api/user/{id}', name: 'updateUser', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER')]
     #[LogAction('update_user', 'User updated')]
     public function update(Request $request, #[MapEntity] User $user): JsonResponse
     {

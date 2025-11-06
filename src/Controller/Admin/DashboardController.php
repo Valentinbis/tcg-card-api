@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\User;
@@ -26,7 +28,7 @@ class DashboardController extends AbstractDashboardController
     public function index(): Response
     {
         return $this->render('admin/dashboard.html.twig', [
-            'countUsers' => $this->userRepository->countUsers()
+            'countUsers' => $this->userRepository->countUsers(),
         ]);
 
     }

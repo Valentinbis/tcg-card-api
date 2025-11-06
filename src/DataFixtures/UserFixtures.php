@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\DataFixtures;
 
 use App\Entity\User;
@@ -12,13 +14,14 @@ class UserFixtures extends Fixture
 {
     public function __construct(
         private UserPasswordHasherInterface $userPasswordHasher
-    ) {}
+    ) {
+    }
 
     public function load(ObjectManager $manager): void
     {
         $faker = Factory::create('fr_FR');
 
-        for ($i = 0; $i < 50; $i++) {
+        for ($i = 0; $i < 50; ++$i) {
             // Création d'un user
             $user = new User();
             $user->setEmail($faker->email());

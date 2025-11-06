@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Security;
 
 use App\Entity\User;
@@ -24,16 +26,16 @@ class APIAuthenticator extends AbstractAuthenticator
 
     public function supports(Request $request): ?bool
     {
-        return $request->headers->has('Authorization') &&
-            str_contains($request->headers->get('Authorization'), 'Bearer ');
+        return $request->headers->has('Authorization')
+            && str_contains($request->headers->get('Authorization'), 'Bearer ');
     }
 
     public function authenticate(Request $request): Passport
     {
         $identifier = str_replace('Bearer ', '', $request->headers->get('Authorization'));
-        
+
         return new SelfValidatingPassport(
-            new UserBadge($identifier, function($apiToken) {
+            new UserBadge($identifier, function ($apiToken) {
                 // La résolution du user se fait via UserProvider
                 // Mais on peut pré-valider ici si besoin
                 return $apiToken;
@@ -44,7 +46,7 @@ class APIAuthenticator extends AbstractAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         $user = $token->getUser();
-        
+
         if (!$user instanceof User) {
             throw new CustomUserMessageAuthenticationException('Invalid user');
         }
@@ -63,7 +65,7 @@ class APIAuthenticator extends AbstractAuthenticator
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
         return new JsonResponse([
-            'error' => $exception->getMessage()
+            'error' => $exception->getMessage(),
         ], Response::HTTP_UNAUTHORIZED);
     }
 }

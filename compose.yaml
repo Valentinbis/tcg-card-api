@@ -10,7 +10,6 @@ services:
   ###< php ###
   ###> symfony ###
   symfony:
-    app:
     container_name: tcgcard_api
     build:
       context: .
