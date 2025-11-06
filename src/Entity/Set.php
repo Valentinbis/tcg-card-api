@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'sets')]
@@ -51,38 +53,131 @@ class Set
 
     // === Getters & Setters ===
 
-    public function getId(): string { return $this->id; }
-    public function setId(string $id): self { $this->id = $id; return $this; }
+    public function getId(): string
+    {
+        return $this->id;
+    }
 
-    public function getName(): string { return $this->name; }
-    public function setName(string $name): self { $this->name = $name; return $this; }
+    public function setId(string $id): self
+    {
+        $this->id = $id;
 
-    public function getSeries(): ?string { return $this->series; }
-    public function setSeries(?string $series): self { $this->series = $series; return $this; }
+        return $this;
+    }
 
-    public function getPrintedTotal(): ?int { return $this->printedTotal; }
-    public function setPrintedTotal(?int $printedTotal): self { $this->printedTotal = $printedTotal; return $this; }
+    public function getName(): string
+    {
+        return $this->name;
+    }
 
-    public function getTotal(): ?int { return $this->total; }
-    public function setTotal(?int $total): self { $this->total = $total; return $this; }
+    public function setName(string $name): self
+    {
+        $this->name = $name;
 
-    public function getLegalities(): ?array { return $this->legalities; }
-    public function setLegalities(?array $legalities): self { $this->legalities = $legalities; return $this; }
+        return $this;
+    }
 
-    public function getPtcgoCode(): ?string { return $this->ptcgoCode; }
-    public function setPtcgoCode(?string $ptcgoCode): self { $this->ptcgoCode = $ptcgoCode; return $this; }
+    public function getSeries(): ?string
+    {
+        return $this->series;
+    }
 
-    public function getReleaseDate(): ?\DateTimeInterface { return $this->releaseDate; }
-    public function setReleaseDate(?\DateTimeInterface $releaseDate): self { $this->releaseDate = $releaseDate; return $this; }
+    public function setSeries(?string $series): self
+    {
+        $this->series = $series;
 
-    public function getUpdatedAt(): ?\DateTimeInterface { return $this->updatedAt; }
-    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self { $this->updatedAt = $updatedAt; return $this; }
+        return $this;
+    }
 
-    public function getImages(): ?array { return $this->images; }
-    public function setImages(?array $images): self { $this->images = $images; return $this; }
+    public function getPrintedTotal(): ?int
+    {
+        return $this->printedTotal;
+    }
+
+    public function setPrintedTotal(?int $printedTotal): self
+    {
+        $this->printedTotal = $printedTotal;
+
+        return $this;
+    }
+
+    public function getTotal(): ?int
+    {
+        return $this->total;
+    }
+
+    public function setTotal(?int $total): self
+    {
+        $this->total = $total;
+
+        return $this;
+    }
+
+    public function getLegalities(): ?array
+    {
+        return $this->legalities;
+    }
+
+    public function setLegalities(?array $legalities): self
+    {
+        $this->legalities = $legalities;
+
+        return $this;
+    }
+
+    public function getPtcgoCode(): ?string
+    {
+        return $this->ptcgoCode;
+    }
+
+    public function setPtcgoCode(?string $ptcgoCode): self
+    {
+        $this->ptcgoCode = $ptcgoCode;
+
+        return $this;
+    }
+
+    public function getReleaseDate(): ?\DateTimeInterface
+    {
+        return $this->releaseDate;
+    }
+
+    public function setReleaseDate(?\DateTimeInterface $releaseDate): self
+    {
+        $this->releaseDate = $releaseDate;
+
+        return $this;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(?\DateTimeInterface $updatedAt): self
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+
+    public function getImages(): ?array
+    {
+        return $this->images;
+    }
+
+    public function setImages(?array $images): self
+    {
+        $this->images = $images;
+
+        return $this;
+    }
 
     /** @return Collection<int, Card> */
-    public function getCards(): Collection { return $this->cards; }
+    public function getCards(): Collection
+    {
+        return $this->cards;
+    }
 
     public function addCard(Card $card): self
     {
@@ -90,6 +185,7 @@ class Set
             $this->cards->add($card);
             $card->setSet($this);
         }
+
         return $this;
     }
 }

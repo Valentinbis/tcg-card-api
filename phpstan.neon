@@ -1,0 +1,20 @@
+parameters:
+    level: max
+    paths:
+        - src
+    excludePaths:
+        - src/Kernel.php
+    
+    # Symfony-specific configuration
+    symfony:
+        containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    
+    # Ignorer certaines erreurs connues (à retirer progressivement)
+    ignoreErrors:
+        # Ignorer les erreurs de propriétés dynamiques pour les entités Doctrine
+        - '#Access to an undefined property Doctrine\\ORM\\EntityManager::\$[a-zA-Z]+#'
+        # Ignorer temporairement les erreurs sur les tableaux JSON
+        - '#Cannot access offset [a-zA-Z]+ on mixed#'
+    
+    # Report unmatched ignored errors
+    reportUnmatchedIgnoredErrors: false

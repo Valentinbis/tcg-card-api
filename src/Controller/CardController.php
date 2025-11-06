@@ -1,15 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller;
 
-use App\DTO\CardViewDTO;
 use App\DTO\PaginationDTO;
-use App\Entity\Card;
-use App\Entity\UserCard;
-use App\Enum\LanguageEnum;
 use App\Service\CardService;
 use App\Service\PaginationService;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,10 +18,11 @@ class CardController extends AbstractController
     public function __construct(
         private CardService $cardService,
         private PaginationService $paginationService
-    ) {}
+    ) {
+    }
 
     /**
-     * Liste des cartes avec filtres et pagination
+     * Liste des cartes avec filtres et pagination.
      */
     #[Route('/api/cards', name: 'api_cards', methods: ['GET'])]
     public function index(Request $request): JsonResponse
@@ -35,8 +33,8 @@ class CardController extends AbstractController
         }
 
         $pagination = new PaginationDTO(
-            page: (int)($request->query->get('page', 1)),
-            limit: (int)($request->query->get('limit', 20)),
+            page: (int) ($request->query->get('page', 1)),
+            limit: (int) ($request->query->get('limit', 20)),
             sort: $request->query->get('sort', 'number'),
             order: $request->query->get('order', 'ASC')
         );
@@ -71,7 +69,7 @@ class CardController extends AbstractController
     }
 
     /**
-     * Mise à jour des langues pour une carte utilisateur
+     * Mise à jour des langues pour une carte utilisateur.
      */
     #[Route('/api/cards/{id}/languages', name: 'api_card_languages', methods: ['POST'])]
     public function updateLanguages(int $id, Request $request): JsonResponse

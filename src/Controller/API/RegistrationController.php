@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\API;
 
 use App\DTO\LoginRequestDTO;
@@ -8,18 +10,18 @@ use App\Repository\UserRepository;
 use App\Security\APIAuthenticator;
 use App\Service\TokenManager;
 use Doctrine\ORM\EntityManagerInterface;
+use Nelmio\ApiDocBundle\Attribute\Model;
 use OpenApi\Attributes as OA;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Nelmio\ApiDocBundle\Attribute\Model;
 use Symfony\Component\HttpKernel\Attribute\MapRequestPayload;
-use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
+use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class RegistrationController extends AbstractController
@@ -31,26 +33,29 @@ class RegistrationController extends AbstractController
         private ValidatorInterface $validator,
         private LoggerInterface $logger,
         private TokenManager $tokenManager
-    ) {}
+    ) {
+    }
 
     /**
-     * Inscription d'un nouvel utilisateur
+     * Inscription d'un nouvel utilisateur.
      */
     #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request, UserPasswordHasherInterface $userPasswordHasher, UserAuthenticatorInterface $userAuthenticator, APIAuthenticator $authenticator): Response
     {
         if (empty($request->getContent())) {
             $this->logger->warning('Registration attempt with empty request body');
+
             return new Response('The request is empty', 400);
         }
         $data = $this->serializer->deserialize($request->getContent(), User::class, 'json');
         $errors = $this->validator->validate($data);
         if (count($errors) > 0) {
             $this->logger->warning('Registration attempt with invalid data', ['errors' => (string) $errors]);
+
             return new Response((string) $errors, 400);
         }
 
-        //set user data
+        // set user data
         $user = $data;
 
         $user->setPassword(
@@ -62,10 +67,10 @@ class RegistrationController extends AbstractController
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
-        
+
         // Générer le token avec expiration pour le nouvel utilisateur
         $this->tokenManager->generateToken($user);
-        
+
         $this->logger->info('User registered successfully', ['user_id' => $user->getId()]);
 
         $authenticateUser = $userAuthenticator->authenticateUser(
@@ -83,26 +88,27 @@ class RegistrationController extends AbstractController
             Response::HTTP_OK,
             [],
             [
-                'groups' => ['user.show']
+                'groups' => ['user.show'],
             ]
         );
     }
 
     /**
-     * Connexion d'un utilisateur et génération d'un token API
+     * Connexion d'un utilisateur et génération d'un token API.
      */
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     #[OA\RequestBody(content: new Model(type: LoginRequestDTO::class))]
     public function login(
-        #[MapRequestPayload] LoginRequestDTO $loginData,
+        #[MapRequestPayload]
+        LoginRequestDTO $loginData,
         UserPasswordHasherInterface $passwordHasher
-    ): Response
-    {
+    ): Response {
         // Trouver l'utilisateur par son nom d'utilisateur
         $user = $this->userRepository->findOneBy(['email' => $loginData->email]);
 
         if (!$user || !$passwordHasher->isPasswordValid($user, $loginData->password)) {
             $this->logger->warning('Invalid login attempt', ['email' => $loginData->email]);
+
             return new JsonResponse(['error' => 'Invalid email or password'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -116,13 +122,13 @@ class RegistrationController extends AbstractController
             Response::HTTP_OK,
             [],
             [
-                'groups' => ['user.show', 'user.token']
+                'groups' => ['user.show', 'user.token'],
             ]
         );
     }
 
     /**
-     * Déconnexion d'un utilisateur et invalidation du token
+     * Déconnexion d'un utilisateur et invalidation du token.
      */
     #[Route('/api/logout', name: 'api_logout', methods: ['GET'])]
     public function logout(Request $request): Response
@@ -135,6 +141,7 @@ class RegistrationController extends AbstractController
 
         if (!$user) {
             $this->logger->warning('Logout attempt with invalid token');
+
             return new JsonResponse(['error' => 'Invalid token'], Response::HTTP_UNAUTHORIZED);
         }
 
@@ -146,7 +153,7 @@ class RegistrationController extends AbstractController
     }
 
     /**
-     * Rafraîchir le token (prolonger la session)
+     * Rafraîchir le token (prolonger la session).
      */
     #[Route('/api/token/refresh', name: 'api_token_refresh', methods: ['POST'])]
     public function refreshToken(Request $request): Response
@@ -176,7 +183,7 @@ class RegistrationController extends AbstractController
             Response::HTTP_OK,
             [],
             [
-                'groups' => ['user.show', 'user.token']
+                'groups' => ['user.show', 'user.token'],
             ]
         );
     }

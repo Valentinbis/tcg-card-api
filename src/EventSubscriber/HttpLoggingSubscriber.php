@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\EventSubscriber;
 
 use App\Attribute\LogAction;
@@ -8,15 +10,15 @@ use App\Attribute\LogSecurity;
 use App\Service\LoggerService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
  * Log automatiquement les requêtes HTTP, réponses et exceptions
- * Gère également le logging déclaratif via attributs PHP
+ * Gère également le logging déclaratif via attributs PHP.
  */
 class HttpLoggingSubscriber implements EventSubscriberInterface
 {
@@ -25,7 +27,8 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
 
     public function __construct(
         private readonly LoggerService $logger
-    ) {}
+    ) {
+    }
 
     public static function getSubscribedEvents(): array
     {
@@ -45,11 +48,11 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         }
 
         $request = $event->getRequest();
-        
+
         // Génère un ID unique de corrélation pour tracer la requête
         $correlationId = uniqid('req_', true);
         $request->attributes->set('correlation_id', $correlationId);
-        
+
         // Stocke le temps de début pour calculer la durée
         $this->requestStartTimes[$correlationId] = microtime(true);
 
@@ -77,14 +80,14 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         // Extraire la méthode du contrôleur
         if (is_array($controller)) {
             $method = new \ReflectionMethod($controller[0], $controller[1]);
-            
+
             // Récupérer les attributs de logging
             $attributes = [
                 'action' => $method->getAttributes(LogAction::class),
                 'security' => $method->getAttributes(LogSecurity::class),
                 'performance' => $method->getAttributes(LogPerformance::class),
             ];
-            
+
             // Stocker pour utilisation dans onKernelTerminate
             $this->controllerAttributes[$correlationId] = [
                 'method' => $method,
@@ -123,7 +126,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
                 'method' => $request->getMethod(),
                 'uri' => $request->getRequestUri(),
                 'status' => $response->getStatusCode(),
-                'duration' => round($duration * 1000, 2) . 'ms',
+                'duration' => round($duration * 1000, 2).'ms',
                 'correlation_id' => $correlationId,
             ], $level);
         }
@@ -182,7 +185,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
                 /** @var LogAction $instance */
                 $instance = $attr->newInstance();
                 $context['action_type'] = $instance->action;
-                
+
                 $this->logger->logAction(
                     $instance->message,
                     $context,
@@ -195,7 +198,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
                 /** @var LogSecurity $instance */
                 $instance = $attr->newInstance();
                 $context['security_action'] = $instance->action;
-                
+
                 $this->logger->logSecurity(
                     $instance->message,
                     $context,
@@ -207,24 +210,24 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
             foreach ($data['attributes']['performance'] as $attr) {
                 /** @var LogPerformance $instance */
                 $instance = $attr->newInstance();
-                
+
                 if ($instance->enabled) {
                     $this->logger->logPerformance(
                         $data['action'],
                         $duration,
                         array_merge($context, [
                             'threshold' => $instance->threshold,
-                            'exceeded' => $duration > $instance->threshold
+                            'exceeded' => $duration > $instance->threshold,
                         ])
                     );
-                    
+
                     // Warning si le seuil est dépassé
                     if ($duration > $instance->threshold) {
                         $this->logger->warning(
-                            "Performance threshold exceeded",
+                            'Performance threshold exceeded',
                             array_merge($context, [
                                 'duration_seconds' => $duration,
-                                'threshold_seconds' => $instance->threshold
+                                'threshold_seconds' => $instance->threshold,
                             ])
                         );
                     }
@@ -240,11 +243,12 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Vérifie si c'est un health check pour éviter de polluer les logs
+     * Vérifie si c'est un health check pour éviter de polluer les logs.
      */
     private function isHealthCheck($request): bool
     {
         $uri = $request->getRequestUri();
-        return $uri === '/api' || $uri === '/health' || $uri === '/ping';
+
+        return '/api' === $uri || '/health' === $uri || '/ping' === $uri;
     }
 }

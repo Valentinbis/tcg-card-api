@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\User;
@@ -9,7 +11,7 @@ class TokenManager
 {
     // Durée de validité du token : 30 jours
     private const TOKEN_LIFETIME = 30 * 24 * 60 * 60;
-    
+
     // Durée d'inactivité max avant expiration : 7 jours
     private const INACTIVITY_TIMEOUT = 7 * 24 * 60 * 60;
 
@@ -21,14 +23,14 @@ class TokenManager
     public function generateToken(User $user): string
     {
         $token = bin2hex(random_bytes(60));
-        $expiresAt = new \DateTimeImmutable('+' . self::TOKEN_LIFETIME . ' seconds');
-        
+        $expiresAt = new \DateTimeImmutable('+'.self::TOKEN_LIFETIME.' seconds');
+
         $user->setApiToken($token);
         $user->setTokenExpiresAt($expiresAt);
         $user->updateLastActivity();
-        
+
         $this->entityManager->flush();
-        
+
         return $token;
     }
 
@@ -39,13 +41,13 @@ class TokenManager
         }
 
         $lastActivity = $user->getLastActivityAt();
-        if ($lastActivity === null) {
+        if (null === $lastActivity) {
             return false;
         }
 
         $now = new \DateTimeImmutable();
         $inactivityDuration = $now->getTimestamp() - $lastActivity->getTimestamp();
-        
+
         return $inactivityDuration < self::INACTIVITY_TIMEOUT;
     }
 
@@ -65,20 +67,20 @@ class TokenManager
         $user->setApiToken(bin2hex(random_bytes(60)));
         $user->setTokenExpiresAt(null);
         $user->setLastActivityAt(null);
-        
+
         $this->entityManager->flush();
     }
 
     public function shouldRefresh(User $user): bool
     {
         $expiresAt = $user->getTokenExpiresAt();
-        if ($expiresAt === null) {
+        if (null === $expiresAt) {
             return true;
         }
 
         $now = new \DateTimeImmutable();
         $remainingTime = $expiresAt->getTimestamp() - $now->getTimestamp();
-        
+
         return $remainingTime < (3 * 24 * 60 * 60);
     }
 }

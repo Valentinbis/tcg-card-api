@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Card;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class CardNameTranslatorService
 {
     public function __construct(
         private HttpClientInterface $httpClient,
         private EntityManagerInterface $em
-    ) {}
+    ) {
+    }
 
     public function translate(int $number): ?string
     {

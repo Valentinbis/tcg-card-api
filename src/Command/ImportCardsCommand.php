@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Command;
 
+use App\Entity\Booster;
 use App\Entity\Card;
 use App\Entity\Set;
-use App\Entity\Booster;
 use Doctrine\ORM\EntityManagerInterface;
 use Pokemon\Pokemon;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -87,10 +89,11 @@ class ImportCardsCommand extends Command
             $this->em->persist($card);
             $this->em->flush();
             $this->em->clear();
-            $imported++;
+            ++$imported;
         }
 
         $output->writeln("<info>{$imported} cards imported or updated.</info>");
+
         return Command::SUCCESS;
     }
 
@@ -128,8 +131,8 @@ class ImportCardsCommand extends Command
         $largeExt = $this->getImageExtension($data->getImages()->getLarge());
 
         $card->setImages([
-            'small' => '/images/cards/small/' . $data->getId() . '.' . $smallExt,
-            'large' => '/images/cards/large/' . $data->getId() . '.' . $largeExt,
+            'small' => '/images/cards/small/'.$data->getId().'.'.$smallExt,
+            'large' => '/images/cards/large/'.$data->getId().'.'.$largeExt,
         ]);
     }
 
@@ -192,6 +195,7 @@ class ImportCardsCommand extends Command
                 $result[] = $item->toArray();
             }
         }
+
         return $result ?: null;
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use Psr\Log\LoggerInterface;
@@ -7,7 +9,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * Service centralisé pour la gestion des logs avec contexte enrichi
+ * Service centralisé pour la gestion des logs avec contexte enrichi.
  */
 class LoggerService
 {
@@ -19,10 +21,11 @@ class LoggerService
         private readonly LoggerInterface $performanceLogger,
         private readonly RequestStack $requestStack,
         private readonly TokenStorageInterface $tokenStorage,
-    ) {}
+    ) {
+    }
 
     /**
-     * Log une action métier
+     * Log une action métier.
      */
     public function logAction(string $message, array $context = [], string $level = 'info'): void
     {
@@ -31,7 +34,7 @@ class LoggerService
     }
 
     /**
-     * Log un événement de sécurité
+     * Log un événement de sécurité.
      */
     public function logSecurity(string $message, array $context = [], string $level = 'info'): void
     {
@@ -40,7 +43,7 @@ class LoggerService
     }
 
     /**
-     * Log une requête HTTP
+     * Log une requête HTTP.
      */
     public function logRequest(string $message, array $context = [], string $level = 'info'): void
     {
@@ -57,25 +60,25 @@ class LoggerService
     }
 
     /**
-     * Log des métriques de performance
+     * Log des métriques de performance.
      */
     public function logPerformance(string $operation, float $duration, array $context = []): void
     {
         $context['duration_ms'] = round($duration * 1000, 2);
         $context['operation'] = $operation;
-        
+
         $level = 'info';
         if ($duration > 1.0) {
             $level = 'warning';
         } elseif ($duration > 5.0) {
             $level = 'error';
         }
-        
+
         $this->performanceLogger->log($level, "Operation completed: {$operation}", $context);
     }
 
     /**
-     * Log une erreur avec contexte complet
+     * Log une erreur avec contexte complet.
      */
     public function logError(\Throwable $exception, array $context = []): void
     {
@@ -86,13 +89,13 @@ class LoggerService
             'file' => $exception->getFile(),
             'line' => $exception->getLine(),
         ];
-        
+
         $enrichedContext = $this->enrichContext($context);
         $this->logger->error($exception->getMessage(), $enrichedContext);
     }
 
     /**
-     * Log générique avec contexte enrichi
+     * Log générique avec contexte enrichi.
      */
     public function log(string $level, string $message, array $context = []): void
     {
@@ -101,28 +104,28 @@ class LoggerService
     }
 
     /**
-     * Enrichit le contexte avec des informations additionnelles
+     * Enrichit le contexte avec des informations additionnelles.
      */
     private function enrichContext(array $context): array
     {
         // Ajoute un timestamp
         $context['timestamp'] = (new \DateTime())->format(\DateTime::ATOM);
-        
+
         // Ajoute l'environnement
         $context['environment'] = $_ENV['APP_ENV'] ?? 'unknown';
-        
+
         // Ajoute un ID de corrélation unique pour tracer les requêtes
         $request = $this->requestStack->getCurrentRequest();
         if ($request && !isset($context['correlation_id'])) {
-            $context['correlation_id'] = $request->attributes->get('correlation_id') 
+            $context['correlation_id'] = $request->attributes->get('correlation_id')
                 ?? uniqid('req_', true);
         }
-        
+
         return $context;
     }
 
     /**
-     * Helpers pour les niveaux de log courants
+     * Helpers pour les niveaux de log courants.
      */
     public function debug(string $message, array $context = []): void
     {

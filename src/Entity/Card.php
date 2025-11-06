@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity]
@@ -112,10 +114,10 @@ class Card
     #[ORM\JoinTable(
         name: 'card_booster',
         joinColumns: [
-            new ORM\JoinColumn(name: 'card_id', referencedColumnName: 'id')
+            new ORM\JoinColumn(name: 'card_id', referencedColumnName: 'id'),
         ],
         inverseJoinColumns: [
-            new ORM\JoinColumn(name: 'booster_name', referencedColumnName: 'name')
+            new ORM\JoinColumn(name: 'booster_name', referencedColumnName: 'name'),
         ]
     )]
     private Collection $boosters;
@@ -131,9 +133,11 @@ class Card
     {
         return $this->id;
     }
+
     public function setId(string $id): self
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -141,9 +145,11 @@ class Card
     {
         return $this->name;
     }
+
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
@@ -155,6 +161,7 @@ class Card
     public function setNameFr(?string $nameFr): self
     {
         $this->nameFr = $nameFr;
+
         return $this;
     }
 
@@ -162,9 +169,11 @@ class Card
     {
         return $this->supertype;
     }
+
     public function setSupertype(?string $supertype): self
     {
         $this->supertype = $supertype;
+
         return $this;
     }
 
@@ -172,9 +181,11 @@ class Card
     {
         return $this->subtypes;
     }
+
     public function setSubtypes(?array $subtypes): self
     {
         $this->subtypes = $subtypes;
+
         return $this;
     }
 
@@ -182,9 +193,11 @@ class Card
     {
         return $this->hp;
     }
+
     public function setHp(?string $hp): self
     {
         $this->hp = $hp;
+
         return $this;
     }
 
@@ -192,9 +205,11 @@ class Card
     {
         return $this->types;
     }
+
     public function setTypes(?array $types): self
     {
         $this->types = $types;
+
         return $this;
     }
 
@@ -202,9 +217,11 @@ class Card
     {
         return $this->evolvesFrom;
     }
+
     public function setEvolvesFrom(?string $evolvesFrom): self
     {
         $this->evolvesFrom = $evolvesFrom;
+
         return $this;
     }
 
@@ -212,9 +229,11 @@ class Card
     {
         return $this->evolvesTo;
     }
+
     public function setEvolvesTo(?array $evolvesTo): self
     {
         $this->evolvesTo = $evolvesTo;
+
         return $this;
     }
 
@@ -222,9 +241,11 @@ class Card
     {
         return $this->rules;
     }
+
     public function setRules(?array $rules): self
     {
         $this->rules = $rules;
+
         return $this;
     }
 
@@ -232,9 +253,11 @@ class Card
     {
         return $this->ancientTrait;
     }
+
     public function setAncientTrait(?array $ancientTrait): self
     {
         $this->ancientTrait = $ancientTrait;
+
         return $this;
     }
 
@@ -242,9 +265,11 @@ class Card
     {
         return $this->abilities;
     }
+
     public function setAbilities(?array $abilities): self
     {
         $this->abilities = $abilities;
+
         return $this;
     }
 
@@ -252,9 +277,11 @@ class Card
     {
         return $this->attacks;
     }
+
     public function setAttacks(?array $attacks): self
     {
         $this->attacks = $attacks;
+
         return $this;
     }
 
@@ -262,9 +289,11 @@ class Card
     {
         return $this->weaknesses;
     }
+
     public function setWeaknesses(?array $weaknesses): self
     {
         $this->weaknesses = $weaknesses;
+
         return $this;
     }
 
@@ -272,9 +301,11 @@ class Card
     {
         return $this->resistances;
     }
+
     public function setResistances(?array $resistances): self
     {
         $this->resistances = $resistances;
+
         return $this;
     }
 
@@ -282,9 +313,11 @@ class Card
     {
         return $this->retreatCost;
     }
+
     public function setRetreatCost(?array $retreatCost): self
     {
         $this->retreatCost = $retreatCost;
+
         return $this;
     }
 
@@ -292,9 +325,11 @@ class Card
     {
         return $this->convertedRetreatCost;
     }
+
     public function setConvertedRetreatCost(?int $convertedRetreatCost): self
     {
         $this->convertedRetreatCost = $convertedRetreatCost;
+
         return $this;
     }
 
@@ -302,9 +337,11 @@ class Card
     {
         return $this->number;
     }
+
     public function setNumber(?int $number): self
     {
         $this->number = $number;
+
         return $this;
     }
 
@@ -312,9 +349,11 @@ class Card
     {
         return $this->artist;
     }
+
     public function setArtist(?string $artist): self
     {
         $this->artist = $artist;
+
         return $this;
     }
 
@@ -322,9 +361,11 @@ class Card
     {
         return $this->rarity;
     }
+
     public function setRarity(?string $rarity): self
     {
         $this->rarity = $rarity;
+
         return $this;
     }
 
@@ -332,9 +373,11 @@ class Card
     {
         return $this->flavorText;
     }
+
     public function setFlavorText(?string $flavorText): self
     {
         $this->flavorText = $flavorText;
+
         return $this;
     }
 
@@ -342,9 +385,11 @@ class Card
     {
         return $this->nationalPokedexNumbers;
     }
+
     public function setNationalPokedexNumbers(?array $nationalPokedexNumbers): self
     {
         $this->nationalPokedexNumbers = $nationalPokedexNumbers;
+
         return $this;
     }
 
@@ -352,9 +397,11 @@ class Card
     {
         return $this->legalities;
     }
+
     public function setLegalities(?array $legalities): self
     {
         $this->legalities = $legalities;
+
         return $this;
     }
 
@@ -362,9 +409,11 @@ class Card
     {
         return $this->regulationMark;
     }
+
     public function setRegulationMark(?string $regulationMark): self
     {
         $this->regulationMark = $regulationMark;
+
         return $this;
     }
 
@@ -372,9 +421,11 @@ class Card
     {
         return $this->images;
     }
+
     public function setImages(?array $images): self
     {
         $this->images = $images;
+
         return $this;
     }
 
@@ -382,9 +433,11 @@ class Card
     {
         return $this->tcgplayer;
     }
+
     public function setTcgplayer(?array $tcgplayer): self
     {
         $this->tcgplayer = $tcgplayer;
+
         return $this;
     }
 
@@ -392,9 +445,11 @@ class Card
     {
         return $this->cardmarket;
     }
+
     public function setCardmarket(?array $cardmarket): self
     {
         $this->cardmarket = $cardmarket;
+
         return $this;
     }
 
@@ -402,9 +457,11 @@ class Card
     {
         return $this->set;
     }
+
     public function setSet(Set $set): self
     {
         $this->set = $set;
+
         return $this;
     }
 
@@ -419,12 +476,14 @@ class Card
         if (!$this->boosters->contains($booster)) {
             $this->boosters->add($booster);
         }
+
         return $this;
     }
 
     public function removeBooster(Booster $booster): self
     {
         $this->boosters->removeElement($booster);
+
         return $this;
     }
 }
