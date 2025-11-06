@@ -45,4 +45,15 @@ services:
     class: Monolog\Formatter\LineFormatter
     arguments:
       - "[%%datetime%%][%%extra.user.identifier%%] %%channel%%.%%level_name%%: %%message%% %%context%% %%extra%%\n"
-        
+
+  # Rate Limiter Subscriber
+  App\EventSubscriber\RateLimitSubscriber:
+    arguments:
+      $apiAnonymousLimiter: '@limiter.api_anonymous'
+      $apiAuthenticatedLimiter: '@limiter.api_authenticated'
+      $apiLoginLimiter: '@limiter.api_login'
+      $apiRegisterLimiter: '@limiter.api_register'
+      $security: '@security.helper'
+      $logger: '@monolog.logger.security'
+    tags:
+      - { name: kernel.event_subscriber }

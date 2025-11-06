@@ -6,6 +6,7 @@ use App\DTO\LoginRequestDTO;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Security\APIAuthenticator;
+use App\Service\TokenManager;
 use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Psr\Log\LoggerInterface;
@@ -28,7 +29,8 @@ class RegistrationController extends AbstractController
         private UserRepository $userRepository,
         private SerializerInterface $serializer,
         private ValidatorInterface $validator,
-        private LoggerInterface $logger
+        private LoggerInterface $logger,
+        private TokenManager $tokenManager
     ) {}
 
     /**
@@ -60,6 +62,10 @@ class RegistrationController extends AbstractController
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+        
+        // Générer le token avec expiration pour le nouvel utilisateur
+        $this->tokenManager->generateToken($user);
+        
         $this->logger->info('User registered successfully', ['user_id' => $user->getId()]);
 
         $authenticateUser = $userAuthenticator->authenticateUser(
@@ -100,13 +106,8 @@ class RegistrationController extends AbstractController
             return new JsonResponse(['error' => 'Invalid email or password'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Générer un nouveau token Bearer
-        $token = bin2hex(random_bytes(60));
-
-        // Stocker le token en base de données
-        $user->setApiToken($token);
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        // Générer un nouveau token avec expiration via TokenManager
+        $this->tokenManager->generateToken($user);
         $this->logger->info('User logged in successfully', ['user_id' => $user->getId()]);
 
         // Renvoyer le token à l'utilisateur
@@ -137,12 +138,46 @@ class RegistrationController extends AbstractController
             return new JsonResponse(['error' => 'Invalid token'], Response::HTTP_UNAUTHORIZED);
         }
 
-        // Invalider le token
-        $user->setApiToken('');
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
+        // Révoquer le token via TokenManager
+        $this->tokenManager->revokeToken($user);
         $this->logger->info('User logged out successfully', ['user_id' => $user->getId()]);
 
         return new JsonResponse(['message' => 'Logout successful'], Response::HTTP_OK);
+    }
+
+    /**
+     * Rafraîchir le token (prolonger la session)
+     */
+    #[Route('/api/token/refresh', name: 'api_token_refresh', methods: ['POST'])]
+    public function refreshToken(Request $request): Response
+    {
+        // Récupérer le token de l'en-tête Authorization
+        $token = str_replace('Bearer ', '', $request->headers->get('Authorization'));
+
+        // Trouver l'utilisateur associé au token
+        $user = $this->userRepository->findOneBy(['apiToken' => $token]);
+
+        if (!$user) {
+            return new JsonResponse(['error' => 'Invalid token'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Vérifier si le token est encore valide (pas complètement expiré)
+        if ($user->isTokenExpired()) {
+            return new JsonResponse(['error' => 'Token expired, please login again'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        // Générer un nouveau token avec nouvelle expiration
+        $this->tokenManager->refreshToken($user);
+        $this->logger->info('Token refreshed successfully', ['user_id' => $user->getId()]);
+
+        // Renvoyer le nouveau token
+        return $this->json(
+            $user,
+            Response::HTTP_OK,
+            [],
+            [
+                'groups' => ['user.show', 'user.token']
+            ]
+        );
     }
 }
