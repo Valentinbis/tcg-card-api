@@ -1,0 +1,29 @@
+framework:
+    rate_limiter:
+        # Rate limiter par IP (visiteurs anonymes)
+        api_anonymous:
+            policy: 'sliding_window'
+            limit: 60
+            interval: '1 minute'
+            lock_factory: 'lock.factory'
+        
+        # Rate limiter par utilisateur authentifié (plus permissif)
+        api_authenticated:
+            policy: 'sliding_window'
+            limit: 300
+            interval: '1 minute'
+            lock_factory: 'lock.factory'
+        
+        # Rate limiter strict pour login (prévenir brute force)
+        api_login:
+            policy: 'fixed_window'
+            limit: 5
+            interval: '5 minutes'
+            lock_factory: 'lock.factory'
+        
+        # Rate limiter pour register (prévenir spam)
+        api_register:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '1 hour'
+            lock_factory: 'lock.factory'
