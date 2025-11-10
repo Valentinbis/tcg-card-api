@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Service\TokenManager;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,25 +22,46 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 class APIAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
-        private TokenManager $tokenManager
+        private TokenManager $tokenManager,
+        private UserRepository $userRepository,
+        private LoggerInterface $logger
     ) {
     }
 
     public function supports(Request $request): ?bool
     {
-        return $request->headers->has('Authorization')
-            && str_contains($request->headers->get('Authorization'), 'Bearer ');
+        $authHeader = $this->getAuthorizationHeader($request);
+        return $authHeader && str_contains($authHeader, 'Bearer ');
+    }
+    
+    private function getAuthorizationHeader(Request $request): ?string
+    {
+        return $request->headers->get('Authorization');
     }
 
     public function authenticate(Request $request): Passport
     {
-        $identifier = str_replace('Bearer ', '', $request->headers->get('Authorization'));
+        $authHeader = $this->getAuthorizationHeader($request);
+        
+        if (!$authHeader) {
+            throw new CustomUserMessageAuthenticationException('No API token provided');
+        }
+        
+        $apiToken = str_replace('Bearer ', '', $authHeader);
+
+        if (empty($apiToken)) {
+            throw new CustomUserMessageAuthenticationException('No API token provided');
+        }
 
         return new SelfValidatingPassport(
-            new UserBadge($identifier, function ($apiToken) {
-                // La résolution du user se fait via UserProvider
-                // Mais on peut pré-valider ici si besoin
-                return $apiToken;
+            new UserBadge($apiToken, function ($apiToken) {
+                $user = $this->userRepository->findOneBy(['apiToken' => $apiToken]);
+                
+                if (!$user) {
+                    throw new CustomUserMessageAuthenticationException('Invalid API token');
+                }
+                
+                return $user;
             })
         );
     }
