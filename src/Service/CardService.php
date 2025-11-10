@@ -17,6 +17,9 @@ class CardService
     {
     }
 
+    /**
+     * @return array{data: array<CardViewDTO>, total: int}
+     */
     public function getUserCardsWithFilters(
         User $user,
         ?string $type,
@@ -32,6 +35,7 @@ class CardService
         $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c')
             ->orderBy('c.'.$sort, $order);
 
+        /** @var array<Card> $allCards */
         $allCards = $qb->getQuery()->getResult();
 
         // 2. Tous les UserCard pour cet utilisateur
@@ -40,10 +44,11 @@ class CardService
         ]);
 
         // 3. Indexer les UserCard par card_id pour accès rapide
+        /** @var array<int, array<string>> $ownedLanguagesByCardId */
         $ownedLanguagesByCardId = [];
         foreach ($userCards as $uc) {
             $ownedLanguagesByCardId[$uc->getCardId()] = array_map(
-                fn (LanguageEnum $langEnum) => $langEnum->value,
+                fn (LanguageEnum $langEnum): string => $langEnum->value,
                 $uc->getLanguages()
             );
         }
@@ -52,7 +57,7 @@ class CardService
 
         // Filtre par type
         if ($type) {
-            $allCards = array_filter($allCards, function ($card) use ($type) {
+            $allCards = array_filter($allCards, function (Card $card) use ($type): bool {
                 $types = $card->getTypes() ?? [];
 
                 return in_array($type, $types, true);
@@ -62,7 +67,7 @@ class CardService
 
         // Filtre par numéro
         if (null !== $number && '' !== $number) {
-            $allCards = array_filter($allCards, function ($card) use ($number) {
+            $allCards = array_filter($allCards, function (Card $card) use ($number): bool {
                 return (string) $card->getNumber() === (string) $number;
             });
             $allCards = array_values($allCards);
@@ -70,7 +75,7 @@ class CardService
 
         // Filtre owned/lang
         if (null !== $owned) {
-            $allCards = array_filter($allCards, function ($card) use ($ownedLanguagesByCardId, $lang, $owned) {
+            $allCards = array_filter($allCards, function (Card $card) use ($ownedLanguagesByCardId, $lang, $owned): bool {
                 $ownedLangs = $ownedLanguagesByCardId[$card->getId()] ?? [];
                 if ($lang) {
                     $hasLang = in_array($lang, $ownedLangs, true);
@@ -92,12 +97,13 @@ class CardService
         $cards = array_slice($allCards, $offset, $limit);
 
         // 7. Construire la réponse paginée
+        /** @var array<CardViewDTO> $cardViews */
         $cardViews = array_map(
-            fn (Card $card) => new CardViewDTO(
+            fn (Card $card): CardViewDTO => new CardViewDTO(
                 $card->getId(),
                 $card->getName() ?? '',
                 $card->getNameFr() ?? '',
-                (int) ($card->getNumber() ?? 0),
+                $card->getNumber() ?? '',
                 $card->getRarity() ?? '',
                 $card->getNationalPokedexNumbers() ?? [],
                 $card->getImages() ?? [],
@@ -112,21 +118,30 @@ class CardService
         ];
     }
 
+    /**
+     * @param array<string> $languages
+     */
     public function updateUserCardLanguages(User $user, int $cardId, array $languages): void
     {
+        /** @var array<LanguageEnum> $enumLanguages */
         $enumLanguages = array_map(
-            fn (string $lang) => LanguageEnum::from($lang),
+            fn (string $lang): LanguageEnum => LanguageEnum::from($lang),
             $languages
         );
 
+        $userId = $user->getId();
+        if (null === $userId) {
+            throw new \RuntimeException('User ID cannot be null');
+        }
+
         $userCard = $this->em->getRepository(UserCard::class)->findOneBy([
-            'user_id' => $user->getId(),
+            'user_id' => $userId,
             'card_id' => $cardId,
         ]);
 
         if (!$userCard) {
             $userCard = new UserCard();
-            $userCard->setUserId($user->getId());
+            $userCard->setUserId($userId);
             $userCard->setCardId($cardId);
         }
 

@@ -26,6 +26,7 @@ class Booster
     private ?string $artworkBack = null;
 
     #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'boosters')]
+    /** @var Collection<int, Card> */
     private Collection $cards;
 
     public function __construct()

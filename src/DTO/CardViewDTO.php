@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class CardViewDTO
 {
     #[Groups(['card:read'])]
-    public int $id;
+    public string $id;
 
     #[Groups(['card:read'])]
     public string $name;
@@ -18,25 +18,33 @@ class CardViewDTO
     public string $nameFr;
 
     #[Groups(['card:read'])]
-    public int $number;
+    public string $number;
 
     #[Groups(['card:read'])]
     public string $rarity;
 
+    /** @var array<int> */
     #[Groups(['card:read'])]
     public array $nationalPokedexNumbers;
 
+    /** @var array<string, string> */
     #[Groups(['card:read'])]
     public array $images;
 
+    /** @var array<string> */
     #[Groups(['card:read'])]
     public array $owned_languages;
 
+    /**
+     * @param array<int> $nationalPokedexNumbers
+     * @param array<string, string> $images
+     * @param array<string> $ownedLanguages
+     */
     public function __construct(
-        int $id,
+        string $id,
         string $name,
         string $nameFr,
-        int $number,
+        string $number,
         string $rarity,
         array $nationalPokedexNumbers,
         array $images,

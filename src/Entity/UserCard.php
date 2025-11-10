@@ -25,6 +25,7 @@ class UserCard
     #[Assert\All([
         new Assert\Choice(choices: ['fr', 'reverse', 'jap'], message: 'Invalid LanguageEnum'),
     ])]
+    /** @var array<string>|null */
     private ?array $languages = null;
 
     public function getUserId(): int
@@ -51,18 +52,30 @@ class UserCard
         return $this;
     }
 
+    /**
+     * @return array<LanguageEnum>
+     */
     public function getLanguages(): array
     {
         if (null === $this->languages) {
             return [];
         }
 
-        return array_map(fn (string $lang) => LanguageEnum::from($lang), $this->languages);
+        return array_map(
+            function (mixed $lang): LanguageEnum {
+                assert(is_string($lang));
+                return LanguageEnum::from($lang);
+            },
+            $this->languages
+        );
     }
 
+    /**
+     * @param array<LanguageEnum> $languages
+     */
     public function setLanguages(array $languages): self
     {
-        $this->languages = empty($languages) ? null : array_map(fn (LanguageEnum $lang) => $lang->value, $languages);
+        $this->languages = empty($languages) ? null : array_map(fn (LanguageEnum $lang): string => $lang->value, $languages);
 
         return $this;
     }

@@ -30,18 +30,53 @@ class ImportCardsCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        Pokemon::Options(['verify' => true]);
-        Pokemon::ApiKey($_ENV['POKEMONTCG_API_KEY']);
+        Pokemon::Options([
+            'verify' => true,
+            'timeout' => 120,
+            'connect_timeout' => 30,
+        ]);
+        
+        $apiKey = $_ENV['POKEMONTCG_API_KEY'] ?? null;
+        Pokemon::ApiKey($apiKey);
 
         $setCode = 'sv8';
         $imported = 0;
+        $maxRetries = 3;
+        $retryCount = 0;
+        /** @var array<\Pokemon\Card> $resp */
+        $resp = [];
 
-        $resp = Pokemon::Card()->where(['set.id' => $setCode])->all();
-        foreach ($resp as $data) {
-            $id = $data->getId();
+        $output->writeln("<info>Starting import for set: {$setCode}</info>");
+
+        while ($retryCount < $maxRetries) {
+            try {
+                /** @var array<\Pokemon\Card> $resp */
+                $resp = Pokemon::Card()->where(['set.id' => $setCode])->all();
+
+                break; // Success, sortir de la boucle
+            } catch (\Exception $e) {
+                ++$retryCount;
+                $output->writeln("<error>Error fetching cards (attempt {$retryCount}/{$maxRetries}): {$e->getMessage()}</error>");
+
+                if ($retryCount < $maxRetries) {
+                    $waitTime = $retryCount * 10; // Attendre 10, 20 secondes
+                    $output->writeln("<comment>Retrying in {$waitTime} seconds...</comment>");
+                    sleep($waitTime);
+                } else {
+                    $output->writeln('<error>Max retries reached. Please try again later.</error>');
+
+                    return Command::FAILURE;
+                }
+            }
+        }
+
+        foreach ($resp as $cardData) {
+            $id = $cardData->getId();
+            assert(is_string($id));
+            
             $card = $this->em->getRepository(Card::class)->findOneBy([
-                'number' => $data->getNumber(),
-                'set' => $data->getSet()->getId(),
+                'number' => $cardData->getNumber(),
+                'set' => $cardData->getSet()?->getId(),
             ]);
 
             if (!$card) {
@@ -52,9 +87,13 @@ class ImportCardsCommand extends Command
                 $output->writeln("<comment>Card updated: {$id}</comment>");
             }
 
-            $this->updateCardFromData($card, $data);
+            $this->updateCardFromData($card, $cardData);
 
-            $setId = $data->getSet()->getId();
+            $setData = $cardData->getSet();
+            assert($setData !== null);
+            $setId = $setData->getId();
+            assert(is_string($setId));
+            
             $set = $this->em->getRepository(Set::class)->find($setId);
 
             if (!$set) {
@@ -65,12 +104,13 @@ class ImportCardsCommand extends Command
                 $output->writeln("<comment>Set updated: {$setId}</comment>");
             }
 
-            $this->updateSetFromData($set, $data->getSet(), $setId);
+            $this->updateSetFromData($set, $setData, $setId);
             $card->setSet($set);
             $this->em->persist($set);
 
-            $series = $data->getSet()->getSeries();
+            $series = $setData->getSeries();
             if ($series) {
+                assert(is_string($series));
                 $boost = $this->em->getRepository(Booster::class)->find($series);
 
                 if (!$boost) {
@@ -81,7 +121,6 @@ class ImportCardsCommand extends Command
                     $output->writeln("<comment>Booster updated: {$series}</comment>");
                 }
 
-                // $this->updateBoosterFromData($boost, $data->getSet()->getSeries(), $id);
                 $this->em->persist($boost);
                 $card->addBooster($boost);
             }
@@ -97,63 +136,92 @@ class ImportCardsCommand extends Command
         return Command::SUCCESS;
     }
 
-    private function updateCardFromData(Card $card, $data): void
+    /**
+     * @param \Pokemon\Card $cardData
+     */
+    private function updateCardFromData(Card $card, $cardData): void
     {
         $card
-            ->setName($data->getName())
-            ->setSupertype($data->getSupertype() ?? null)
-            ->setHp($data->getHp() ?? null)
-            ->setFlavorText($data->getFlavorText() ?? null)
-            ->setEvolvesFrom($data->getEvolvesFrom() ?? null)
-            ->setNumber($data->getNumber() ?? null)
-            ->setArtist($data->getArtist() ?? null)
-            ->setRarity($data->getRarity() ?? null)
-            ->setSubtypes($data->getSubtypes() ?? null)
-            ->setTypes($data->getTypes() ?? null)
-            ->setWeaknesses($this->objectsToArray($data->getWeaknesses()))
-            ->setResistances($this->objectsToArray($data->getResistances()))
-            ->setLegalities($data->getLegalities()?->toArray() ?? null)
-            ->setRetreatCost($data->getRetreatCost() ?? null)
-            ->setConvertedRetreatCost($data->getConvertedRetreatCost() ?? null)
-            ->setEvolvesTo($data->getEvolvesTo() ?? null)
-            ->setRules($data->getRules() ?? null)
-            ->setAncientTrait($data->getAncientTrait() ?? null)
-            ->setAbilities($this->objectsToArray($data->getAbilities()))
-            ->setAttacks($this->objectsToArray($data->getAttacks()))
-            ->setNationalPokedexNumbers($data->getNationalPokedexNumbers() ?? null)
-            ->setTcgplayer($data->getTcgPlayer()?->toArray() ?? null)
-            ->setCardmarket($data->getCardMarket()?->toArray() ?? null);
+            ->setName((string) ($cardData->getName() ?? ''))
+            ->setSupertype($cardData->getSupertype() ?? null)
+            ->setHp($cardData->getHp() ?? null)
+            ->setFlavorText($cardData->getFlavorText() ?? null)
+            ->setEvolvesFrom($cardData->getEvolvesFrom() ?? null)
+            ->setNumber($cardData->getNumber() ?? null)
+            ->setArtist($cardData->getArtist() ?? null)
+            ->setRarity($cardData->getRarity() ?? null)
+            ->setSubtypes($cardData->getSubtypes() ?? null)
+            ->setTypes($cardData->getTypes() ?? null)
+            ->setWeaknesses($this->objectsToArray($cardData->getWeaknesses()))
+            ->setResistances($this->objectsToArray($cardData->getResistances()))
+            ->setLegalities($cardData->getLegalities()?->toArray() ?? null)
+            ->setRetreatCost($cardData->getRetreatCost() ?? null)
+            ->setConvertedRetreatCost($cardData->getConvertedRetreatCost() ?? null)
+            ->setEvolvesTo($cardData->getEvolvesTo() ?? null)
+            ->setRules($cardData->getRules() ?? null)
+            ->setAncientTrait($cardData->getAncientTrait() ?? null)
+            ->setAbilities($this->objectsToArray($cardData->getAbilities()))
+            ->setAttacks($this->objectsToArray($cardData->getAttacks()))
+            ->setNationalPokedexNumbers($cardData->getNationalPokedexNumbers() ?? null)
+            ->setTcgplayer($cardData->getTcgPlayer()?->toArray() ?? null)
+            ->setCardmarket($cardData->getCardMarket()?->toArray() ?? null);
 
         // Download images and set paths
-        $this->downloadImage($data->getImages()->getSmall(), 'public/images/cards/small/', $data->getId());
-        $this->downloadImage($data->getImages()->getLarge(), 'public/images/cards/large/', $data->getId());
-        $smallExt = $this->getImageExtension($data->getImages()->getSmall());
-        $largeExt = $this->getImageExtension($data->getImages()->getLarge());
+        $images = $cardData->getImages();
+        $cardId = $cardData->getId();
+        assert($images !== null && $cardId !== null);
+        assert(is_string($cardId));
+        
+        $smallUrl = $images->getSmall();
+        $largeUrl = $images->getLarge();
+        assert(is_string($smallUrl) && is_string($largeUrl));
+        
+        $this->downloadImage($smallUrl, 'public/images/cards/small/', $cardId);
+        $this->downloadImage($largeUrl, 'public/images/cards/large/', $cardId);
+        $smallExt = $this->getImageExtension($smallUrl);
+        $largeExt = $this->getImageExtension($largeUrl);
 
         $card->setImages([
-            'small' => '/images/cards/small/'.$data->getId().'.'.$smallExt,
-            'large' => '/images/cards/large/'.$data->getId().'.'.$largeExt,
+            'small' => "/images/cards/small/{$cardId}.{$smallExt}",
+            'large' => "/images/cards/large/{$cardId}.{$largeExt}",
         ]);
     }
 
+    /**
+     * @param \Pokemon\Set $setData
+     */
     private function updateSetFromData(Set $set, $setData, string $setId): void
     {
-        $this->downloadImage($setData->getImages()->getSymbol(), 'public/images/set/symbol/', $setId);
-        $this->downloadImage($setData->getImages()->getLogo(), 'public/images/set/logo/', $setId);
+        $setImages = $setData->getImages();
+        assert($setImages !== null);
+        
+        $symbolUrl = $setImages->getSymbol();
+        $logoUrl = $setImages->getLogo();
+        assert(is_string($symbolUrl) && is_string($logoUrl));
+        
+        $this->downloadImage($symbolUrl, 'public/images/set/symbol/', $setId);
+        $this->downloadImage($logoUrl, 'public/images/set/logo/', $setId);
 
-        $symbolExt = $this->getImageExtension($setData->getImages()->getSymbol());
-        $logoExt = $this->getImageExtension($setData->getImages()->getLogo());
+        $symbolExt = $this->getImageExtension($symbolUrl);
+        $logoExt = $this->getImageExtension($logoUrl);
+
+        $setIdValue = $setData->getId();
+        $setName = $setData->getName();
+        assert(is_string($setIdValue) && is_string($setName));
+
+        $updatedAt = $setData->getUpdatedAt();
+        $releaseDate = $setData->getReleaseDate();
 
         $set
-            ->setId($setData->getId())
-            ->setName($setData->getName())
+            ->setId($setIdValue)
+            ->setName($setName)
             ->setSeries($setData->getSeries() ?? null)
             ->setPrintedTotal($setData->getPrintedTotal() ?? null)
             ->setTotal($setData->getTotal() ?? null)
             ->setLegalities($setData->getLegalities()?->toArray() ?? null)
             ->setPtcgoCode($setData->getPtcgoCode() ?? null)
-            ->setUpdatedAt($setData->getUpdatedAt() ? new \DateTime($setData->getUpdatedAt()) : null)
-            ->setReleaseDate($setData->getReleaseDate() ? new \DateTime($setData->getReleaseDate()) : null)
+            ->setUpdatedAt($updatedAt ? new \DateTime((string) $updatedAt) : null)
+            ->setReleaseDate($releaseDate ? new \DateTime((string) $releaseDate) : null)
             ->setImages([
                 'symbol' => "/images/set/symbol/{$setId}.{$symbolExt}",
                 'logo' => "/images/set/logo/{$setId}.{$logoExt}",
@@ -181,17 +249,25 @@ class ImportCardsCommand extends Command
 
     private function getImageExtension(string $url): string
     {
-        return pathinfo(parse_url($url, PHP_URL_PATH), PATHINFO_EXTENSION) ?: 'jpg';
+        $path = parse_url($url, PHP_URL_PATH);
+        return pathinfo(is_string($path) ? $path : '', PATHINFO_EXTENSION) ?: 'jpg';
     }
 
+    /**
+     * @param mixed $items
+     * @return array<mixed>|null
+     */
     private function objectsToArray($items): ?array
     {
         if (!$items) {
             return null;
         }
+        if (!is_iterable($items)) {
+            return null;
+        }
         $result = [];
         foreach ($items as $item) {
-            if (method_exists($item, 'toArray')) {
+            if (is_object($item) && method_exists($item, 'toArray')) {
                 $result[] = $item->toArray();
             }
         }

@@ -9,6 +9,9 @@ use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 use Symfony\Component\Security\Core\User\UserInterface;
 
+/**
+ * @extends Voter<string, mixed>
+ */
 class UserVoter extends Voter
 {
     public const EDIT = 'POST_EDIT';

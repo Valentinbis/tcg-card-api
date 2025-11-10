@@ -205,3 +205,65 @@ Ce script vérifie :
 ```bash
 php bin/phpunit --coverage-html tests/Coverage
 ```
+---
+
+## 🧪 Tests et Qualité de Code
+
+### Tests PHPUnit
+
+Exécuter tous les tests :
+```bash
+docker exec -it tcgcard_api php bin/phpunit
+```
+
+Générer le rapport de couverture de code :
+```bash
+docker exec -it tcgcard_api php bin/phpunit --coverage-html tests/Coverage
+```
+
+Le rapport sera disponible dans `tests/Coverage/index.html`
+
+### Analyse statique PHPStan
+
+Analyser le code avec PHPStan (niveau 6) :
+```bash
+docker exec -it tcgcard_api vendor/bin/phpstan analyse
+```
+
+Générer une baseline pour ignorer les erreurs existantes :
+```bash
+docker exec -it tcgcard_api vendor/bin/phpstan analyse --generate-baseline
+```
+
+### Code Style - PHP CS Fixer
+
+Vérifier le style de code :
+```bash
+docker exec -it tcgcard_api vendor/bin/php-cs-fixer fix --dry-run --diff
+```
+
+Corriger automatiquement le style :
+```bash
+docker exec -it tcgcard_api vendor/bin/php-cs-fixer fix
+```
+
+### Commande tout-en-un
+
+Exécuter tous les checks de qualité :
+```bash
+docker exec -it tcgcard_api bash -c "vendor/bin/phpstan analyse && vendor/bin/php-cs-fixer fix --dry-run && php bin/phpunit"
+```
+
+---
+
+## 📦 Import des cartes Pokémon
+
+Importer les cartes depuis l'API Pokémon TCG :
+```bash
+docker exec -it tcgcard_api php bin/console app:import-cards
+```
+
+Traduire les noms des cartes en français :
+```bash
+docker exec -it tcgcard_api php bin/console app:translate-card-names
+```

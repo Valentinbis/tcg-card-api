@@ -31,47 +31,57 @@ class Card
     private ?string $supertype = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string>|null */
     private ?array $subtypes = null;
 
     #[ORM\Column(type: 'string', length: 10, nullable: true)]
     private ?string $hp = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string>|null */
     private ?array $types = null;
 
     #[ORM\Column(type: 'string', length: 50, nullable: true)]
     private ?string $evolvesFrom = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string>|null */
     private ?array $evolvesTo = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string>|null */
     private ?array $rules = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $ancientTrait = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $abilities = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $attacks = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $weaknesses = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $resistances = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string>|null */
     private ?array $retreatCost = null;
 
     #[ORM\Column(type: 'integer', nullable: true)]
     private ?int $convertedRetreatCost = null;
 
-    #[ORM\Column(type: 'integer', nullable: true)]
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     #[Groups(['card:read'])]
-    private ?int $number = null;
+    private ?string $number = null;
 
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private ?string $artist = null;
@@ -85,9 +95,11 @@ class Card
 
     #[ORM\Column(type: 'json', nullable: true)]
     #[Groups(['card:read'])]
+    /** @var array<int>|null */
     private ?array $nationalPokedexNumbers = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string, string>|null */
     private ?array $legalities = null;
 
     #[ORM\Column(type: 'string', length: 5, nullable: true)]
@@ -95,12 +107,15 @@ class Card
 
     #[ORM\Column(type: 'json', nullable: true)]
     #[Groups(['card:read'])]
+    /** @var array<string, string>|null */
     private ?array $images;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $tcgplayer = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<mixed>|null */
     private ?array $cardmarket = null;
 
     #[ORM\ManyToOne(targetEntity: Set::class, inversedBy: 'cards')]
@@ -120,6 +135,7 @@ class Card
             new ORM\JoinColumn(name: 'booster_name', referencedColumnName: 'name'),
         ]
     )]
+    /** @var Collection<int, Booster> */
     private Collection $boosters;
 
     public function __construct()
@@ -177,11 +193,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getSubtypes(): ?array
     {
+        /** @var array<string>|null */
         return $this->subtypes;
     }
 
+    /**
+     * @param array<string>|null $subtypes
+     */
     public function setSubtypes(?array $subtypes): self
     {
         $this->subtypes = $subtypes;
@@ -201,11 +224,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getTypes(): ?array
     {
+        /** @var array<string>|null */
         return $this->types;
     }
 
+    /**
+     * @param array<string>|null $types
+     */
     public function setTypes(?array $types): self
     {
         $this->types = $types;
@@ -225,11 +255,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getEvolvesTo(): ?array
     {
+        /** @var array<string>|null */
         return $this->evolvesTo;
     }
 
+    /**
+     * @param array<string>|null $evolvesTo
+     */
     public function setEvolvesTo(?array $evolvesTo): self
     {
         $this->evolvesTo = $evolvesTo;
@@ -237,11 +274,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getRules(): ?array
     {
+        /** @var array<string>|null */
         return $this->rules;
     }
 
+    /**
+     * @param array<string>|null $rules
+     */
     public function setRules(?array $rules): self
     {
         $this->rules = $rules;
@@ -249,11 +293,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getAncientTrait(): ?array
     {
         return $this->ancientTrait;
     }
 
+    /**
+     * @param array<mixed>|null $ancientTrait
+     */
     public function setAncientTrait(?array $ancientTrait): self
     {
         $this->ancientTrait = $ancientTrait;
@@ -261,11 +311,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getAbilities(): ?array
     {
         return $this->abilities;
     }
 
+    /**
+     * @param array<mixed>|null $abilities
+     */
     public function setAbilities(?array $abilities): self
     {
         $this->abilities = $abilities;
@@ -273,11 +329,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getAttacks(): ?array
     {
         return $this->attacks;
     }
 
+    /**
+     * @param array<mixed>|null $attacks
+     */
     public function setAttacks(?array $attacks): self
     {
         $this->attacks = $attacks;
@@ -285,11 +347,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getWeaknesses(): ?array
     {
         return $this->weaknesses;
     }
 
+    /**
+     * @param array<mixed>|null $weaknesses
+     */
     public function setWeaknesses(?array $weaknesses): self
     {
         $this->weaknesses = $weaknesses;
@@ -297,11 +365,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getResistances(): ?array
     {
         return $this->resistances;
     }
 
+    /**
+     * @param array<mixed>|null $resistances
+     */
     public function setResistances(?array $resistances): self
     {
         $this->resistances = $resistances;
@@ -309,11 +383,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string>|null
+     */
     public function getRetreatCost(): ?array
     {
+        /** @var array<string>|null */
         return $this->retreatCost;
     }
 
+    /**
+     * @param array<string>|null $retreatCost
+     */
     public function setRetreatCost(?array $retreatCost): self
     {
         $this->retreatCost = $retreatCost;
@@ -333,12 +414,12 @@ class Card
         return $this;
     }
 
-    public function getNumber(): ?int
+    public function getNumber(): ?string
     {
         return $this->number;
     }
 
-    public function setNumber(?int $number): self
+    public function setNumber(?string $number): self
     {
         $this->number = $number;
 
@@ -381,11 +462,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<int>|null
+     */
     public function getNationalPokedexNumbers(): ?array
     {
+        /** @var array<int>|null */
         return $this->nationalPokedexNumbers;
     }
 
+    /**
+     * @param array<int>|null $nationalPokedexNumbers
+     */
     public function setNationalPokedexNumbers(?array $nationalPokedexNumbers): self
     {
         $this->nationalPokedexNumbers = $nationalPokedexNumbers;
@@ -393,11 +481,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getLegalities(): ?array
     {
+        /** @var array<string, string>|null */
         return $this->legalities;
     }
 
+    /**
+     * @param array<string, string>|null $legalities
+     */
     public function setLegalities(?array $legalities): self
     {
         $this->legalities = $legalities;
@@ -417,11 +512,18 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getImages(): ?array
     {
+        /** @var array<string, string>|null */
         return $this->images;
     }
 
+    /**
+     * @param array<string, string>|null $images
+     */
     public function setImages(?array $images): self
     {
         $this->images = $images;
@@ -429,11 +531,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getTcgplayer(): ?array
     {
         return $this->tcgplayer;
     }
 
+    /**
+     * @param array<mixed>|null $tcgplayer
+     */
     public function setTcgplayer(?array $tcgplayer): self
     {
         $this->tcgplayer = $tcgplayer;
@@ -441,11 +549,17 @@ class Card
         return $this;
     }
 
+    /**
+     * @return array<mixed>|null
+     */
     public function getCardmarket(): ?array
     {
         return $this->cardmarket;
     }
 
+    /**
+     * @param array<mixed>|null $cardmarket
+     */
     public function setCardmarket(?array $cardmarket): self
     {
         $this->cardmarket = $cardmarket;

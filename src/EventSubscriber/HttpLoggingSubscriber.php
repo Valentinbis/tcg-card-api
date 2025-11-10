@@ -22,7 +22,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class HttpLoggingSubscriber implements EventSubscriberInterface
 {
+    /** @var array<string, float> */
     private array $requestStartTimes = [];
+    
+    /** @var array<string, array<string, mixed>> */
     private array $controllerAttributes = [];
 
     public function __construct(
@@ -76,9 +79,10 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $controller = $event->getController();
         $request = $event->getRequest();
         $correlationId = $request->attributes->get('correlation_id');
+        assert(is_string($correlationId));
 
         // Extraire la méthode du contrôleur
-        if (is_array($controller)) {
+        if (is_array($controller) && is_object($controller[0]) && is_string($controller[1])) {
             $method = new \ReflectionMethod($controller[0], $controller[1]);
 
             // Récupérer les attributs de logging
@@ -107,6 +111,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $correlationId = $request->attributes->get('correlation_id');
+        assert(is_string($correlationId));
 
         $duration = isset($this->requestStartTimes[$correlationId])
             ? microtime(true) - $this->requestStartTimes[$correlationId]
@@ -163,6 +168,10 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $correlationId = $request->attributes->get('correlation_id');
+        
+        if (!is_string($correlationId)) {
+            return;
+        }
 
         // Traiter les logs déclaratifs via attributs
         if (isset($this->controllerAttributes[$correlationId])) {
@@ -172,64 +181,81 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
                 : 0;
 
             $context = [
-                'controller' => $data['controller'],
-                'action' => $data['action'],
+                'controller' => $data['controller'] ?? 'unknown',
+                'action' => $data['action'] ?? 'unknown',
                 'method' => $request->getMethod(),
                 'uri' => $request->getRequestUri(),
-                'status' => $response?->getStatusCode(),
+                'status' => $response->getStatusCode(),
                 'correlation_id' => $correlationId,
             ];
 
             // Log Action
-            foreach ($data['attributes']['action'] as $attr) {
-                /** @var LogAction $instance */
-                $instance = $attr->newInstance();
-                $context['action_type'] = $instance->action;
+            $attributes = $data['attributes'] ?? null;
+            if (isset($attributes['action']) && is_array($attributes) && is_array($attributes['action'])) {
+                foreach ($attributes['action'] as $attr) {
+                    if (!is_object($attr) || !method_exists($attr, 'newInstance')) {
+                        continue;
+                    }
+                    /** @var LogAction $instance */
+                    $instance = $attr->newInstance();
+                    $context['action_type'] = $instance->action;
 
-                $this->logger->logAction(
-                    $instance->message,
-                    $context,
-                    $instance->level
-                );
+                    $this->logger->logAction(
+                        $instance->message,
+                        $context,
+                        $instance->level
+                    );
+                }
             }
 
             // Log Security
-            foreach ($data['attributes']['security'] as $attr) {
-                /** @var LogSecurity $instance */
-                $instance = $attr->newInstance();
-                $context['security_action'] = $instance->action;
+            if (isset($attributes['security']) && is_array($attributes) && is_array($attributes['security'])) {
+                foreach ($attributes['security'] as $attr) {
+                    if (!is_object($attr) || !method_exists($attr, 'newInstance')) {
+                        continue;
+                    }
+                    /** @var LogSecurity $instance */
+                    $instance = $attr->newInstance();
+                    $context['security_action'] = $instance->action;
 
-                $this->logger->logSecurity(
-                    $instance->message,
-                    $context,
-                    $instance->level
-                );
+                    $this->logger->logSecurity(
+                        $instance->message,
+                        $context,
+                        $instance->level
+                    );
+                }
             }
 
             // Log Performance
-            foreach ($data['attributes']['performance'] as $attr) {
-                /** @var LogPerformance $instance */
-                $instance = $attr->newInstance();
+            if (isset($attributes['performance']) && is_array($attributes) && is_array($attributes['performance'])) {
+                foreach ($attributes['performance'] as $attr) {
+                    if (!is_object($attr) || !method_exists($attr, 'newInstance')) {
+                        continue;
+                    }
+                    /** @var LogPerformance $instance */
+                    $instance = $attr->newInstance();
 
-                if ($instance->enabled) {
-                    $this->logger->logPerformance(
-                        $data['action'],
-                        $duration,
-                        array_merge($context, [
-                            'threshold' => $instance->threshold,
-                            'exceeded' => $duration > $instance->threshold,
-                        ])
-                    );
-
-                    // Warning si le seuil est dépassé
-                    if ($duration > $instance->threshold) {
-                        $this->logger->warning(
-                            'Performance threshold exceeded',
+                    if ($instance->enabled) {
+                        $actionName = is_string($data['action']) ? $data['action'] : 'unknown';
+                        $this->logger->logPerformance(
+                            $actionName,
+                            $duration,
                             array_merge($context, [
-                                'duration_seconds' => $duration,
-                                'threshold_seconds' => $instance->threshold,
+                                'threshold' => $instance->threshold,
+                                'exceeded' => $duration > $instance->threshold,
                             ])
                         );
+
+                        // Warning si le seuil est dépassé
+                        if ($duration > $instance->threshold) {
+                            $this->logger->warning(
+                                'Performance threshold exceeded',
+                                array_merge($context, [
+                                    'duration_seconds' => $duration,
+                                    'threshold_seconds' => $instance->threshold,
+                                ])
+                            );
+                        }
                     }
                 }
             }
@@ -244,9 +270,15 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
 
     /**
      * Vérifie si c'est un health check pour éviter de polluer les logs.
+     * 
+     * @param \Symfony\Component\HttpFoundation\Request $request
      */
     private function isHealthCheck($request): bool
     {
+        if (!is_object($request) || !method_exists($request, 'getRequestUri')) {
+            return false;
+        }
+        
         $uri = $request->getRequestUri();
 
         return '/api' === $uri || '/health' === $uri || '/ping' === $uri;

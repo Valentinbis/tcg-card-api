@@ -54,6 +54,10 @@ class RateLimitSubscriber implements EventSubscriberInterface
 
         $clientIp = $request->getClientIp() ?? 'unknown';
         $route = $request->attributes->get('_route', 'unknown');
+        
+        if (!is_string($route)) {
+            return;
+        }
 
         // Choisir le rate limiter approprié
         $limiter = $this->selectLimiter($route, $clientIp);

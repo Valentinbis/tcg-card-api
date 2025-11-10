@@ -32,7 +32,12 @@ class TranslateCardNamesCommand extends Command
                 continue;
             }
 
-            $translated = $this->translator->translate($card->getNumber());
+            $number = $card->getNumber();
+            if (null === $number) {
+                continue;
+            }
+
+            $translated = $this->translator->translate($number);
 
             if ($translated) {
                 $card->setNameFr($translated);

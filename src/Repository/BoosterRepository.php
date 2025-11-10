@@ -9,7 +9,7 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Set>
+ * @extends ServiceEntityRepository<Booster>
  */
 class BoosterRepository extends ServiceEntityRepository
 {
@@ -19,7 +19,7 @@ class BoosterRepository extends ServiceEntityRepository
     }
 
     //    /**
-    //     * @return Set[] Returns an array of Set objects
+    //     * @return Booster[] Returns an array of Booster objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -33,7 +33,7 @@ class BoosterRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?Set
+    //    public function findOneBySomeField($value): ?Booster
     //    {
     //        return $this->createQueryBuilder('c')
     //            ->andWhere('c.exampleField = :val')

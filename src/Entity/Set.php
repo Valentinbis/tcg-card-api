@@ -29,6 +29,7 @@ class Set
     private ?int $total = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string, string>|null */
     private ?array $legalities = null;
 
     #[ORM\Column(type: 'string', length: 20, nullable: true)]
@@ -41,9 +42,11 @@ class Set
     private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(type: 'json', nullable: true)]
+    /** @var array<string, string>|null */
     private ?array $images = null;
 
     #[ORM\OneToMany(mappedBy: 'set', targetEntity: Card::class, cascade: ['persist', 'remove'])]
+    /** @var Collection<int, Card> */
     private Collection $cards;
 
     public function __construct()
@@ -113,11 +116,18 @@ class Set
         return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getLegalities(): ?array
     {
+        /** @var array<string, string>|null */
         return $this->legalities;
     }
 
+    /**
+     * @param array<string, string>|null $legalities
+     */
     public function setLegalities(?array $legalities): self
     {
         $this->legalities = $legalities;
@@ -161,11 +171,18 @@ class Set
         return $this;
     }
 
+    /**
+     * @return array<string, string>|null
+     */
     public function getImages(): ?array
     {
+        /** @var array<string, string>|null */
         return $this->images;
     }
 
+    /**
+     * @param array<string, string>|null $images
+     */
     public function setImages(?array $images): self
     {
         $this->images = $images;

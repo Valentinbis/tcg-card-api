@@ -30,10 +30,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank(message: 'Merci de renseigner une adresse email')]
     #[Assert\Email(message: 'Merci de renseigner une adresse email valide')]
     #[Groups(['user.show'])]
-    private ?string $email = null;
+    private string $email;
 
     #[ORM\Column]
     #[Groups(['user.show'])]
+    /** @var list<string> */
     private array $roles = [];
 
     /**
@@ -42,11 +43,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     #[Assert\NotBlank(message: 'Merci de renseigner un mot de passe')]
     #[Assert\Length(min: 6, minMessage: 'Votre mot de passe doit contenir au moins {{ limit }} caractères.')]
-    private ?string $password = null;
+    private string $password;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user.token'])]
-    private ?string $apiToken = null;
+    private string $apiToken;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Assert\NotBlank(message: 'Merci de renseigner un prénom')]
@@ -61,10 +62,10 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $lastName = null;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $updatedAt = null;
+    private \DateTimeImmutable $updatedAt;
 
     #[ORM\Column(type: 'datetime_immutable')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $tokenExpiresAt = null;
@@ -79,7 +80,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->email;
     }
@@ -87,7 +88,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\PrePersist]
     public function updateTimestamp(): void
     {
-        if (null === $this->createdAt) {
+        if (!isset($this->createdAt)) {
             $this->createdAt = new \DateTimeImmutable();
         }
         $this->updatedAt = new \DateTimeImmutable();
@@ -98,7 +99,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
-    public function getEmail(): ?string
+    public function getEmail(): string
     {
         return $this->email;
     }
@@ -114,10 +115,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * A visual identifier that represents this user.
      *
      * @see UserInterface
+     * @return non-empty-string
      */
     public function getUserIdentifier(): string
     {
-        return (string) $this->email;
+        return $this->email;
     }
 
     /**
@@ -131,7 +133,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         // guarantee every user at least has ROLE_USER
         $roles[] = 'ROLE_USER';
 
-        return array_unique($roles);
+        return array_values(array_unique($roles));
     }
 
     /**

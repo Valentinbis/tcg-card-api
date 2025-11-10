@@ -30,8 +30,8 @@ class UserProcessor implements ProcessorInterface
                 ];
 
                 // Ajoute l'ID si c'est une entité User avec getId()
-                if (is_object($user) && method_exists($user, 'getId')) {
-                    /* @var User $user */
+                if (method_exists($user, 'getId')) {
+                    /* @var \App\Entity\User $user */
                     $record->extra['user']['id'] = $user->getId();
                 }
             } else {

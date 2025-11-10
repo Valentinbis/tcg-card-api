@@ -33,12 +33,18 @@ class InfosController extends AbstractController
             $isConnected = false;
         }
 
-        return new Response(json_encode([
-            'name' => $_ENV['APP_NAME'],
-            'env' => $_ENV['APP_ENV'],
+        $content = json_encode([
+            'name' => $_ENV['APP_NAME'] ?? 'TCG Card API',
+            'env' => $_ENV['APP_ENV'] ?? 'prod',
             'database' => [
                 'connected' => $isConnected,
             ],
-        ]), 200, ['Content-Type' => 'application/json']);
+        ]);
+        
+        if (!is_string($content)) {
+            $content = '{"error": "Failed to encode JSON"}';
+        }
+
+        return new Response($content, 200, ['Content-Type' => 'application/json']);
     }
 }

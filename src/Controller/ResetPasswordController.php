@@ -37,9 +37,14 @@ class ResetPasswordController extends AbstractController
     public function request(Request $request, MailerInterface $mailer): Response
     {
         $data = json_decode($request->getContent(), true);
+        
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        }
+        
         $email = $data['email'] ?? null;
 
-        if ($email) {
+        if (is_string($email)) {
             return $this->processSendingPasswordResetEmail($email, $mailer);
         }
 
@@ -58,7 +63,7 @@ class ResetPasswordController extends AbstractController
     {
         $token = $request->query->get('token');
 
-        if (null === $token) {
+        if (!is_string($token)) {
             return new JsonResponse(['message' => 'No reset password token found in the URL.'], Response::HTTP_NOT_FOUND);
         }
 
@@ -73,16 +78,26 @@ class ResetPasswordController extends AbstractController
                 ),
             ], Response::HTTP_BAD_REQUEST);
         }
+        
+        if (!$user instanceof \App\Entity\User) {
+            return new JsonResponse(['error' => 'Invalid user'], Response::HTTP_BAD_REQUEST);
+        }
 
         $data = json_decode($request->getContent(), true);
+        
+        if (!is_array($data)) {
+            return new JsonResponse(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        }
 
-        if ($data['password'] ?? null) {
+        $password = $data['password'] ?? null;
+        
+        if (is_string($password)) {
             try {
                 $this->resetPasswordHelper->removeResetRequest($token);
 
                 $encodedPassword = $passwordHasher->hashPassword(
                     $user,
-                    $data['password']
+                    $password
                 );
 
                 $user->setPassword($encodedPassword);

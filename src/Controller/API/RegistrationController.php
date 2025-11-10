@@ -135,12 +135,13 @@ class RegistrationController extends AbstractController
     {
         // Récupérer le token de l'en-tête Authorization
         $authHeader = $request->headers->get('Authorization');
-        
+
         if (!$authHeader) {
             $this->logger->warning('Logout attempt without Authorization header');
+
             return new JsonResponse(['error' => 'No authorization header provided'], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $token = str_replace('Bearer ', '', $authHeader);
 
         // Trouver l'utilisateur associé au token
@@ -167,12 +168,13 @@ class RegistrationController extends AbstractController
     {
         // Récupérer le token de l'en-tête Authorization
         $authHeader = $request->headers->get('Authorization');
-        
+
         if (!$authHeader) {
             $this->logger->warning('Token refresh attempt without Authorization header');
+
             return new JsonResponse(['error' => 'No authorization header provided'], Response::HTTP_UNAUTHORIZED);
         }
-        
+
         $token = str_replace('Bearer ', '', $authHeader);
 
         // Trouver l'utilisateur associé au token

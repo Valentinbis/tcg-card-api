@@ -20,12 +20,13 @@ class LoggerService
         private readonly LoggerInterface $requestLogger,
         private readonly LoggerInterface $performanceLogger,
         private readonly RequestStack $requestStack,
-        private readonly TokenStorageInterface $tokenStorage,
     ) {
     }
 
     /**
      * Log une action métier.
+     * 
+     * @param array<string, mixed> $context
      */
     public function logAction(string $message, array $context = [], string $level = 'info'): void
     {
@@ -35,6 +36,8 @@ class LoggerService
 
     /**
      * Log un événement de sécurité.
+     * 
+     * @param array<string, mixed> $context
      */
     public function logSecurity(string $message, array $context = [], string $level = 'info'): void
     {
@@ -44,6 +47,8 @@ class LoggerService
 
     /**
      * Log une requête HTTP.
+     * 
+     * @param array<string, mixed> $context
      */
     public function logRequest(string $message, array $context = [], string $level = 'info'): void
     {
@@ -61,6 +66,8 @@ class LoggerService
 
     /**
      * Log des métriques de performance.
+     * 
+     * @param array<string, mixed> $context
      */
     public function logPerformance(string $operation, float $duration, array $context = []): void
     {
@@ -79,6 +86,8 @@ class LoggerService
 
     /**
      * Log une erreur avec contexte complet.
+     * 
+     * @param array<string, mixed> $context
      */
     public function logError(\Throwable $exception, array $context = []): void
     {
@@ -96,6 +105,8 @@ class LoggerService
 
     /**
      * Log générique avec contexte enrichi.
+     * 
+     * @param array<string, mixed> $context
      */
     public function log(string $level, string $message, array $context = []): void
     {
@@ -105,6 +116,9 @@ class LoggerService
 
     /**
      * Enrichit le contexte avec des informations additionnelles.
+     * 
+     * @param array<string, mixed> $context
+     * @return array<string, mixed>
      */
     private function enrichContext(array $context): array
     {
@@ -126,27 +140,41 @@ class LoggerService
 
     /**
      * Helpers pour les niveaux de log courants.
+     * 
+     * @param array<string, mixed> $context
      */
     public function debug(string $message, array $context = []): void
     {
         $this->log('debug', $message, $context);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function info(string $message, array $context = []): void
     {
         $this->log('info', $message, $context);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function warning(string $message, array $context = []): void
     {
         $this->log('warning', $message, $context);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function error(string $message, array $context = []): void
     {
         $this->log('error', $message, $context);
     }
 
+    /**
+     * @param array<string, mixed> $context
+     */
     public function critical(string $message, array $context = []): void
     {
         $this->log('critical', $message, $context);

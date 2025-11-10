@@ -22,6 +22,10 @@ class DateTimeImmutableDenormalizer implements DenormalizerInterface
 
     public function denormalize(mixed $data, string $type, ?string $format = null, array $context = []): mixed
     {
+        if (!is_string($data)) {
+            throw new \InvalidArgumentException('Data must be a string');
+        }
+        
         $date = \DateTimeImmutable::createFromFormat('d/m/Y', $data);
         if (false === $date) {
             throw new \InvalidArgumentException(sprintf('Invalid date format: %s', $data));

@@ -15,8 +15,8 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class DashboardController extends AbstractDashboardController
 {
-    protected $userRepository;
-    protected $params;
+    private UserRepository $userRepository;
+    private ParameterBagInterface $params;
 
     public function __construct(UserRepository $userRepository, ParameterBagInterface $params)
     {
@@ -42,7 +42,9 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::section('Menu');
-        yield MenuItem::linkToUrl('Retour sur le site', 'fa-solid fa-arrow-left', $this->params->get('front_url'));
+        $frontUrl = $this->params->get('front_url');
+        $urlString = is_string($frontUrl) ? $frontUrl : '';
+        yield MenuItem::linkToUrl('Retour sur le site', 'fa-solid fa-arrow-left', $urlString);
         yield MenuItem::linkToUrl('Logout', 'fa-solid fa-sign-out-alt', '/logout');
         yield MenuItem::section('Dashboard');
         yield MenuItem::linkToDashboard('Dashboard', 'fa-solid fa-chart-line');

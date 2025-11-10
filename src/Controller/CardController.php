@@ -28,38 +28,47 @@ class CardController extends AbstractController
     public function index(Request $request): JsonResponse
     {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof \App\Entity\User) {
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
-        $pagination = new PaginationDTO(
-            page: (int) ($request->query->get('page', 1)),
-            limit: (int) ($request->query->get('limit', 20)),
-            sort: $request->query->get('sort', 'number'),
-            order: $request->query->get('order', 'ASC')
-        );
+        $page = $request->query->get('page');
+        $limit = $request->query->get('limit');
         $owned = $request->query->get('owned');
         $lang = $request->query->get('lang');
         $type = $request->query->get('type');
         $number = $request->query->get('number');
+        
+        $pageInt = is_numeric($page) ? (int) $page : 1;
+        $limitInt = is_numeric($limit) ? (int) $limit : 20;
+        $sort = (string) ($request->query->get('sort') ?? 'number');
+        $order = (string) ($request->query->get('order') ?? 'ASC');
+        
+        $pagination = new PaginationDTO(
+            page: $pageInt,
+            limit: $limitInt,
+            sort: $sort,
+            order: $order
+        );
+        
         $offset = ($pagination->page - 1) * $pagination->limit;
 
         $result = $this->cardService->getUserCardsWithFilters(
             $user,
-            $type,
-            $number,
-            $owned,
-            $lang,
+            is_string($type) ? $type : null,
+            is_string($number) ? $number : null,
+            is_string($owned) ? $owned : null,
+            is_string($lang) ? $lang : null,
             $offset,
-            $pagination->limit,
-            $pagination->sort,
-            $pagination->order
+            $limitInt,
+            $sort,
+            $order
         );
 
         $paginationData = $this->paginationService->paginate(
             $result['total'],
-            $pagination->limit,
-            $pagination->page
+            $limitInt,
+            $pageInt
         );
 
         return $this->json([
@@ -75,14 +84,24 @@ class CardController extends AbstractController
     public function updateLanguages(int $id, Request $request): JsonResponse
     {
         $user = $this->getUser();
-        if (!$user) {
+        if (!$user instanceof \App\Entity\User) {
             return $this->json(['error' => 'Not authenticated'], 401);
         }
 
         $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) {
+            return $this->json(['error' => 'Invalid request data'], 400);
+        }
+        
         $languages = $data['languages'] ?? [];
+        if (!is_array($languages)) {
+            return $this->json(['error' => 'Invalid languages format'], 400);
+        }
+        
+        /** @var array<string> $stringLanguages */
+        $stringLanguages = array_filter($languages, 'is_string');
 
-        $this->cardService->updateUserCardLanguages($user, $id, $languages);
+        $this->cardService->updateUserCardLanguages($user, $id, $stringLanguages);
 
         return $this->json(['success' => true]);
     }
