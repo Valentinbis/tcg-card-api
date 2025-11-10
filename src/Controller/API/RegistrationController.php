@@ -99,10 +99,21 @@ class RegistrationController extends AbstractController
     #[Route('/api/login', name: 'api_login', methods: ['POST'])]
     #[OA\RequestBody(content: new Model(type: LoginRequestDTO::class))]
     public function login(
-        #[MapRequestPayload]
-        LoginRequestDTO $loginData,
+        Request $request,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
+        // Deserializer le LoginRequestDTO depuis le body
+        try {
+            /** @var LoginRequestDTO $loginData */
+            $loginData = $this->serializer->deserialize(
+                $request->getContent(),
+                LoginRequestDTO::class,
+                'json'
+            );
+        } catch (\Exception $e) {
+            return new JsonResponse(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
+        }
+
         // Trouver l'utilisateur par son nom d'utilisateur
         $user = $this->userRepository->findOneBy(['email' => $loginData->email]);
 

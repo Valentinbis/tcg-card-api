@@ -111,7 +111,11 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $correlationId = $request->attributes->get('correlation_id');
-        assert(is_string($correlationId));
+        
+        // Skip logging for OPTIONS requests (CORS preflight) without correlation_id
+        if (!is_string($correlationId)) {
+            return;
+        }
 
         $duration = isset($this->requestStartTimes[$correlationId])
             ? microtime(true) - $this->requestStartTimes[$correlationId]
