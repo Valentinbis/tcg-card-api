@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\API;
 
 use App\DTO\PaginationDTO;
 use App\Service\CardService;
