@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "833ef39b3c172d217cf3f823c75b2ab4",
+    "content-hash": "e598651b98b56d7a6cde0db34ffeb24f",
     "packages": [
         {
             "name": "carbonphp/carbon-doctrine-types",
@@ -2174,16 +2174,16 @@
         },
         {
             "name": "nelmio/api-doc-bundle",
-            "version": "v5.6.5",
+            "version": "v5.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nelmio/NelmioApiDocBundle.git",
-                "reference": "eb0453607560e63bbbc6a746978933f77a787575"
+                "reference": "772d26a9d940c9a8d173f75f0fdbaab47c1c87f2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nelmio/NelmioApiDocBundle/zipball/eb0453607560e63bbbc6a746978933f77a787575",
-                "reference": "eb0453607560e63bbbc6a746978933f77a787575",
+                "url": "https://api.github.com/repos/nelmio/NelmioApiDocBundle/zipball/772d26a9d940c9a8d173f75f0fdbaab47c1c87f2",
+                "reference": "772d26a9d940c9a8d173f75f0fdbaab47c1c87f2",
                 "shasum": ""
             },
             "require": {
@@ -2285,7 +2285,7 @@
             ],
             "support": {
                 "issues": "https://github.com/nelmio/NelmioApiDocBundle/issues",
-                "source": "https://github.com/nelmio/NelmioApiDocBundle/tree/v5.6.5"
+                "source": "https://github.com/nelmio/NelmioApiDocBundle/tree/v5.7.1"
             },
             "funding": [
                 {
@@ -2293,7 +2293,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2025-10-20T08:34:48+00:00"
+            "time": "2025-11-13T10:32:15+00:00"
         },
         {
             "name": "nelmio/cors-bundle",
