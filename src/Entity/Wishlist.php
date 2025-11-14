@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\WishlistRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: WishlistRepository::class)]
 #[ORM\Table(name: 'wishlist')]
@@ -16,6 +19,7 @@ class Wishlist
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['wishlist:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
@@ -23,21 +27,27 @@ class Wishlist
     private ?User $user = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['wishlist:read'])]
     private ?string $cardId = null;
 
     #[ORM\Column(type: 'integer')]
+    #[Groups(['wishlist:read'])]
     private int $priority = 0;
 
     #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['wishlist:read'])]
     private ?string $notes = null;
 
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, nullable: true)]
+    #[Groups(['wishlist:read'])]
     private ?string $maxPrice = null;
 
     #[ORM\Column(type: 'datetime')]
+    #[Groups(['wishlist:read'])]
     private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: 'datetime')]
+    #[Groups(['wishlist:read'])]
     private ?\DateTimeInterface $updatedAt = null;
 
     public function __construct()
