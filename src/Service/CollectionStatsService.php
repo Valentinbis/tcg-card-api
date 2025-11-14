@@ -29,10 +29,10 @@ class CollectionStatsService
                 s.total,
                 s.printed_total as printedTotal,
                 s.release_date as releaseDate,
-                COUNT(DISTINCT uc.card_id) as owned
+                COUNT(DISTINCT col.card_id) as owned
              FROM sets s
              LEFT JOIN cards c ON c.set_id = s.id
-             LEFT JOIN user_card uc ON uc.card_id = c.id AND uc.user_id = :userId
+             LEFT JOIN collection col ON col.card_id = c.id AND col.user_id = :userId
              GROUP BY s.id, s.name, s.series, s.total, s.printed_total, s.release_date
              ORDER BY s.release_date DESC'
         );

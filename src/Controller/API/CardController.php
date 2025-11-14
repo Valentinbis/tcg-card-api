@@ -101,7 +101,7 @@ class CardController extends AbstractController
         /** @var array<string> $stringLanguages */
         $stringLanguages = array_filter($languages, 'is_string');
 
-        $this->cardService->updateUserCardLanguages($user, $id, $stringLanguages);
+        $this->cardService->updateUserCollectionLanguages($user, (string) $id, $stringLanguages);
 
         return $this->json(['success' => true]);
     }

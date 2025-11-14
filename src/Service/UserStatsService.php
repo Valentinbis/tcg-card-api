@@ -43,8 +43,8 @@ class UserStatsService
     private function getTotalOwnedCards(User $user): int
     {
         $query = $this->entityManager->createQuery(
-            'SELECT COUNT(DISTINCT uc.card_id) FROM App\Entity\UserCard uc WHERE uc.user_id = :userId'
-        )->setParameter('userId', $user->getId());
+            'SELECT COUNT(DISTINCT c.cardId) FROM App\\Entity\\Collection c WHERE c.user = :user'
+        )->setParameter('user', $user);
 
         return (int) $query->getSingleScalarResult();
     }
@@ -72,8 +72,8 @@ class UserStatsService
         $query = $this->entityManager->getConnection()->prepare(
             'SELECT c.types 
              FROM cards c 
-             INNER JOIN user_card uc ON c.id = uc.card_id 
-             WHERE uc.user_id = :userId AND c.types IS NOT NULL'
+             INNER JOIN collection col ON c.id = col.card_id 
+             WHERE col.user_id = :userId AND c.types IS NOT NULL'
         );
         
         $query->bindValue('userId', $user->getId());

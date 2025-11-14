@@ -6,8 +6,8 @@ namespace App\Service;
 
 use App\DTO\CardViewDTO;
 use App\Entity\Card;
+use App\Entity\Collection;
 use App\Entity\User;
-use App\Entity\UserCard;
 use App\Enum\LanguageEnum;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -38,19 +38,17 @@ class CardService
         /** @var array<Card> $allCards */
         $allCards = $qb->getQuery()->getResult();
 
-        // 2. Tous les UserCard pour cet utilisateur
-        $userCards = $this->em->getRepository(UserCard::class)->findBy([
-            'user_id' => $user->getId(),
+        // 2. Toutes les Collection pour cet utilisateur
+        $collections = $this->em->getRepository(Collection::class)->findBy([
+            'user' => $user,
         ]);
 
-        // 3. Indexer les UserCard par card_id pour accès rapide
-        /** @var array<int, array<string>> $ownedLanguagesByCardId */
+        // 3. Indexer les Collection par card_id pour accès rapide
+        /** @var array<string, array<string>> $ownedLanguagesByCardId */
         $ownedLanguagesByCardId = [];
-        foreach ($userCards as $uc) {
-            $ownedLanguagesByCardId[$uc->getCardId()] = array_map(
-                fn (LanguageEnum $langEnum): string => $langEnum->value,
-                $uc->getLanguages()
-            );
+        foreach ($collections as $collection) {
+            // Les langues sont déjà en tableau de strings dans Collection
+            $ownedLanguagesByCardId[$collection->getCardId()] = $collection->getLanguages() ?? [];
         }
 
         // 4. Appliquer les filtres côté PHP
@@ -121,32 +119,23 @@ class CardService
     /**
      * @param array<string> $languages
      */
-    public function updateUserCardLanguages(User $user, int $cardId, array $languages): void
+    public function updateUserCollectionLanguages(User $user, string $cardId, array $languages): void
     {
-        /** @var array<LanguageEnum> $enumLanguages */
-        $enumLanguages = array_map(
-            fn (string $lang): LanguageEnum => LanguageEnum::from($lang),
-            $languages
-        );
-
-        $userId = $user->getId();
-        if (null === $userId) {
-            throw new \RuntimeException('User ID cannot be null');
-        }
-
-        $userCard = $this->em->getRepository(UserCard::class)->findOneBy([
-            'user_id' => $userId,
-            'card_id' => $cardId,
+        $collection = $this->em->getRepository(Collection::class)->findOneBy([
+            'user' => $user,
+            'cardId' => $cardId,
         ]);
 
-        if (!$userCard) {
-            $userCard = new UserCard();
-            $userCard->setUserId($userId);
-            $userCard->setCardId($cardId);
+        if (!$collection) {
+            $collection = new Collection();
+            $collection->setUser($user);
+            $collection->setCardId($cardId);
+            $collection->setQuantity(1);
         }
 
-        $userCard->setLanguages($enumLanguages);
-        $this->em->persist($userCard);
+        // Les langues sont directement stockées en array dans Collection
+        $collection->setLanguages($languages);
+        $this->em->persist($collection);
         $this->em->flush();
     }
 }
