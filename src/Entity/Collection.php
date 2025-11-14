@@ -49,13 +49,13 @@ class Collection
     #[Groups(['collection:read'])]
     private ?string $notes = null;
 
+
     /**
-     * Langues disponibles pour cette carte (fr, jap, reverse)
-     * @var array<string>|null
+     * Variante de la carte (normal, reverse, holo)
      */
-    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 10, options: ['default' => 'normal'])]
     #[Groups(['collection:read'])]
-    private ?array $languages = null;
+    private string $variant = 'normal';
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['collection:read'])]
@@ -159,20 +159,15 @@ class Collection
         return $this;
     }
 
-    /**
-     * @return array<string>|null
-     */
-    public function getLanguages(): ?array
+
+    public function getVariant(): string
     {
-        return $this->languages;
+        return $this->variant;
     }
 
-    /**
-     * @param array<string>|null $languages
-     */
-    public function setLanguages(?array $languages): self
+    public function setVariant(string $variant): self
     {
-        $this->languages = $languages;
+        $this->variant = $variant;
         return $this;
     }
 

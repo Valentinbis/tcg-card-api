@@ -28,13 +28,12 @@ class CollectionService
         ?float $purchasePrice = null,
         ?\DateTimeImmutable $purchaseDate = null,
         ?string $notes = null,
-        ?array $languages = null
+        string $variant = 'normal'
     ): Collection {
-        $existingCollection = $this->collectionRepository->findByUserAndCard($user, $cardId);
+        $existingCollection = $this->collectionRepository->findByUserAndCard($user, $cardId, $variant);
 
         if ($existingCollection) {
             $existingCollection->setQuantity($existingCollection->getQuantity() + $quantity);
-            
             if ($purchasePrice !== null) {
                 $existingCollection->setPurchasePrice($purchasePrice);
             }
@@ -44,12 +43,7 @@ class CollectionService
             if ($notes !== null) {
                 $existingCollection->setNotes($notes);
             }
-            if ($languages !== null) {
-                $existingCollection->setLanguages($languages);
-            }
-            
             $this->entityManager->flush();
-            
             return $existingCollection;
         }
 
@@ -61,7 +55,7 @@ class CollectionService
             ->setPurchasePrice($purchasePrice)
             ->setPurchaseDate($purchaseDate)
             ->setNotes($notes)
-            ->setLanguages($languages);
+            ->setVariant($variant);
 
         $this->entityManager->persist($collection);
         $this->entityManager->flush();
@@ -97,9 +91,9 @@ class CollectionService
         ?float $purchasePrice = null,
         ?\DateTimeImmutable $purchaseDate = null,
         ?string $notes = null,
-        ?array $languages = null
+        ?string $variant = null
     ): ?Collection {
-        $collection = $this->collectionRepository->findByUserAndCard($user, $cardId);
+        $collection = $this->collectionRepository->findByUserAndCard($user, $cardId, $variant);
 
         if (!$collection) {
             return null;
@@ -120,8 +114,8 @@ class CollectionService
         if ($notes !== null) {
             $collection->setNotes($notes);
         }
-        if ($languages !== null) {
-            $collection->setLanguages($languages);
+        if ($variant !== null) {
+            $collection->setVariant($variant);
         }
 
         $this->entityManager->flush();

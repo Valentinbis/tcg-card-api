@@ -33,6 +33,10 @@ class WishlistRepository extends ServiceEntityRepository
                ->setParameter('minPriority', $filters['minPriority']);
         }
 
+        if (isset($filters['minPrice'])) {
+            $qb->andWhere('w.maxPrice IS NOT NULL AND w.maxPrice >= :minPrice')
+               ->setParameter('minPrice', $filters['minPrice']);
+        }
         if (isset($filters['maxPrice'])) {
             $qb->andWhere('w.maxPrice IS NOT NULL AND w.maxPrice <= :maxPrice')
                ->setParameter('maxPrice', $filters['maxPrice']);

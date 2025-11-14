@@ -22,9 +22,6 @@ class UpdateCollectionDTO
     #[Assert\Length(max: 500)]
     public ?string $notes = null;
 
-    #[Assert\Type('array')]
-    #[Assert\All([
-        new Assert\Choice(['fr', 'jap', 'reverse'])
-    ])]
-    public ?array $languages = null;
+    #[Assert\Choice(['normal', 'reverse', 'holo'])]
+    public ?string $variant = null;
 }

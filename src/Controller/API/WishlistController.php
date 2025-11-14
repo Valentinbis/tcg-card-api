@@ -41,6 +41,9 @@ class WishlistController extends AbstractController
         if ($request->query->has('minPriority')) {
             $filters['minPriority'] = (int) $request->query->get('minPriority');
         }
+        if ($request->query->has('minPrice')) {
+            $filters['minPrice'] = (float) $request->query->get('minPrice');
+        }
         if ($request->query->has('maxPrice')) {
             $filters['maxPrice'] = (float) $request->query->get('maxPrice');
         }

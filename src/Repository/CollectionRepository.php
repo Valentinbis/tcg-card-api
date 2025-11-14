@@ -38,6 +38,21 @@ class CollectionRepository extends ServiceEntityRepository
                ->setParameter('minQuantity', $filters['minQuantity']);
         }
 
+        if (isset($filters['minPrice'])) {
+            $qb->andWhere('c.purchasePrice >= :minPrice')
+               ->setParameter('minPrice', $filters['minPrice']);
+        }
+
+        if (isset($filters['maxPrice'])) {
+            $qb->andWhere('c.purchasePrice <= :maxPrice')
+               ->setParameter('maxPrice', $filters['maxPrice']);
+        }
+
+        if (isset($filters['variant'])) {
+            $qb->andWhere('c.variant = :variant')
+               ->setParameter('variant', $filters['variant']);
+        }
+
         $orderBy = $filters['orderBy'] ?? 'createdAt';
         $direction = $filters['direction'] ?? 'DESC';
         $qb->orderBy('c.' . $orderBy, $direction);
@@ -55,6 +70,7 @@ class CollectionRepository extends ServiceEntityRepository
             ->andWhere('c.cardId = :cardId')
             ->setParameter('user', $user)
             ->setParameter('cardId', $cardId)
+            ->andWhere('c.variant IS NOT NULL')
             ->getQuery()
             ->getOneOrNullResult();
     }

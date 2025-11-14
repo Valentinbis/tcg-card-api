@@ -46,6 +46,12 @@ class CollectionController extends AbstractController
         if ($request->query->has('minQuantity')) {
             $filters['minQuantity'] = (int) $request->query->get('minQuantity');
         }
+        if ($request->query->has('minPrice')) {
+            $filters['minPrice'] = (float) $request->query->get('minPrice');
+        }
+        if ($request->query->has('maxPrice')) {
+            $filters['maxPrice'] = (float) $request->query->get('maxPrice');
+        }
 
         $collection = $this->collectionService->getUserCollection($user, $filters);
 
