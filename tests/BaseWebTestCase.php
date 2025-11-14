@@ -80,7 +80,7 @@ abstract class BaseWebTestCase extends WebTestCase
      * Crée un client HTTP authentifié
      * 
      * @param array $roles Rôles de l'utilisateur
-     * @return KernelBrowser Client avec header Authorization Bearer
+     * @return KernelBrowser Client authentifié
      */
     protected function createAuthenticatedClient(array $roles = ['ROLE_USER']): KernelBrowser
     {
@@ -91,7 +91,9 @@ abstract class BaseWebTestCase extends WebTestCase
         
         // Maintenant on peut créer l'utilisateur
         $user = $this->createTestUser($roles);
-        $client->setServerParameter('HTTP_AUTHORIZATION', 'Bearer ' . $user->getApiToken());
+        
+        // Utilise loginUser() pour simuler une authentification (firewall main, pas api car stateless)
+        $client->loginUser($user);
         
         return $client;
     }
