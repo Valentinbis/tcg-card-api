@@ -35,8 +35,10 @@ class CardController extends AbstractController
         $page = $request->query->get('page');
         $limit = $request->query->get('limit');
         $owned = $request->query->get('owned');
-        $lang = $request->query->get('lang');
         $type = $request->query->get('type');
+        $rarity = $request->query->get('rarity');
+        $set = $request->query->get('set');
+        $search = $request->query->get('search');
         $number = $request->query->get('number');
         
         $pageInt = is_numeric($page) ? (int) $page : 1;
@@ -56,9 +58,11 @@ class CardController extends AbstractController
         $result = $this->cardService->getUserCardsWithFilters(
             $user,
             is_string($type) ? $type : null,
+            is_string($rarity) ? $rarity : null,
+            is_string($set) ? $set : null,
+            is_string($search) ? $search : null,
             is_string($number) ? $number : null,
             is_string($owned) ? $owned : null,
-            is_string($lang) ? $lang : null,
             $offset,
             $limitInt,
             $sort,
@@ -78,31 +82,13 @@ class CardController extends AbstractController
     }
 
     /**
-     * Mise à jour des langues pour une carte utilisateur.
+     * Liste des sets disponibles.
      */
-    #[Route('/api/cards/{id}/languages', name: 'api_card_languages', methods: ['POST'])]
-    public function updateLanguages(int $id, Request $request): JsonResponse
+    #[Route('/api/sets', name: 'api_sets', methods: ['GET'])]
+    public function sets(): JsonResponse
     {
-        $user = $this->getUser();
-        if (!$user instanceof \App\Entity\User) {
-            return $this->json(['error' => 'Not authenticated'], 401);
-        }
+        $sets = $this->cardService->getAllSets();
 
-        $data = json_decode($request->getContent(), true);
-        if (!is_array($data)) {
-            return $this->json(['error' => 'Invalid request data'], 400);
-        }
-        
-        $languages = $data['languages'] ?? [];
-        if (!is_array($languages)) {
-            return $this->json(['error' => 'Invalid languages format'], 400);
-        }
-        
-        /** @var array<string> $stringLanguages */
-        $stringLanguages = array_filter($languages, 'is_string');
-
-        $this->cardService->updateUserCollectionLanguages($user, (string) $id, $stringLanguages);
-
-        return $this->json(['success' => true]);
+        return $this->json($sets, Response::HTTP_OK, [], ['groups' => ['set:read']]);
     }
 }

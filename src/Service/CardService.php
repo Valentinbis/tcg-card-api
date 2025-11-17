@@ -22,6 +22,9 @@ class CardService
     public function getUserCardsWithFilters(
         User $user,
         ?string $type,
+        ?string $rarity,
+        ?string $setId,
+        ?string $search,
         ?string $number,
         ?string $owned,
         int $offset,
@@ -56,6 +59,32 @@ class CardService
                 $types = $card->getTypes() ?? [];
 
                 return in_array($type, $types, true);
+            });
+            $allCards = array_values($allCards);
+        }
+
+        // Filtre par rareté
+        if ($rarity) {
+            $allCards = array_filter($allCards, function (Card $card) use ($rarity): bool {
+                return $card->getRarity() === $rarity;
+            });
+            $allCards = array_values($allCards);
+        }
+
+        // Filtre par set
+        if ($setId) {
+            $allCards = array_filter($allCards, function (Card $card) use ($setId): bool {
+                return $card->getSet()->getId() === $setId;
+            });
+            $allCards = array_values($allCards);
+        }
+
+        // Recherche par nom
+        if ($search) {
+            $searchLower = strtolower($search);
+            $allCards = array_filter($allCards, function (Card $card) use ($searchLower): bool {
+                $name = strtolower($card->getNameFr() ?? $card->getName() ?? '');
+                return str_contains($name, $searchLower);
             });
             $allCards = array_values($allCards);
         }
@@ -149,23 +178,22 @@ class CardService
     }
 
     /**
-     * @param array<string> $languages
+     * @return array<array{id: string, name: string}>
      */
-    public function updateUserCollectionLanguages(User $user, string $cardId, array $languages): void
+    public function getAllSets(): array
     {
-        $collection = $this->em->getRepository(Collection::class)->findOneBy([
-            'user' => $user,
-            'cardId' => $cardId,
-        ]);
+        $qb = $this->em->getRepository(\App\Entity\Set::class)->createQueryBuilder('s')
+            ->orderBy('s.releaseDate', 'DESC');
 
-        if (!$collection) {
-            $collection = new Collection();
-            $collection->setUser($user);
-            $collection->setCardId($cardId);
-            $collection->setQuantity(1);
-        }
+        /** @var array<\App\Entity\Set> $sets */
+        $sets = $qb->getQuery()->getResult();
 
-        $this->em->persist($collection);
-        $this->em->flush();
+        return array_map(
+            fn (\App\Entity\Set $set): array => [
+                'id' => $set->getId(),
+                'name' => $set->getName() ?? '',
+            ],
+            $sets
+        );
     }
 }

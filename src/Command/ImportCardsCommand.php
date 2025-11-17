@@ -119,7 +119,7 @@ class ImportCardsCommand extends Command
                         $output->writeln("<comment>Retrying in {$waitTime} seconds...</comment>");
                         sleep($waitTime);
                     } else {
-                        $output->writeln('<error>Max retries reached for set {$setCode}. Skipping.</error>');
+                        $output->writeln("<error>Max retries reached for set {$setCode}. Skipping.</error>");
                         continue 2; // Skip to next set
                     }
                 }
