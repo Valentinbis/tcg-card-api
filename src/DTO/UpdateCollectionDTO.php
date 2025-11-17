@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use App\Enum\CardConditionEnum;
+use App\Enum\CardVariantEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UpdateCollectionDTO
@@ -11,8 +13,8 @@ class UpdateCollectionDTO
     #[Assert\Positive]
     public ?int $quantity = null;
 
-    #[Assert\Choice(['mint', 'near_mint', 'excellent', 'good', 'light_played', 'played', 'poor'])]
-    public ?string $condition = null;
+    #[Assert\Type(CardConditionEnum::class)]
+    public ?CardConditionEnum $condition = null;
 
     #[Assert\PositiveOrZero]
     public ?float $purchasePrice = null;
@@ -22,6 +24,6 @@ class UpdateCollectionDTO
     #[Assert\Length(max: 500)]
     public ?string $notes = null;
 
-    #[Assert\Choice(['normal', 'reverse', 'holo'])]
-    public ?string $variant = null;
+    #[Assert\Type(CardVariantEnum::class)]
+    public ?CardVariantEnum $variant = null;
 }

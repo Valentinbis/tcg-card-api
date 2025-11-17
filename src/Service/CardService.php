@@ -8,7 +8,6 @@ use App\DTO\CardViewDTO;
 use App\Entity\Card;
 use App\Entity\Collection;
 use App\Entity\User;
-use App\Enum\LanguageEnum;
 use Doctrine\ORM\EntityManagerInterface;
 
 class CardService
@@ -25,7 +24,6 @@ class CardService
         ?string $type,
         ?string $number,
         ?string $owned,
-        ?string $lang,
         int $offset,
         int $limit,
         string $sort,
@@ -44,11 +42,10 @@ class CardService
         ]);
 
         // 3. Indexer les Collection par card_id pour accès rapide
-        /** @var array<string, array<string>> $ownedLanguagesByCardId */
-        $ownedLanguagesByCardId = [];
+        /** @var array<string, bool> $ownedCards */
+        $ownedCards = [];
         foreach ($collections as $collection) {
-            // Les langues sont déjà en tableau de strings dans Collection
-            $ownedLanguagesByCardId[$collection->getCardId()] = $collection->getLanguages() ?? [];
+            $ownedCards[$collection->getCardId()] = true;
         }
 
         // 4. Appliquer les filtres côté PHP
@@ -71,19 +68,12 @@ class CardService
             $allCards = array_values($allCards);
         }
 
-        // Filtre owned/lang
+        // Filtre owned
         if (null !== $owned) {
-            $allCards = array_filter($allCards, function (Card $card) use ($ownedLanguagesByCardId, $lang, $owned): bool {
-                $ownedLangs = $ownedLanguagesByCardId[$card->getId()] ?? [];
-                if ($lang) {
-                    $hasLang = in_array($lang, $ownedLangs, true);
+            $allCards = array_filter($allCards, function (Card $card) use ($ownedCards, $owned): bool {
+                $isOwned = isset($ownedCards[$card->getId()]);
 
-                    return 'true' === $owned ? $hasLang : !$hasLang;
-                } else {
-                    $hasAny = !empty($ownedLangs);
-
-                    return 'true' === $owned ? $hasAny : !$hasAny;
-                }
+                return 'true' === $owned ? $isOwned : !$isOwned;
             });
             $allCards = array_values($allCards);
         }
@@ -97,16 +87,58 @@ class CardService
         // 7. Construire la réponse paginée
         /** @var array<CardViewDTO> $cardViews */
         $cardViews = array_map(
-            fn (Card $card): CardViewDTO => new CardViewDTO(
-                $card->getId(),
-                $card->getName() ?? '',
-                $card->getNameFr() ?? '',
-                $card->getNumber() ?? '',
-                $card->getRarity() ?? '',
-                $card->getNationalPokedexNumbers() ?? [],
-                $card->getImages() ?? [],
-                $ownedLanguagesByCardId[$card->getId()] ?? []
-            ),
+            fn (Card $card): CardViewDTO => (function () use ($card, $ownedCards) {
+                $dto = new CardViewDTO(
+                    $card->getId(),
+                    $card->getName() ?? '',
+                    $card->getNameFr() ?? '',
+                    $card->getNumber() ?? '',
+                    $card->getRarity() ?? '',
+                    $card->getNationalPokedexNumbers() ?? [],
+                    $card->getImages() ?? [],
+                    $ownedCards[$card->getId()] ?? false
+                );
+                // Ajout des variantes et prix
+                $dto->variants = [];
+                foreach ($card->getVariants() as $variant) {
+                    $dto->variants[$variant->getType()->value] = [
+                        'price' => $variant->getPrice(),
+                        'cardmarket_average' => $variant->getCardmarketAverage(),
+                        'cardmarket_trend' => $variant->getCardmarketTrend(),
+                        'cardmarket_min' => $variant->getCardmarketMin(),
+                        'cardmarket_max' => $variant->getCardmarketMax(),
+                        'cardmarket_suggested' => $variant->getCardmarketSuggested(),
+                        'cardmarket_germanProLow' => $variant->getCardmarketGermanProLow(),
+                        'cardmarket_low_ex_plus' => $variant->getCardmarketLowExPlus(),
+                        'cardmarket_avg1' => $variant->getCardmarketAvg1(),
+                        'cardmarket_avg7' => $variant->getCardmarketAvg7(),
+                        'cardmarket_avg30' => $variant->getCardmarketAvg30(),
+                        'cardmarket_reverse' => $variant->getCardmarketReverse(),
+                        'cardmarket_reverse_low' => $variant->getCardmarketReverseLow(),
+                        'cardmarket_reverse_trend' => $variant->getCardmarketReverseTrend(),
+                        'cardmarket_reverse_avg1' => $variant->getCardmarketReverseAvg1(),
+                        'cardmarket_reverse_avg7' => $variant->getCardmarketReverseAvg7(),
+                        'cardmarket_reverse_avg30' => $variant->getCardmarketReverseAvg30(),
+                        'cardmarket_holo' => $variant->getCardmarketHolo(),
+                        'tcgplayer_normal_low' => $variant->getTcgplayerNormalLow(),
+                        'tcgplayer_normal_mid' => $variant->getTcgplayerNormalMid(),
+                        'tcgplayer_normal_high' => $variant->getTcgplayerNormalHigh(),
+                        'tcgplayer_normal_market' => $variant->getTcgplayerNormalMarket(),
+                        'tcgplayer_normal_direct' => $variant->getTcgplayerNormalDirect(),
+                        'tcgplayer_reverse_low' => $variant->getTcgplayerReverseLow(),
+                        'tcgplayer_reverse_mid' => $variant->getTcgplayerReverseMid(),
+                        'tcgplayer_reverse_high' => $variant->getTcgplayerReverseHigh(),
+                        'tcgplayer_reverse_market' => $variant->getTcgplayerReverseMarket(),
+                        'tcgplayer_reverse_direct' => $variant->getTcgplayerReverseDirect(),
+                        'tcgplayer_holo_low' => $variant->getTcgplayerHoloLow(),
+                        'tcgplayer_holo_mid' => $variant->getTcgplayerHoloMid(),
+                        'tcgplayer_holo_high' => $variant->getTcgplayerHoloHigh(),
+                        'tcgplayer_holo_market' => $variant->getTcgplayerHoloMarket(),
+                        'tcgplayer_holo_direct' => $variant->getTcgplayerHoloDirect(),
+                    ];
+                }
+                return $dto;
+            })(),
             $cards
         );
 
@@ -133,8 +165,6 @@ class CardService
             $collection->setQuantity(1);
         }
 
-        // Les langues sont directement stockées en array dans Collection
-        $collection->setLanguages($languages);
         $this->em->persist($collection);
         $this->em->flush();
     }

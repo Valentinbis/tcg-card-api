@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Enum\CardVariantEnum;
 use App\Repository\WishlistRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -29,6 +30,11 @@ class Wishlist
     #[ORM\Column(length: 50)]
     #[Groups(['wishlist:read'])]
     private ?string $cardId = null;
+
+    /** Variante de la carte (normal, reverse, holo) */
+    #[ORM\Column(type: 'string', length: 10, options: ['default' => 'normal'], enumType: CardVariantEnum::class)]
+    #[Groups(['wishlist:read'])]
+    private CardVariantEnum $variant = CardVariantEnum::NORMAL;
 
     #[ORM\Column(type: 'integer')]
     #[Groups(['wishlist:read'])]
@@ -86,6 +92,16 @@ class Wishlist
     public function setCardId(string $cardId): static
     {
         $this->cardId = $cardId;
+        return $this;
+    }
+
+    public function getVariant(): CardVariantEnum
+    {
+        return $this->variant;
+    }
+    public function setVariant(CardVariantEnum $variant): static
+    {
+        $this->variant = $variant;
         return $this;
     }
 

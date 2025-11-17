@@ -6,12 +6,15 @@ namespace App\Command;
 
 use App\Entity\Booster;
 use App\Entity\Card;
+use App\Entity\CardVariant;
+use App\Enum\CardVariantEnum;
 use App\Entity\Set;
 use Doctrine\ORM\EntityManagerInterface;
 use Pokemon\Pokemon;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
@@ -28,6 +31,16 @@ class ImportCardsCommand extends Command
         $this->em = $em;
     }
 
+    protected function configure(): void
+    {
+        $this->addOption(
+            'truncate',
+            't',
+            InputOption::VALUE_NONE,
+            'Truncate tables before importing'
+        );
+    }
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         Pokemon::Options([
@@ -39,38 +52,80 @@ class ImportCardsCommand extends Command
         $apiKey = $_ENV['POKEMONTCG_API_KEY'] ?? null;
         Pokemon::ApiKey($apiKey);
 
-        $setCode = 'sv8';
-        $imported = 0;
+        if ($input->getOption('truncate')) {
+            $output->writeln('<info>Truncating tables...</info>');
+            $schemaManager = $this->em->getConnection()->createSchemaManager();
+            $tables = ['card_variant', 'cards', 'sets', 'boosters'];
+            foreach ($tables as $table) {
+                if ($schemaManager->tablesExist([$table])) {
+                    $this->em->getConnection()->executeStatement("TRUNCATE TABLE {$table} CASCADE;");
+                    $output->writeln("<info>Truncated table: {$table}</info>");
+                } else {
+                    $output->writeln("<warning>Table {$table} does not exist, skipping truncate.</warning>");
+                }
+            }
+            $output->writeln('<info>Tables truncation completed.</info>');
+        }
+
+        $output->writeln('<info>Fetching all sets...</info>');
         $maxRetries = 3;
         $retryCount = 0;
-        /** @var array<\Pokemon\Card> $resp */
-        $resp = [];
-
-        $output->writeln("<info>Starting import for set: {$setCode}</info>");
+        $sets = [];
 
         while ($retryCount < $maxRetries) {
             try {
-                /** @var array<\Pokemon\Card> $resp */
-                $resp = Pokemon::Card()->where(['set.id' => $setCode])->all();
-
-                break; // Success, sortir de la boucle
+                $sets = Pokemon::Set()->all();
+                break; // Success
             } catch (\Exception $e) {
                 ++$retryCount;
-                $output->writeln("<error>Error fetching cards (attempt {$retryCount}/{$maxRetries}): {$e->getMessage()}</error>");
+                $output->writeln("<error>Error fetching sets (attempt {$retryCount}/{$maxRetries}): {$e->getMessage()}</error>");
 
                 if ($retryCount < $maxRetries) {
-                    $waitTime = $retryCount * 10; // Attendre 10, 20 secondes
+                    $waitTime = $retryCount * 10; // Wait 10, 20 seconds
                     $output->writeln("<comment>Retrying in {$waitTime} seconds...</comment>");
                     sleep($waitTime);
                 } else {
-                    $output->writeln('<error>Max retries reached. Please try again later.</error>');
-
+                    $output->writeln('<error>Max retries reached for fetching sets. Aborting.</error>');
                     return Command::FAILURE;
                 }
             }
         }
 
-        foreach ($resp as $cardData) {
+        $output->writeln("<info>Found " . count($sets) . " sets to import.</info>");
+
+        $totalImported = 0;
+        foreach ($sets as $setData) {
+            $setCode = $setData->getId();
+            $output->writeln("<info>Starting import for set: {$setCode}</info>");
+
+            $imported = 0;
+            $maxRetries = 3;
+            $retryCount = 0;
+            /** @var array<\Pokemon\Card> $resp */
+            $resp = [];
+
+            while ($retryCount < $maxRetries) {
+                try {
+                    /** @var array<\Pokemon\Card> $resp */
+                    $resp = Pokemon::Card()->where(['set.id' => $setCode])->all();
+
+                    break; // Success, sortir de la boucle
+                } catch (\Exception $e) {
+                    ++$retryCount;
+                    $output->writeln("<error>Error fetching cards for set {$setCode} (attempt {$retryCount}/{$maxRetries}): {$e->getMessage()}</error>");
+
+                    if ($retryCount < $maxRetries) {
+                        $waitTime = $retryCount * 10; // Attendre 10, 20 secondes
+                        $output->writeln("<comment>Retrying in {$waitTime} seconds...</comment>");
+                        sleep($waitTime);
+                    } else {
+                        $output->writeln('<error>Max retries reached for set {$setCode}. Skipping.</error>');
+                        continue 2; // Skip to next set
+                    }
+                }
+            }
+
+            foreach ($resp as $cardData) {
             $id = $cardData->getId();
             assert(is_string($id));
             
@@ -125,13 +180,88 @@ class ImportCardsCommand extends Command
                 $card->addBooster($boost);
             }
 
+            // Création des variantes existantes uniquement
+            $cardmarket = $cardData->getCardMarket()?->toArray() ?? [];
+            $tcgplayer = $cardData->getTcgPlayer()?->toArray() ?? [];
+            $cmPrices = $cardmarket['prices'] ?? [];
+            $tpPrices = $tcgplayer['prices'] ?? [];
+
+            // Normal
+            $normalTP = $tpPrices['normal'] ?? [];
+            $variant = new CardVariant();
+            $variant->setCard($card);
+            $variant->setType(CardVariantEnum::NORMAL);
+            $variant->setCardmarketAverage($cmPrices['averageSellPrice'] ?? $normalTP['market'] ?? null);
+            $variant->setCardmarketTrend($cmPrices['trendPrice'] ?? null);
+            $variant->setCardmarketMin($cmPrices['lowPrice'] ?? null);
+            $variant->setCardmarketMax($cmPrices['highPrice'] ?? null);
+            $variant->setCardmarketSuggested($cmPrices['suggestedPrice'] ?? null);
+            $variant->setCardmarketGermanProLow($cmPrices['germanProLow'] ?? null);
+            $variant->setCardmarketLowExPlus($cmPrices['lowPriceExPlus'] ?? null);
+            $variant->setCardmarketAvg1($cmPrices['avg1'] ?? null);
+            $variant->setCardmarketAvg7($cmPrices['avg7'] ?? null);
+            $variant->setCardmarketAvg30($cmPrices['avg30'] ?? null);
+            $variant->setTcgplayerNormalLow($normalTP['low'] ?? null);
+            $variant->setTcgplayerNormalMid($normalTP['mid'] ?? null);
+            $variant->setTcgplayerNormalHigh($normalTP['high'] ?? null);
+            $variant->setTcgplayerNormalMarket($normalTP['market'] ?? null);
+            $variant->setTcgplayerNormalDirect($normalTP['directLow'] ?? null);
+            $variant->setPrice($variant->getCardmarketAverage());
+            $this->em->persist($variant);
+            $card->addVariant($variant);
+
+            // Reverse
+            $reverseTP = $tpPrices['reverseHolofoil'] ?? [];
+            $reversePrice = $cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null;
+            if ($reversePrice !== null) {
+                $variant = new CardVariant();
+                $variant->setCard($card);
+                $variant->setType(CardVariantEnum::REVERSE);
+                $variant->setCardmarketReverse($cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null);
+                $variant->setCardmarketReverseLow($cmPrices['reverseHoloLow'] ?? null);
+                $variant->setCardmarketReverseTrend($cmPrices['reverseHoloTrend'] ?? null);
+                $variant->setCardmarketReverseAvg1($cmPrices['reverseHoloAvg1'] ?? null);
+                $variant->setCardmarketReverseAvg7($cmPrices['reverseHoloAvg7'] ?? null);
+                $variant->setCardmarketReverseAvg30($cmPrices['reverseHoloAvg30'] ?? null);
+                $variant->setTcgplayerReverseLow($reverseTP['low'] ?? null);
+                $variant->setTcgplayerReverseMid($reverseTP['mid'] ?? null);
+                $variant->setTcgplayerReverseHigh($reverseTP['high'] ?? null);
+                $variant->setTcgplayerReverseMarket($reverseTP['market'] ?? null);
+                $variant->setTcgplayerReverseDirect($reverseTP['directLow'] ?? null);
+                $variant->setPrice($variant->getCardmarketReverse());
+                $this->em->persist($variant);
+                $card->addVariant($variant);
+            }
+
+            // Holo
+            $holoTP = $tpPrices['holofoil'] ?? [];
+            $holoPrice = $cmPrices['holoSell'] ?? $holoTP['market'] ?? null;
+            if ($holoPrice !== null) {
+                $variant = new CardVariant();
+                $variant->setCard($card);
+                $variant->setType(CardVariantEnum::HOLO);
+                $variant->setCardmarketHolo($cmPrices['holoSell'] ?? $holoTP['market'] ?? null);
+                $variant->setTcgplayerHoloLow($holoTP['low'] ?? null);
+                $variant->setTcgplayerHoloMid($holoTP['mid'] ?? null);
+                $variant->setTcgplayerHoloHigh($holoTP['high'] ?? null);
+                $variant->setTcgplayerHoloMarket($holoTP['market'] ?? null);
+                $variant->setTcgplayerHoloDirect($holoTP['directLow'] ?? null);
+                $variant->setPrice($variant->getCardmarketHolo());
+                $this->em->persist($variant);
+                $card->addVariant($variant);
+            }
+
             $this->em->persist($card);
-            $this->em->flush();
-            $this->em->clear();
             ++$imported;
         }
 
-        $output->writeln("<info>{$imported} cards imported or updated.</info>");
+        $this->em->flush();
+        $this->em->clear();
+        $totalImported += $imported;
+        $output->writeln("<info>{$imported} cards imported or updated for set {$setCode}.</info>");
+    }
+
+    $output->writeln("<info>Total cards imported: {$totalImported}</info>");
 
         return Command::SUCCESS;
     }
@@ -162,9 +292,7 @@ class ImportCardsCommand extends Command
             ->setAncientTrait($cardData->getAncientTrait() ?? null)
             ->setAbilities($this->objectsToArray($cardData->getAbilities()))
             ->setAttacks($this->objectsToArray($cardData->getAttacks()))
-            ->setNationalPokedexNumbers($cardData->getNationalPokedexNumbers() ?? null)
-            ->setTcgplayer($cardData->getTcgPlayer()?->toArray() ?? null)
-            ->setCardmarket($cardData->getCardMarket()?->toArray() ?? null);
+            ->setNationalPokedexNumbers($cardData->getNationalPokedexNumbers() ?? null);
 
         // Download images and set paths
         $images = $cardData->getImages();

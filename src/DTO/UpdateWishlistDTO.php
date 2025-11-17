@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
+use App\Enum\CardVariantEnum;
 use Symfony\Component\Validator\Constraints as Assert;
 
 class UpdateWishlistDTO
@@ -16,4 +17,7 @@ class UpdateWishlistDTO
 
     #[Assert\PositiveOrZero]
     public ?float $maxPrice = null;
+    
+    #[Assert\Type(CardVariantEnum::class)]
+    public ?CardVariantEnum $variant = null;
 }

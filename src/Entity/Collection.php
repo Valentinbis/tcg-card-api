@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use App\Enum\CardConditionEnum;
+use App\Enum\CardVariantEnum;
 use App\Repository\CollectionRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -33,9 +35,9 @@ class Collection
     #[Groups(['collection:read'])]
     private int $quantity = 1;
 
-    #[ORM\Column(type: Types::STRING, length: 20, nullable: true)]
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, enumType: CardConditionEnum::class)]
     #[Groups(['collection:read'])]
-    private ?string $condition = null;
+    private ?CardConditionEnum $condition = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 2, nullable: true)]
     #[Groups(['collection:read'])]
@@ -53,9 +55,9 @@ class Collection
     /**
      * Variante de la carte (normal, reverse, holo)
      */
-    #[ORM\Column(type: Types::STRING, length: 10, options: ['default' => 'normal'])]
+    #[ORM\Column(type: Types::STRING, length: 10, options: ['default' => 'normal'], enumType: CardVariantEnum::class)]
     #[Groups(['collection:read'])]
-    private string $variant = 'normal';
+    private CardVariantEnum $variant = CardVariantEnum::NORMAL;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
     #[Groups(['collection:read'])]
@@ -115,12 +117,12 @@ class Collection
         return $this;
     }
 
-    public function getCondition(): ?string
+    public function getCondition(): ?CardConditionEnum
     {
         return $this->condition;
     }
 
-    public function setCondition(?string $condition): self
+    public function setCondition(?CardConditionEnum $condition): self
     {
         $this->condition = $condition;
         return $this;
@@ -160,12 +162,12 @@ class Collection
     }
 
 
-    public function getVariant(): string
+    public function getVariant(): CardVariantEnum
     {
         return $this->variant;
     }
 
-    public function setVariant(string $variant): self
+    public function setVariant(CardVariantEnum $variant): self
     {
         $this->variant = $variant;
         return $this;

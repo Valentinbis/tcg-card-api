@@ -43,6 +43,9 @@ class CollectionController extends AbstractController
         if ($request->query->has('condition')) {
             $filters['condition'] = $request->query->get('condition');
         }
+        if ($request->query->has('variant')) {
+            $filters['variant'] = $request->query->get('variant');
+        }
         if ($request->query->has('minQuantity')) {
             $filters['minQuantity'] = (int) $request->query->get('minQuantity');
         }
@@ -97,7 +100,7 @@ class CollectionController extends AbstractController
             purchasePrice: $dto->purchasePrice,
             purchaseDate: $dto->purchaseDate,
             notes: $dto->notes,
-            languages: $dto->languages
+            variant: $dto->variant,
         );
 
         return $this->json($collection, Response::HTTP_CREATED, [], ['groups' => 'collection:read']);
@@ -125,7 +128,7 @@ class CollectionController extends AbstractController
             purchasePrice: $dto->purchasePrice,
             purchaseDate: $dto->purchaseDate,
             notes: $dto->notes,
-            languages: $dto->languages
+            variant: $dto->variant,
         );
 
         if (!$collection) {

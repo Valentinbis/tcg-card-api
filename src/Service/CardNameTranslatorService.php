@@ -13,25 +13,30 @@ class CardNameTranslatorService
     ) {
     }
 
-    public function translate(string $number): ?string
+    public function translate(string $setId, string $number): ?string
     {
-        // Récupère les cartes de l'extension EV08
-        $response = $this->httpClient->request('GET', 'https://api.tcgdex.net/v2/fr/sets/sv08');
-        $data = $response->toArray();
-        
-        if (!is_array($data) || !isset($data['cards']) || !is_array($data['cards'])) {
-            return null;
-        }
-
-        foreach ($data['cards'] as $card) {
-            if (!is_array($card)) {
-                continue;
-            }
+        try {
+            // Récupère les cartes de l'extension donnée
+            $response = $this->httpClient->request('GET', 'https://api.tcgdex.net/v2/fr/sets/' . $setId);
+            $data = $response->toArray();
             
-            $localId = $card['localId'] ?? null;
-            if ($localId == $number && isset($card['name']) && is_string($card['name'])) {
-                return $card['name'];
+            if (!is_array($data) || !isset($data['cards']) || !is_array($data['cards'])) {
+                return null;
             }
+
+            foreach ($data['cards'] as $card) {
+                if (!is_array($card)) {
+                    continue;
+                }
+                
+                $localId = $card['localId'] ?? null;
+                if ($localId == $number && isset($card['name']) && is_string($card['name'])) {
+                    return $card['name'];
+                }
+            }
+        } catch (\Exception $e) {
+            // Si l'extension n'existe pas ou erreur API, retourner null
+            return null;
         }
 
         return null;

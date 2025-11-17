@@ -1,13 +1,12 @@
-    #[Assert\Choice(['normal', 'reverse', 'holo'])]
-    public ?string $variant = 'normal';
 <?php
 
 declare(strict_types=1);
 
 namespace App\DTO;
 
+use App\Enum\CardConditionEnum;
+use App\Enum\CardVariantEnum;
 use Symfony\Component\Validator\Constraints as Assert;
-use OpenApi\Attributes as OA;
 
 class AddToCollectionDTO
 {
@@ -18,8 +17,8 @@ class AddToCollectionDTO
     #[Assert\Positive]
     public ?int $quantity = 1;
 
-    #[Assert\Choice(['mint', 'near_mint', 'excellent', 'good', 'light_played', 'played', 'poor'])]
-    public ?string $condition = null;
+    #[Assert\Type(CardConditionEnum::class)]
+    public ?CardConditionEnum $condition = null;
 
     #[Assert\PositiveOrZero]
     public ?float $purchasePrice = null;
@@ -29,5 +28,6 @@ class AddToCollectionDTO
     #[Assert\Length(max: 500)]
     public ?string $notes = null;
 
-
+    #[Assert\Type(CardVariantEnum::class)]
+    public ?CardVariantEnum $variant = CardVariantEnum::NORMAL;
 }

@@ -37,7 +37,9 @@ class TranslateCardNamesCommand extends Command
                 continue;
             }
 
-            $translated = $this->translator->translate($number);
+            $setId = $card->getSet()->getId();
+
+            $translated = $this->translator->translate($setId, $number);
 
             if ($translated) {
                 $card->setNameFr($translated);

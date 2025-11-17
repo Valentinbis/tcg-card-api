@@ -110,14 +110,6 @@ class Card
     /** @var array<string, string>|null */
     private ?array $images;
 
-    #[ORM\Column(type: 'json', nullable: true)]
-    /** @var array<mixed>|null */
-    private ?array $tcgplayer = null;
-
-    #[ORM\Column(type: 'json', nullable: true)]
-    /** @var array<mixed>|null */
-    private ?array $cardmarket = null;
-
     #[ORM\ManyToOne(targetEntity: Set::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(name: 'set_id', referencedColumnName: 'id', nullable: false)]
     private Set $set;
@@ -138,9 +130,44 @@ class Card
     /** @var Collection<int, Booster> */
     private Collection $boosters;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\CardVariant", mappedBy="card", cascade={"persist", "remove"})
+     * @var Collection<int, CardVariant>
+     */
+    private $variants;
+
     public function __construct()
     {
         $this->boosters = new ArrayCollection();
+        $this->variants = new ArrayCollection();
+    }
+
+    /**
+     * @return Collection<int, CardVariant>
+     */
+    public function getVariants(): Collection
+    {
+        return $this->variants;
+    }
+
+    public function addVariant(CardVariant $variant): self
+    {
+        if (!$this->variants->contains($variant)) {
+            $this->variants->add($variant);
+            $variant->setCard($this);
+        }
+        return $this;
+    }
+
+    public function removeVariant(CardVariant $variant): self
+    {
+        if ($this->variants->contains($variant)) {
+            $this->variants->removeElement($variant);
+            if ($variant->getCard() === $this) {
+                $variant->setCard(null);
+            }
+        }
+        return $this;
     }
 
     // === Getters & Setters (exemples représentatifs) ===
@@ -527,42 +554,6 @@ class Card
     public function setImages(?array $images): self
     {
         $this->images = $images;
-
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>|null
-     */
-    public function getTcgplayer(): ?array
-    {
-        return $this->tcgplayer;
-    }
-
-    /**
-     * @param array<mixed>|null $tcgplayer
-     */
-    public function setTcgplayer(?array $tcgplayer): self
-    {
-        $this->tcgplayer = $tcgplayer;
-
-        return $this;
-    }
-
-    /**
-     * @return array<mixed>|null
-     */
-    public function getCardmarket(): ?array
-    {
-        return $this->cardmarket;
-    }
-
-    /**
-     * @param array<mixed>|null $cardmarket
-     */
-    public function setCardmarket(?array $cardmarket): self
-    {
-        $this->cardmarket = $cardmarket;
 
         return $this;
     }

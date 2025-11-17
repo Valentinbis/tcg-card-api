@@ -9,6 +9,7 @@ use App\Attribute\LogPerformance;
 use App\DTO\AddToWishlistDTO;
 use App\DTO\UpdateWishlistDTO;
 use App\Entity\User;
+use App\Enum\CardVariantEnum;
 use App\Service\WishlistService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -96,7 +97,8 @@ class WishlistController extends AbstractController
                 cardId: $dto->cardId,
                 priority: $dto->priority ?? 0,
                 notes: $dto->notes,
-                maxPrice: $dto->maxPrice
+                maxPrice: $dto->maxPrice,
+                variant: $dto->variant ?? CardVariantEnum::NORMAL
             );
 
             return $this->json($wishlistItem, Response::HTTP_CREATED, [], ['groups' => 'wishlist:read']);
@@ -125,7 +127,8 @@ class WishlistController extends AbstractController
                 cardId: $cardId,
                 priority: $dto->priority,
                 notes: $dto->notes,
-                maxPrice: $dto->maxPrice
+                maxPrice: $dto->maxPrice,
+                variant: $dto->variant
             );
 
             return $this->json($wishlistItem, Response::HTTP_OK, [], ['groups' => 'wishlist:read']);

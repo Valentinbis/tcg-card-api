@@ -31,14 +31,19 @@ class CardViewDTO
     #[Groups(['card:read'])]
     public array $images;
 
-    /** @var array<string> */
+    /** @var bool */
     #[Groups(['card:read'])]
-    public array $owned_languages;
+    public bool $owned;
+
+    /**
+     * @var array<string, array<string, float|null>>
+     */
+    #[Groups(['card:read'])]
+    public array $variants = [];
 
     /**
      * @param array<int> $nationalPokedexNumbers
      * @param array<string, string> $images
-     * @param array<string> $ownedLanguages
      */
     public function __construct(
         string $id,
@@ -48,7 +53,7 @@ class CardViewDTO
         string $rarity,
         array $nationalPokedexNumbers,
         array $images,
-        array $ownedLanguages = []
+        bool $owned = false
     ) {
         $this->id = $id;
         $this->name = $name;
@@ -57,6 +62,6 @@ class CardViewDTO
         $this->rarity = $rarity;
         $this->nationalPokedexNumbers = $nationalPokedexNumbers;
         $this->images = $images;
-        $this->owned_languages = $ownedLanguages;
+        $this->owned = $owned;
     }
 }
