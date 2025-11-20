@@ -82,6 +82,26 @@ class CardController extends AbstractController
     }
 
     /**
+     * Récupère les détails d'une carte par son ID.
+     */
+    #[Route('/api/cards/{cardId}', name: 'api_card_detail', methods: ['GET'])]
+    public function show(string $cardId): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user instanceof \App\Entity\User) {
+            return $this->json(['error' => 'Not authenticated'], 401);
+        }
+
+        $card = $this->cardService->getCardById($cardId);
+
+        if (!$card) {
+            return $this->json(['error' => 'Card not found'], 404);
+        }
+
+        return $this->json($card, Response::HTTP_OK, [], ['groups' => ['card:read']]);
+    }
+
+    /**
      * Liste des sets disponibles.
      */
     #[Route('/api/sets', name: 'api_sets', methods: ['GET'])]

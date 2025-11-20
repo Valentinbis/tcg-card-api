@@ -196,4 +196,9 @@ class CardService
             $sets
         );
     }
+
+    public function getCardById(string $cardId): ?Card
+    {
+        return $this->em->getRepository(Card::class)->find($cardId);
+    }
 }

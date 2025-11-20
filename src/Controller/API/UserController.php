@@ -71,7 +71,7 @@ class UserController extends AbstractController
     /**
      * Récupère les détails d'un utilisateur par son ID.
      */
-    #[Route('/api/user/{id}', methods: ['GET'])]
+    #[Route('/api/user/{id}', methods: ['GET'], requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_USER')]
     #[LogAction('view_user', 'User details accessed')]
     public function user(#[MapEntity] User $user): JsonResponse
@@ -84,7 +84,7 @@ class UserController extends AbstractController
     /**
      * Supprime un utilisateur (admin uniquement).
      */
-    #[Route('/api/user/{id}', methods: ['DELETE'])]
+    #[Route('/api/user/{id}', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_ADMIN')]
     #[LogAction('delete_user', 'User deleted', 'warning')]
     #[LogSecurity('delete_user', 'User deletion performed', 'warning')]
@@ -103,7 +103,7 @@ class UserController extends AbstractController
     /**
      * Modifie les informations d'un utilisateur.
      */
-    #[Route('/api/user/{id}', name: 'updateUser', methods: ['PUT'])]
+    #[Route('/api/user/{id}', name: 'updateUser', methods: ['PUT'], requirements: ['id' => '\d+'])]
     #[IsGranted('ROLE_USER')]
     #[LogAction('update_user', 'User updated')]
     public function update(Request $request, #[MapEntity] User $user): JsonResponse

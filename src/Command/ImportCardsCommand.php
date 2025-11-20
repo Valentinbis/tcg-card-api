@@ -343,6 +343,10 @@ class ImportCardsCommand extends Command
         $updatedAt = $setData->getUpdatedAt();
         $releaseDate = $setData->getReleaseDate();
 
+        // Corriger les dates malformées (années à 3 chiffres)
+        $updatedAtFixed = $updatedAt ? $this->fixMalformedDate((string) $updatedAt) : null;
+        $releaseDateFixed = $releaseDate ? $this->fixMalformedDate((string) $releaseDate) : null;
+
         $set
             ->setId($setIdValue)
             ->setName($setName)
@@ -351,8 +355,8 @@ class ImportCardsCommand extends Command
             ->setTotal($setData->getTotal() ?? null)
             ->setLegalities($setData->getLegalities()?->toArray() ?? null)
             ->setPtcgoCode($setData->getPtcgoCode() ?? null)
-            ->setUpdatedAt($updatedAt ? new \DateTime((string) $updatedAt) : null)
-            ->setReleaseDate($releaseDate ? new \DateTime((string) $releaseDate) : null)
+            ->setUpdatedAt($updatedAtFixed ? new \DateTime($updatedAtFixed) : null)
+            ->setReleaseDate($releaseDateFixed ? new \DateTime($releaseDateFixed) : null)
             ->setImages([
                 'symbol' => "/images/set/symbol/{$setId}.{$symbolExt}",
                 'logo' => "/images/set/logo/{$setId}.{$logoExt}",
@@ -404,5 +408,54 @@ class ImportCardsCommand extends Command
         }
 
         return $result ?: null;
+    }
+
+    /**
+     * Corrige les dates malformées et valide leur format
+     * Gère notamment les années à 3 chiffres et autres formats invalides
+     */
+    private function fixMalformedDate(string $dateString): ?string
+    {
+        if (empty($dateString)) {
+            return null;
+        }
+
+        // Vérifier si la date commence par une année à 3 chiffres (comme "025")
+        if (preg_match('/^(\d{3})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})$/', $dateString, $matches)) {
+            $year = (int) $matches[1];
+            $month = (int) $matches[2];
+            $day = (int) $matches[3];
+            $hour = (int) $matches[4];
+            $minute = (int) $matches[5];
+            $second = (int) $matches[6];
+
+            // Ajouter "20" au début de l'année pour corriger (025 -> 2025)
+            $correctedYear = 2000 + $year;
+
+            // Valider que la date est correcte
+            if ($this->isValidDate($correctedYear, $month, $day, $hour, $minute, $second)) {
+                return sprintf('%04d/%02d/%02d %02d:%02d:%02d', $correctedYear, $month, $day, $hour, $minute, $second);
+            }
+        }
+
+        // Essayer de parser avec DateTime pour d'autres formats potentiellement valides
+        try {
+            $dateTime = new \DateTime($dateString);
+            return $dateTime->format('Y/m/d H:i:s');
+        } catch (\Exception $e) {
+            // Si la date ne peut pas être parsée, retourner null
+            return null;
+        }
+    }
+
+    /**
+     * Valide qu'une date est correcte
+     */
+    private function isValidDate(int $year, int $month, int $day, int $hour, int $minute, int $second): bool
+    {
+        return checkdate($month, $day, $year) &&
+               $hour >= 0 && $hour <= 23 &&
+               $minute >= 0 && $minute <= 59 &&
+               $second >= 0 && $second <= 59;
     }
 }

@@ -6,13 +6,18 @@ namespace App\Service;
 
 use App\Entity\Price;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class PriceService
 {
+    private const CACHE_DURATION_HOURS = 24;
+    private const SUPPORTED_LOCALES = ['fr', 'en', 'jp'];
+
     public function __construct(
         private EntityManagerInterface $em,
-        private HttpClientInterface $httpClient
+        private HttpClientInterface $httpClient,
+        private LoggerInterface $logger
     ) {
     }
 
@@ -21,12 +26,12 @@ class PriceService
      */
     public function fetchCardPrices(string $cardId, string $locale = 'fr'): ?Price
     {
-        // Vérifier si on a déjà des prix récents (moins de 24h) pour cette langue
+        // Vérifier si on a déjà des prix récents pour cette langue
         $existingPrice = $this->em->getRepository(Price::class)->findOneBy([
             'cardId' => $cardId
         ]);
 
-        if ($existingPrice && $existingPrice->getLastUpdated() > new \DateTimeImmutable('-24 hours')) {
+        if ($existingPrice && $existingPrice->getLastUpdated() > new \DateTimeImmutable('-' . self::CACHE_DURATION_HOURS . ' hours')) {
             return $existingPrice;
         }
 
@@ -34,6 +39,11 @@ class PriceService
             $response = $this->httpClient->request('GET', "https://api.tcgdex.net/v2/{$locale}/cards/{$cardId}");
 
             if ($response->getStatusCode() !== 200) {
+                $this->logger->warning("API TCGdex returned status {status} for card {cardId} in locale {locale}", [
+                    'status' => $response->getStatusCode(),
+                    'cardId' => $cardId,
+                    'locale' => $locale
+                ]);
                 return $existingPrice; // Retourner les anciens prix si API indisponible
             }
 
@@ -69,7 +79,12 @@ class PriceService
             }
 
         } catch (\Exception $e) {
-            error_log("Erreur lors de la récupération des prix pour {$cardId} ({$locale}): " . $e->getMessage());
+            $this->logger->error("Erreur lors de la récupération des prix pour {cardId} ({locale}): {message}", [
+                'cardId' => $cardId,
+                'locale' => $locale,
+                'message' => $e->getMessage(),
+                'exception' => $e
+            ]);
         }
 
         return $existingPrice;
@@ -80,10 +95,9 @@ class PriceService
      */
     public function fetchCardPricesAllLanguages(string $cardId): array
     {
-        $locales = ['fr', 'en', 'jp'];
         $prices = [];
 
-        foreach ($locales as $locale) {
+        foreach (self::SUPPORTED_LOCALES as $locale) {
             $price = $this->fetchCardPrices($cardId, $locale);
             if ($price) {
                 $prices[$locale] = $price;

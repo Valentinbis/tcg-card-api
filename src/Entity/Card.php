@@ -110,6 +110,11 @@ class Card
     /** @var array<string, string>|null */
     private ?array $images;
 
+    /**
+     * Propriété temporaire pour l'upload d'image dans l'admin
+     */
+    private $uploadedImage;
+
     #[ORM\ManyToOne(targetEntity: Set::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(name: 'set_id', referencedColumnName: 'id', nullable: false)]
     private Set $set;
@@ -260,10 +265,22 @@ class Card
     /**
      * @return array<string>|null
      */
-    public function getTypes(): ?array
+    public function getTypesAsString(): string
     {
-        /** @var array<string>|null */
-        return $this->types;
+        if (is_array($this->types)) {
+            return implode(', ', $this->types);
+        }
+        return '';
+    }
+
+    public function setTypesFromString(?string $typesString): self
+    {
+        if (is_string($typesString) && !empty($typesString)) {
+            $this->types = array_map('trim', explode(',', $typesString));
+        } else {
+            $this->types = null;
+        }
+        return $this;
     }
 
     /**
@@ -561,6 +578,22 @@ class Card
     {
         $this->images = $images;
 
+        return $this;
+    }
+
+    public function getSmallImage(): ?string
+    {
+        return $this->images['small'] ?? null;
+    }
+
+    public function getUploadedImage()
+    {
+        return $this->uploadedImage;
+    }
+
+    public function setUploadedImage($uploadedImage): self
+    {
+        $this->uploadedImage = $uploadedImage;
         return $this;
     }
 

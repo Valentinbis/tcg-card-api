@@ -205,4 +205,19 @@ class Set
 
         return $this;
     }
+
+    public function getSymbolImage(): ?string
+    {
+        return $this->images['symbol'] ?? null;
+    }
+
+    public function getLogoImage(): ?string
+    {
+        return $this->images['logo'] ?? null;
+    }
+
+    public function __toString(): string
+    {
+        return $this->name;
+    }
 }

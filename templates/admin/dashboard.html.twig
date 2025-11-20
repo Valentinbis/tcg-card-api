@@ -3,8 +3,53 @@
 {% block page_content %}
 <div class="container">
   <div class="row">
-    <div class="col-4 alert-primary">
-      <span class='display-4'>{{ countUsers }}</span> Utilisateurs
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Utilisateurs</h5>
+          <span class='display-4'>{{ countUsers }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Cartes</h5>
+          <span class='display-4'>{{ countCards }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Sets</h5>
+          <span class='display-4'>{{ countSets }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Collections</h5>
+          <span class='display-4'>{{ countCollections }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Wishlists</h5>
+          <span class='display-4'>{{ countWishlists }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 mb-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Prix</h5>
+          <span class='display-4'>{{ countPrices }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </div>
