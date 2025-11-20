@@ -31,3 +31,8 @@
 /.env.production
 /coverage/
 ###< deployment ###
+
+# Images téléchargées lors de l'import
+/public/images/
+
+```

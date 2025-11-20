@@ -48,7 +48,7 @@ class ImportCardsCommand extends Command
             'timeout' => 120,
             'connect_timeout' => 30,
         ]);
-        
+
         $apiKey = $_ENV['POKEMONTCG_API_KEY'] ?? null;
         Pokemon::ApiKey($apiKey);
 
@@ -93,6 +93,9 @@ class ImportCardsCommand extends Command
 
         $output->writeln("<info>Found " . count($sets) . " sets to import.</info>");
 
+        // Inverser l'ordre d'importation des sets
+        $sets = array_reverse($sets);
+
         $totalImported = 0;
         foreach ($sets as $setData) {
             $setCode = $setData->getId();
@@ -126,142 +129,142 @@ class ImportCardsCommand extends Command
             }
 
             foreach ($resp as $cardData) {
-            $id = $cardData->getId();
-            assert(is_string($id));
-            
-            $card = $this->em->getRepository(Card::class)->findOneBy([
-                'number' => $cardData->getNumber(),
-                'set' => $cardData->getSet()?->getId(),
-            ]);
+                $id = $cardData->getId();
+                assert(is_string($id));
 
-            if (!$card) {
-                $card = new Card();
-                $card->setId($id);
-                $output->writeln("<info>New card created: {$id}</info>");
-            } else {
-                $output->writeln("<comment>Card updated: {$id}</comment>");
-            }
+                $card = $this->em->getRepository(Card::class)->findOneBy([
+                    'number' => $cardData->getNumber(),
+                    'set' => $cardData->getSet()?->getId(),
+                ]);
 
-            $this->updateCardFromData($card, $cardData);
-
-            $setData = $cardData->getSet();
-            assert($setData !== null);
-            $setId = $setData->getId();
-            assert(is_string($setId));
-            
-            $set = $this->em->getRepository(Set::class)->find($setId);
-
-            if (!$set) {
-                $set = new Set();
-                $set->setId($setId);
-                $output->writeln("<info>New set created: {$setId}</info>");
-            } else {
-                $output->writeln("<comment>Set updated: {$setId}</comment>");
-            }
-
-            $this->updateSetFromData($set, $setData, $setId);
-            $card->setSet($set);
-            $this->em->persist($set);
-
-            $series = $setData->getSeries();
-            if ($series) {
-                assert(is_string($series));
-                $boost = $this->em->getRepository(Booster::class)->find($series);
-
-                if (!$boost) {
-                    $boost = new Booster();
-                    $boost->setName($series);
-                    $output->writeln("<info>New booster created: {$series}</info>");
+                if (!$card) {
+                    $card = new Card();
+                    $card->setId($id);
+                    $output->writeln("<info>New card created: {$id}</info>");
                 } else {
-                    $output->writeln("<comment>Booster updated: {$series}</comment>");
+                    $output->writeln("<comment>Card updated: {$id}</comment>");
                 }
 
-                $this->em->persist($boost);
-                $card->addBooster($boost);
-            }
+                $this->updateCardFromData($card, $cardData);
 
-            // Création des variantes existantes uniquement
-            $cardmarket = $cardData->getCardMarket()?->toArray() ?? [];
-            $tcgplayer = $cardData->getTcgPlayer()?->toArray() ?? [];
-            $cmPrices = $cardmarket['prices'] ?? [];
-            $tpPrices = $tcgplayer['prices'] ?? [];
+                $setData = $cardData->getSet();
+                assert($setData !== null);
+                $setId = $setData->getId();
+                assert(is_string($setId));
 
-            // Normal
-            $normalTP = $tpPrices['normal'] ?? [];
-            $variant = new CardVariant();
-            $variant->setCard($card);
-            $variant->setType(CardVariantEnum::NORMAL);
-            $variant->setCardmarketAverage($cmPrices['averageSellPrice'] ?? $normalTP['market'] ?? null);
-            $variant->setCardmarketTrend($cmPrices['trendPrice'] ?? null);
-            $variant->setCardmarketMin($cmPrices['lowPrice'] ?? null);
-            $variant->setCardmarketMax($cmPrices['highPrice'] ?? null);
-            $variant->setCardmarketSuggested($cmPrices['suggestedPrice'] ?? null);
-            $variant->setCardmarketGermanProLow($cmPrices['germanProLow'] ?? null);
-            $variant->setCardmarketLowExPlus($cmPrices['lowPriceExPlus'] ?? null);
-            $variant->setCardmarketAvg1($cmPrices['avg1'] ?? null);
-            $variant->setCardmarketAvg7($cmPrices['avg7'] ?? null);
-            $variant->setCardmarketAvg30($cmPrices['avg30'] ?? null);
-            $variant->setTcgplayerNormalLow($normalTP['low'] ?? null);
-            $variant->setTcgplayerNormalMid($normalTP['mid'] ?? null);
-            $variant->setTcgplayerNormalHigh($normalTP['high'] ?? null);
-            $variant->setTcgplayerNormalMarket($normalTP['market'] ?? null);
-            $variant->setTcgplayerNormalDirect($normalTP['directLow'] ?? null);
-            $variant->setPrice($variant->getCardmarketAverage());
-            $this->em->persist($variant);
-            $card->addVariant($variant);
+                $set = $this->em->getRepository(Set::class)->find($setId);
 
-            // Reverse
-            $reverseTP = $tpPrices['reverseHolofoil'] ?? [];
-            $reversePrice = $cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null;
-            if ($reversePrice !== null) {
+                if (!$set) {
+                    $set = new Set();
+                    $set->setId($setId);
+                    $output->writeln("<info>New set created: {$setId}</info>");
+                } else {
+                    $output->writeln("<comment>Set updated: {$setId}</comment>");
+                }
+
+                $this->updateSetFromData($set, $setData, $setId);
+                $card->setSet($set);
+                $this->em->persist($set);
+
+                $series = $setData->getSeries();
+                if ($series) {
+                    assert(is_string($series));
+                    $boost = $this->em->getRepository(Booster::class)->find($series);
+
+                    if (!$boost) {
+                        $boost = new Booster();
+                        $boost->setName($series);
+                        $output->writeln("<info>New booster created: {$series}</info>");
+                    } else {
+                        $output->writeln("<comment>Booster updated: {$series}</comment>");
+                    }
+
+                    $this->em->persist($boost);
+                    $card->addBooster($boost);
+                }
+
+                // Création des variantes existantes uniquement
+                $cardmarket = $cardData->getCardMarket()?->toArray() ?? [];
+                $tcgplayer = $cardData->getTcgPlayer()?->toArray() ?? [];
+                $cmPrices = $cardmarket['prices'] ?? [];
+                $tpPrices = $tcgplayer['prices'] ?? [];
+
+                // Normal
+                $normalTP = $tpPrices['normal'] ?? [];
                 $variant = new CardVariant();
                 $variant->setCard($card);
-                $variant->setType(CardVariantEnum::REVERSE);
-                $variant->setCardmarketReverse($cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null);
-                $variant->setCardmarketReverseLow($cmPrices['reverseHoloLow'] ?? null);
-                $variant->setCardmarketReverseTrend($cmPrices['reverseHoloTrend'] ?? null);
-                $variant->setCardmarketReverseAvg1($cmPrices['reverseHoloAvg1'] ?? null);
-                $variant->setCardmarketReverseAvg7($cmPrices['reverseHoloAvg7'] ?? null);
-                $variant->setCardmarketReverseAvg30($cmPrices['reverseHoloAvg30'] ?? null);
-                $variant->setTcgplayerReverseLow($reverseTP['low'] ?? null);
-                $variant->setTcgplayerReverseMid($reverseTP['mid'] ?? null);
-                $variant->setTcgplayerReverseHigh($reverseTP['high'] ?? null);
-                $variant->setTcgplayerReverseMarket($reverseTP['market'] ?? null);
-                $variant->setTcgplayerReverseDirect($reverseTP['directLow'] ?? null);
-                $variant->setPrice($variant->getCardmarketReverse());
+                $variant->setType(CardVariantEnum::NORMAL);
+                $variant->setCardmarketAverage($cmPrices['averageSellPrice'] ?? $normalTP['market'] ?? null);
+                $variant->setCardmarketTrend($cmPrices['trendPrice'] ?? null);
+                $variant->setCardmarketMin($cmPrices['lowPrice'] ?? null);
+                $variant->setCardmarketMax($cmPrices['highPrice'] ?? null);
+                $variant->setCardmarketSuggested($cmPrices['suggestedPrice'] ?? null);
+                $variant->setCardmarketGermanProLow($cmPrices['germanProLow'] ?? null);
+                $variant->setCardmarketLowExPlus($cmPrices['lowPriceExPlus'] ?? null);
+                $variant->setCardmarketAvg1($cmPrices['avg1'] ?? null);
+                $variant->setCardmarketAvg7($cmPrices['avg7'] ?? null);
+                $variant->setCardmarketAvg30($cmPrices['avg30'] ?? null);
+                $variant->setTcgplayerNormalLow($normalTP['low'] ?? null);
+                $variant->setTcgplayerNormalMid($normalTP['mid'] ?? null);
+                $variant->setTcgplayerNormalHigh($normalTP['high'] ?? null);
+                $variant->setTcgplayerNormalMarket($normalTP['market'] ?? null);
+                $variant->setTcgplayerNormalDirect($normalTP['directLow'] ?? null);
+                $variant->setPrice($variant->getCardmarketAverage());
                 $this->em->persist($variant);
                 $card->addVariant($variant);
+
+                // Reverse
+                $reverseTP = $tpPrices['reverseHolofoil'] ?? [];
+                $reversePrice = $cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null;
+                if ($reversePrice !== null) {
+                    $variant = new CardVariant();
+                    $variant->setCard($card);
+                    $variant->setType(CardVariantEnum::REVERSE);
+                    $variant->setCardmarketReverse($cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null);
+                    $variant->setCardmarketReverseLow($cmPrices['reverseHoloLow'] ?? null);
+                    $variant->setCardmarketReverseTrend($cmPrices['reverseHoloTrend'] ?? null);
+                    $variant->setCardmarketReverseAvg1($cmPrices['reverseHoloAvg1'] ?? null);
+                    $variant->setCardmarketReverseAvg7($cmPrices['reverseHoloAvg7'] ?? null);
+                    $variant->setCardmarketReverseAvg30($cmPrices['reverseHoloAvg30'] ?? null);
+                    $variant->setTcgplayerReverseLow($reverseTP['low'] ?? null);
+                    $variant->setTcgplayerReverseMid($reverseTP['mid'] ?? null);
+                    $variant->setTcgplayerReverseHigh($reverseTP['high'] ?? null);
+                    $variant->setTcgplayerReverseMarket($reverseTP['market'] ?? null);
+                    $variant->setTcgplayerReverseDirect($reverseTP['directLow'] ?? null);
+                    $variant->setPrice($variant->getCardmarketReverse());
+                    $this->em->persist($variant);
+                    $card->addVariant($variant);
+                }
+
+                // Holo
+                $holoTP = $tpPrices['holofoil'] ?? [];
+                $holoPrice = $cmPrices['holoSell'] ?? $holoTP['market'] ?? null;
+                if ($holoPrice !== null) {
+                    $variant = new CardVariant();
+                    $variant->setCard($card);
+                    $variant->setType(CardVariantEnum::HOLO);
+                    $variant->setCardmarketHolo($cmPrices['holoSell'] ?? $holoTP['market'] ?? null);
+                    $variant->setTcgplayerHoloLow($holoTP['low'] ?? null);
+                    $variant->setTcgplayerHoloMid($holoTP['mid'] ?? null);
+                    $variant->setTcgplayerHoloHigh($holoTP['high'] ?? null);
+                    $variant->setTcgplayerHoloMarket($holoTP['market'] ?? null);
+                    $variant->setTcgplayerHoloDirect($holoTP['directLow'] ?? null);
+                    $variant->setPrice($variant->getCardmarketHolo());
+                    $this->em->persist($variant);
+                    $card->addVariant($variant);
+                }
+
+                $this->em->persist($card);
+                ++$imported;
             }
 
-            // Holo
-            $holoTP = $tpPrices['holofoil'] ?? [];
-            $holoPrice = $cmPrices['holoSell'] ?? $holoTP['market'] ?? null;
-            if ($holoPrice !== null) {
-                $variant = new CardVariant();
-                $variant->setCard($card);
-                $variant->setType(CardVariantEnum::HOLO);
-                $variant->setCardmarketHolo($cmPrices['holoSell'] ?? $holoTP['market'] ?? null);
-                $variant->setTcgplayerHoloLow($holoTP['low'] ?? null);
-                $variant->setTcgplayerHoloMid($holoTP['mid'] ?? null);
-                $variant->setTcgplayerHoloHigh($holoTP['high'] ?? null);
-                $variant->setTcgplayerHoloMarket($holoTP['market'] ?? null);
-                $variant->setTcgplayerHoloDirect($holoTP['directLow'] ?? null);
-                $variant->setPrice($variant->getCardmarketHolo());
-                $this->em->persist($variant);
-                $card->addVariant($variant);
-            }
-
-            $this->em->persist($card);
-            ++$imported;
+            $this->em->flush();
+            $this->em->clear();
+            $totalImported += $imported;
+            $output->writeln("<info>{$imported} cards imported or updated for set {$setCode}.</info>");
         }
 
-        $this->em->flush();
-        $this->em->clear();
-        $totalImported += $imported;
-        $output->writeln("<info>{$imported} cards imported or updated for set {$setCode}.</info>");
-    }
-
-    $output->writeln("<info>Total cards imported: {$totalImported}</info>");
+        $output->writeln("<info>Total cards imported: {$totalImported}</info>");
 
         return Command::SUCCESS;
     }
@@ -289,7 +292,7 @@ class ImportCardsCommand extends Command
             ->setConvertedRetreatCost($cardData->getConvertedRetreatCost() ?? null)
             ->setEvolvesTo($cardData->getEvolvesTo() ?? null)
             ->setRules($cardData->getRules() ?? null)
-            ->setAncientTrait($cardData->getAncientTrait() ?? null)
+            ->setAncientTrait($cardData->getAncientTrait()?->toArray() ?? null)
             ->setAbilities($this->objectsToArray($cardData->getAbilities()))
             ->setAttacks($this->objectsToArray($cardData->getAttacks()))
             ->setNationalPokedexNumbers($cardData->getNationalPokedexNumbers() ?? null);
@@ -299,11 +302,11 @@ class ImportCardsCommand extends Command
         $cardId = $cardData->getId();
         assert($images !== null && $cardId !== null);
         assert(is_string($cardId));
-        
+
         $smallUrl = $images->getSmall();
         $largeUrl = $images->getLarge();
         assert(is_string($smallUrl) && is_string($largeUrl));
-        
+
         $this->downloadImage($smallUrl, 'public/images/cards/small/', $cardId);
         $this->downloadImage($largeUrl, 'public/images/cards/large/', $cardId);
         $smallExt = $this->getImageExtension($smallUrl);
@@ -322,11 +325,11 @@ class ImportCardsCommand extends Command
     {
         $setImages = $setData->getImages();
         assert($setImages !== null);
-        
+
         $symbolUrl = $setImages->getSymbol();
         $logoUrl = $setImages->getLogo();
         assert(is_string($symbolUrl) && is_string($logoUrl));
-        
+
         $this->downloadImage($symbolUrl, 'public/images/set/symbol/', $setId);
         $this->downloadImage($logoUrl, 'public/images/set/logo/', $setId);
 

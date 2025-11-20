@@ -147,11 +147,14 @@ class Card
      */
     public function getVariants(): Collection
     {
-        return $this->variants;
+        return $this->variants ?? new ArrayCollection();
     }
 
     public function addVariant(CardVariant $variant): self
     {
+        if ($this->variants === null) {
+            $this->variants = new ArrayCollection();
+        }
         if (!$this->variants->contains($variant)) {
             $this->variants->add($variant);
             $variant->setCard($this);
@@ -161,6 +164,9 @@ class Card
 
     public function removeVariant(CardVariant $variant): self
     {
+        if ($this->variants === null) {
+            $this->variants = new ArrayCollection();
+        }
         if ($this->variants->contains($variant)) {
             $this->variants->removeElement($variant);
             if ($variant->getCard() === $this) {
@@ -573,11 +579,14 @@ class Card
     /** @return Collection<int, Booster> */
     public function getBoosters(): Collection
     {
-        return $this->boosters;
+        return $this->boosters ?? new ArrayCollection();
     }
 
     public function addBooster(Booster $booster): self
     {
+        if ($this->boosters === null) {
+            $this->boosters = new ArrayCollection();
+        }
         if (!$this->boosters->contains($booster)) {
             $this->boosters->add($booster);
         }
@@ -587,6 +596,9 @@ class Card
 
     public function removeBooster(Booster $booster): self
     {
+        if ($this->boosters === null) {
+            $this->boosters = new ArrayCollection();
+        }
         $this->boosters->removeElement($booster);
 
         return $this;
