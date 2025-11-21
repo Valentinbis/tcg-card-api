@@ -121,7 +121,7 @@ class Set
      */
     public function getLegalities(): ?array
     {
-        /** @var array<string, string>|null */
+        /* @var array<string, string>|null */
         return $this->legalities;
     }
 
@@ -176,7 +176,7 @@ class Set
      */
     public function getImages(): ?array
     {
-        /** @var array<string, string>|null */
+        /* @var array<string, string>|null */
         return $this->images;
     }
 

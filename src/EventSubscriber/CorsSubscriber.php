@@ -32,7 +32,7 @@ class CorsSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
 
         // Traiter les requêtes OPTIONS (preflight)
-        if ($request->getMethod() === 'OPTIONS') {
+        if ('OPTIONS' === $request->getMethod()) {
             $response = new Response('', Response::HTTP_NO_CONTENT);
             $this->addCorsHeaders($response, $request->headers->get('Origin'));
             $event->setResponse($response);
@@ -47,7 +47,7 @@ class CorsSubscriber implements EventSubscriberInterface
 
         $response = $event->getResponse();
         $request = $event->getRequest();
-        
+
         $this->addCorsHeaders($response, $request->headers->get('Origin'));
     }
 

@@ -37,7 +37,7 @@ class WishlistController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        
+
         $filters = [];
         if ($request->query->has('minPriority')) {
             $filters['minPriority'] = (int) $request->query->get('minPriority');
@@ -86,7 +86,8 @@ class WishlistController extends AbstractController
     #[LogAction('add_to_wishlist', 'Card added to wishlist')]
     #[LogPerformance(threshold: 0.3)]
     public function add(
-        #[MapRequestPayload] AddToWishlistDTO $dto
+        #[MapRequestPayload]
+        AddToWishlistDTO $dto
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();
@@ -116,7 +117,8 @@ class WishlistController extends AbstractController
     #[LogPerformance(threshold: 0.3)]
     public function update(
         string $cardId,
-        #[MapRequestPayload] UpdateWishlistDTO $dto
+        #[MapRequestPayload]
+        UpdateWishlistDTO $dto
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();
@@ -151,6 +153,7 @@ class WishlistController extends AbstractController
 
         try {
             $this->wishlistService->removeFromWishlist($user, $cardId);
+
             return $this->json(null, Response::HTTP_NO_CONTENT);
         } catch (\InvalidArgumentException $e) {
             return $this->json(['error' => $e->getMessage()], Response::HTTP_NOT_FOUND);

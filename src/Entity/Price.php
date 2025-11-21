@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Repository\PriceRepository;
@@ -65,50 +67,55 @@ class Price
     public function setCardId(string $cardId): self
     {
         $this->cardId = $cardId;
+
         return $this;
     }
 
     public function getMarketPrice(): ?float
     {
-        return $this->marketPrice !== null ? (float) $this->marketPrice : null;
+        return null !== $this->marketPrice ? (float) $this->marketPrice : null;
     }
 
     public function setMarketPrice(?float $marketPrice): self
     {
-        $this->marketPrice = $marketPrice !== null ? (string) $marketPrice : null;
+        $this->marketPrice = null !== $marketPrice ? (string) $marketPrice : null;
+
         return $this;
     }
 
     public function getLowPrice(): ?float
     {
-        return $this->lowPrice !== null ? (float) $this->lowPrice : null;
+        return null !== $this->lowPrice ? (float) $this->lowPrice : null;
     }
 
     public function setLowPrice(?float $lowPrice): self
     {
-        $this->lowPrice = $lowPrice !== null ? (string) $lowPrice : null;
+        $this->lowPrice = null !== $lowPrice ? (string) $lowPrice : null;
+
         return $this;
     }
 
     public function getHighPrice(): ?float
     {
-        return $this->highPrice !== null ? (float) $this->highPrice : null;
+        return null !== $this->highPrice ? (float) $this->highPrice : null;
     }
 
     public function setHighPrice(?float $highPrice): self
     {
-        $this->highPrice = $highPrice !== null ? (string) $highPrice : null;
+        $this->highPrice = null !== $highPrice ? (string) $highPrice : null;
+
         return $this;
     }
 
     public function getAveragePrice(): ?float
     {
-        return $this->averagePrice !== null ? (float) $this->averagePrice : null;
+        return null !== $this->averagePrice ? (float) $this->averagePrice : null;
     }
 
     public function setAveragePrice(?float $averagePrice): self
     {
-        $this->averagePrice = $averagePrice !== null ? (string) $averagePrice : null;
+        $this->averagePrice = null !== $averagePrice ? (string) $averagePrice : null;
+
         return $this;
     }
 
@@ -120,6 +127,7 @@ class Price
     public function setLastUpdated(\DateTimeImmutable $lastUpdated): self
     {
         $this->lastUpdated = $lastUpdated;
+
         return $this;
     }
 
@@ -127,5 +135,4 @@ class Price
     {
         return $this->createdAt;
     }
-
 }

@@ -27,11 +27,9 @@ class CardViewDTO
     #[Groups(['card:read'])]
     public array $nationalPokedexNumbers;
 
-    /** @var array<string, string> */
     #[Groups(['card:read'])]
     public array $images;
 
-    /** @var bool */
     #[Groups(['card:read'])]
     public bool $owned;
 
@@ -42,7 +40,7 @@ class CardViewDTO
     public array $variants = [];
 
     /**
-     * @param array<int> $nationalPokedexNumbers
+     * @param array<int>            $nationalPokedexNumbers
      * @param array<string, string> $images
      */
     public function __construct(

@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
 use App\Repository\CardRepository;
-use App\Repository\SetRepository;
 use App\Repository\CollectionRepository;
-use App\Repository\WishlistRepository;
 use App\Repository\PriceRepository;
+use App\Repository\SetRepository;
+use App\Repository\UserRepository;
+use App\Repository\WishlistRepository;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;

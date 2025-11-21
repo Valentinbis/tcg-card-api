@@ -28,7 +28,7 @@ class UserSettingsRepository extends ServiceEntityRepository
     {
         $settings = $this->findByUser($user);
 
-        if ($settings === null) {
+        if (null === $settings) {
             $settings = new UserSettings();
             $settings->setUser($user);
             $this->getEntityManager()->persist($settings);

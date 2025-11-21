@@ -84,6 +84,7 @@ class CardService
             $searchLower = strtolower($search);
             $allCards = array_filter($allCards, function (Card $card) use ($searchLower): bool {
                 $name = strtolower($card->getNameFr() ?? $card->getName() ?? '');
+
                 return str_contains($name, $searchLower);
             });
             $allCards = array_values($allCards);
@@ -166,6 +167,7 @@ class CardService
                         'tcgplayer_holo_direct' => $variant->getTcgplayerHoloDirect(),
                     ];
                 }
+
                 return $dto;
             })(),
             $cards

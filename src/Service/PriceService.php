@@ -22,28 +22,29 @@ class PriceService
     }
 
     /**
-     * Récupère les prix d'une carte depuis TCGdex pour une langue spécifique
+     * Récupère les prix d'une carte depuis TCGdex pour une langue spécifique.
      */
     public function fetchCardPrices(string $cardId, string $locale = 'fr'): ?Price
     {
         // Vérifier si on a déjà des prix récents pour cette langue
         $existingPrice = $this->em->getRepository(Price::class)->findOneBy([
-            'cardId' => $cardId
+            'cardId' => $cardId,
         ]);
 
-        if ($existingPrice && $existingPrice->getLastUpdated() > new \DateTimeImmutable('-' . self::CACHE_DURATION_HOURS . ' hours')) {
+        if ($existingPrice && $existingPrice->getLastUpdated() > new \DateTimeImmutable('-'.self::CACHE_DURATION_HOURS.' hours')) {
             return $existingPrice;
         }
 
         try {
             $response = $this->httpClient->request('GET', "https://api.tcgdex.net/v2/{$locale}/cards/{$cardId}");
 
-            if ($response->getStatusCode() !== 200) {
-                $this->logger->warning("API TCGdex returned status {status} for card {cardId} in locale {locale}", [
+            if (200 !== $response->getStatusCode()) {
+                $this->logger->warning('API TCGdex returned status {status} for card {cardId} in locale {locale}', [
                     'status' => $response->getStatusCode(),
                     'cardId' => $cardId,
-                    'locale' => $locale
+                    'locale' => $locale,
                 ]);
+
                 return $existingPrice; // Retourner les anciens prix si API indisponible
             }
 
@@ -61,7 +62,7 @@ class PriceService
                 $highPrice = null; // Cardmarket ne fournit pas de high price direct
                 $averagePrice = $cardmarket['avg'] ?? null;
 
-                if ($marketPrice !== null) {
+                if (null !== $marketPrice) {
                     $price->setMarketPrice($marketPrice);
                     $price->setLowPrice($lowPrice);
                     $price->setHighPrice($highPrice);
@@ -79,11 +80,11 @@ class PriceService
             }
 
         } catch (\Exception $e) {
-            $this->logger->error("Erreur lors de la récupération des prix pour {cardId} ({locale}): {message}", [
+            $this->logger->error('Erreur lors de la récupération des prix pour {cardId} ({locale}): {message}', [
                 'cardId' => $cardId,
                 'locale' => $locale,
                 'message' => $e->getMessage(),
-                'exception' => $e
+                'exception' => $e,
             ]);
         }
 
@@ -91,7 +92,7 @@ class PriceService
     }
 
     /**
-     * Récupère les prix d'une carte dans toutes les langues disponibles
+     * Récupère les prix d'une carte dans toutes les langues disponibles.
      */
     public function fetchCardPricesAllLanguages(string $cardId): array
     {
@@ -108,7 +109,9 @@ class PriceService
     }
 
     /**
-     * Récupère les prix pour plusieurs cartes
+     * Récupère les prix pour plusieurs cartes.
+     *
+     * @param array<string> $cardIds
      */
     public function fetchMultipleCardPrices(array $cardIds): array
     {
@@ -119,11 +122,12 @@ class PriceService
                 $prices[$cardId] = $price;
             }
         }
+
         return $prices;
     }
 
     /**
-     * Prix estimé basé sur la rareté (fallback)
+     * Prix estimé basé sur la rareté (fallback).
      */
     public function getEstimatedPrice(string $rarity): array
     {

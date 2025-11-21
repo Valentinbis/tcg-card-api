@@ -7,8 +7,8 @@ namespace App\Command;
 use App\Entity\Booster;
 use App\Entity\Card;
 use App\Entity\CardVariant;
-use App\Enum\CardVariantEnum;
 use App\Entity\Set;
+use App\Enum\CardVariantEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Pokemon\Pokemon;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -75,6 +75,7 @@ class ImportCardsCommand extends Command
         while ($retryCount < $maxRetries) {
             try {
                 $sets = Pokemon::Set()->all();
+
                 break; // Success
             } catch (\Exception $e) {
                 ++$retryCount;
@@ -86,12 +87,13 @@ class ImportCardsCommand extends Command
                     sleep($waitTime);
                 } else {
                     $output->writeln('<error>Max retries reached for fetching sets. Aborting.</error>');
+
                     return Command::FAILURE;
                 }
             }
         }
 
-        $output->writeln("<info>Found " . count($sets) . " sets to import.</info>");
+        $output->writeln('<info>Found '.count($sets).' sets to import.</info>');
 
         // Inverser l'ordre d'importation des sets
         $sets = array_reverse($sets);
@@ -123,6 +125,7 @@ class ImportCardsCommand extends Command
                         sleep($waitTime);
                     } else {
                         $output->writeln("<error>Max retries reached for set {$setCode}. Skipping.</error>");
+
                         continue 2; // Skip to next set
                     }
                 }
@@ -148,7 +151,7 @@ class ImportCardsCommand extends Command
                 $this->updateCardFromData($card, $cardData);
 
                 $setData = $cardData->getSet();
-                assert($setData !== null);
+                assert(null !== $setData);
                 $setId = $setData->getId();
                 assert(is_string($setId));
 
@@ -216,7 +219,7 @@ class ImportCardsCommand extends Command
                 // Reverse
                 $reverseTP = $tpPrices['reverseHolofoil'] ?? [];
                 $reversePrice = $cmPrices['reverseHoloSell'] ?? $reverseTP['market'] ?? null;
-                if ($reversePrice !== null) {
+                if (null !== $reversePrice) {
                     $variant = new CardVariant();
                     $variant->setCard($card);
                     $variant->setType(CardVariantEnum::REVERSE);
@@ -239,7 +242,7 @@ class ImportCardsCommand extends Command
                 // Holo
                 $holoTP = $tpPrices['holofoil'] ?? [];
                 $holoPrice = $cmPrices['holoSell'] ?? $holoTP['market'] ?? null;
-                if ($holoPrice !== null) {
+                if (null !== $holoPrice) {
                     $variant = new CardVariant();
                     $variant->setCard($card);
                     $variant->setType(CardVariantEnum::HOLO);
@@ -300,7 +303,7 @@ class ImportCardsCommand extends Command
         // Download images and set paths
         $images = $cardData->getImages();
         $cardId = $cardData->getId();
-        assert($images !== null && $cardId !== null);
+        assert(null !== $images && null !== $cardId);
         assert(is_string($cardId));
 
         $smallUrl = $images->getSmall();
@@ -324,7 +327,7 @@ class ImportCardsCommand extends Command
     private function updateSetFromData(Set $set, $setData, string $setId): void
     {
         $setImages = $setData->getImages();
-        assert($setImages !== null);
+        assert(null !== $setImages);
 
         $symbolUrl = $setImages->getSymbol();
         $logoUrl = $setImages->getLogo();
@@ -385,11 +388,11 @@ class ImportCardsCommand extends Command
     private function getImageExtension(string $url): string
     {
         $path = parse_url($url, PHP_URL_PATH);
+
         return pathinfo(is_string($path) ? $path : '', PATHINFO_EXTENSION) ?: 'jpg';
     }
 
     /**
-     * @param mixed $items
      * @return array<mixed>|null
      */
     private function objectsToArray($items): ?array
@@ -412,7 +415,7 @@ class ImportCardsCommand extends Command
 
     /**
      * Corrige les dates malformées et valide leur format
-     * Gère notamment les années à 3 chiffres et autres formats invalides
+     * Gère notamment les années à 3 chiffres et autres formats invalides.
      */
     private function fixMalformedDate(string $dateString): ?string
     {
@@ -441,6 +444,7 @@ class ImportCardsCommand extends Command
         // Essayer de parser avec DateTime pour d'autres formats potentiellement valides
         try {
             $dateTime = new \DateTime($dateString);
+
             return $dateTime->format('Y/m/d H:i:s');
         } catch (\Exception $e) {
             // Si la date ne peut pas être parsée, retourner null
@@ -449,13 +453,13 @@ class ImportCardsCommand extends Command
     }
 
     /**
-     * Valide qu'une date est correcte
+     * Valide qu'une date est correcte.
      */
     private function isValidDate(int $year, int $month, int $day, int $hour, int $minute, int $second): bool
     {
-        return checkdate($month, $day, $year) &&
-               $hour >= 0 && $hour <= 23 &&
-               $minute >= 0 && $minute <= 59 &&
-               $second >= 0 && $second <= 59;
+        return checkdate($month, $day, $year)
+               && $hour >= 0 && $hour <= 23
+               && $minute >= 0 && $minute <= 59
+               && $second >= 0 && $second <= 59;
     }
 }

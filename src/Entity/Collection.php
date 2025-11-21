@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Entity;
 
 use App\Enum\CardConditionEnum;
@@ -53,7 +55,7 @@ class Collection
 
 
     /**
-     * Variante de la carte (normal, reverse, holo)
+     * Variante de la carte (normal, reverse, holo).
      */
     #[ORM\Column(type: Types::STRING, length: 10, options: ['default' => 'normal'], enumType: CardVariantEnum::class)]
     #[Groups(['collection:read'])]
@@ -92,6 +94,7 @@ class Collection
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -103,6 +106,7 @@ class Collection
     public function setCardId(string $cardId): self
     {
         $this->cardId = $cardId;
+
         return $this;
     }
 
@@ -114,6 +118,7 @@ class Collection
     public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 
@@ -125,17 +130,19 @@ class Collection
     public function setCondition(?CardConditionEnum $condition): self
     {
         $this->condition = $condition;
+
         return $this;
     }
 
     public function getPurchasePrice(): ?float
     {
-        return $this->purchasePrice !== null ? (float) $this->purchasePrice : null;
+        return null !== $this->purchasePrice ? (float) $this->purchasePrice : null;
     }
 
     public function setPurchasePrice(?float $purchasePrice): self
     {
-        $this->purchasePrice = $purchasePrice !== null ? (string) $purchasePrice : null;
+        $this->purchasePrice = null !== $purchasePrice ? (string) $purchasePrice : null;
+
         return $this;
     }
 
@@ -147,6 +154,7 @@ class Collection
     public function setPurchaseDate(?\DateTimeImmutable $purchaseDate): self
     {
         $this->purchaseDate = $purchaseDate;
+
         return $this;
     }
 
@@ -158,9 +166,9 @@ class Collection
     public function setNotes(?string $notes): self
     {
         $this->notes = $notes;
+
         return $this;
     }
-
 
     public function getVariant(): CardVariantEnum
     {
@@ -170,6 +178,7 @@ class Collection
     public function setVariant(CardVariantEnum $variant): self
     {
         $this->variant = $variant;
+
         return $this;
     }
 

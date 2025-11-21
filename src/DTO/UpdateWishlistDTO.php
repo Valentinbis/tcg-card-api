@@ -17,7 +17,7 @@ class UpdateWishlistDTO
 
     #[Assert\PositiveOrZero]
     public ?float $maxPrice = null;
-    
+
     #[Assert\Type(CardVariantEnum::class)]
     public ?CardVariantEnum $variant = null;
 }
