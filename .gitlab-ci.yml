@@ -155,16 +155,7 @@ deploy:production:
     - echo "Railway CLI installed successfully"
   script:
     - echo "Déploiement sur Railway..."
-    - echo "Debug - RAILWAY_PROJECT_ID: $RAILWAY_PROJECT_ID"
-    - echo "Debug - RAILWAY_TOKEN length: ${#RAILWAY_TOKEN}"
-    - |
-      if ! railway link $RAILWAY_PROJECT_ID --yes; then
-        echo "Railway link failed - checking Railway CLI status..."
-        railway --version || echo "Railway CLI not working"
-        echo "Trying to list projects..."
-        railway projects || echo "Cannot list projects"
-        exit 1
-      fi
+    - railway link $RAILWAY_PROJECT_ID --yes
     - railway up --detach
   environment:
     name: production
@@ -189,16 +180,7 @@ deploy:staging:
     - echo "Railway CLI installed successfully"
   script:
     - echo "Déploiement sur Railway (staging)..."
-    - echo "Debug - RAILWAY_STAGING_PROJECT_ID: $RAILWAY_STAGING_PROJECT_ID"
-    - echo "Debug - RAILWAY_TOKEN length: ${#RAILWAY_TOKEN}"
-    - |
-      if ! railway link $RAILWAY_STAGING_PROJECT_ID --yes; then
-        echo "Railway link failed - checking Railway CLI status..."
-        railway --version || echo "Railway CLI not working"
-        echo "Trying to list projects..."
-        railway projects || echo "Cannot list projects"
-        exit 1
-      fi
+    - railway link $RAILWAY_STAGING_PROJECT_ID --yes
     - railway up --detach
   environment:
     name: staging
