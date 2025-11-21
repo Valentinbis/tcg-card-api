@@ -1,0 +1,27 @@
+apiVersion: 1
+
+datasources:
+  # Loki - Source de données pour les logs
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: Loki
+          matcherRegex: "correlation_id\":\"(.*?)\""
+          name: CorrelationID
+          url: $${__value.raw}
+
+  # Prometheus - Source de données pour les métriques
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: false
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST

@@ -1,0 +1,89 @@
+name: tcgcard-api
+
+services:
+  ###> php ###
+  php:
+    image: php:8-fpm-alpine
+    container_name: tcgcard_php
+    volumes:
+      - './configs/php.ini:/usr/local/etc/php/php.ini'
+  ###< php ###
+  ###> symfony ###
+  symfony:
+    container_name: tcgcard_api
+    build:
+      context: .
+      dockerfile: Dockerfile.dev.local
+    command: symfony server:start --no-tls --port=8000 --allow-http --allow-all-ip
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
+      - './configs/php.ini:/usr/local/etc/php/php.ini'
+      - ./var/log:/app/var/log
+  ###< symfony ###
+  ###> doctrine/doctrine-bundle ###
+  database:
+    container_name: tcgcard_db
+    image: postgres:${POSTGRES_VERSION:-16}-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-tcgcard}
+      # You should definitely change the password in production
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-tcgcard}
+      POSTGRES_USER: ${POSTGRES_USER:-tcgcard}
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      - ./docker/db/init:/docker-entrypoint-initdb.d:ro
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+  ###< doctrine/doctrine-bundle ###
+  ###> sonarqube ###
+  sonarqube:
+    image: sonarqube:lts-community
+    hostname: sonarqube
+    container_name: tcgcard_sonarqube
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9000:9000"
+  db:
+    image: postgres:15
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    hostname: postgresql
+    container_name: sonarqube_db
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+      PGUSER: sonar
+    volumes:
+      - postgresql:/var/lib/postgresql
+      - postgresql_data:/var/lib/postgresql/data
+###< sonarqube ###
+
+volumes:
+  ###> doctrine/doctrine-bundle ###
+  database_data:
+  ###< doctrine/doctrine-bundle ###
+  ###> sonarqube ###
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql:
+  postgresql_data:
+###< sonarqube ###

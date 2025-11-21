@@ -1,0 +1,202 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+  log_level: info
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+    batchwait: 1s
+    batchsize: 102400
+    timeout: 10s
+
+scrape_configs:
+  # Logs JSON de l'application Symfony
+  - job_name: symfony_json_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony
+          environment: dev
+          __path__: /var/log/app/*.json
+    
+    pipeline_stages:
+      # Parse le JSON
+      - json:
+          expressions:
+            level: level_name
+            channel: channel
+            message: message
+            datetime: datetime
+            user_id: extra.user.identifier
+            method: extra.request.method
+            uri: extra.request.uri
+            status: context.status
+            duration: context.duration_ms
+            ip: extra.request.ip
+      
+      # Extraction des labels pour faciliter les requêtes
+      - labels:
+          level:
+          channel:
+          method:
+          uri:
+      
+      # Ajoute des métriques
+      - metrics:
+          request_duration_ms:
+            type: Histogram
+            description: "Request duration in milliseconds"
+            source: duration
+            config:
+              buckets: [50, 100, 200, 500, 1000, 2000, 5000]
+      
+      # Timestamp du log
+      - timestamp:
+          source: datetime
+          format: RFC3339Nano
+
+  # Logs de performance
+  - job_name: symfony_performance
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony_performance
+          environment: dev
+          __path__: /var/log/app/performance-*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level_name
+            message: message
+            datetime: datetime
+            operation: context.operation
+            duration_ms: context.duration_ms
+            method: context.method
+            uri: context.uri
+      
+      - labels:
+          level:
+          operation:
+          method:
+          uri:
+      
+      - timestamp:
+          source: datetime
+          format: RFC3339Nano
+
+  # Logs de sécurité
+  - job_name: symfony_security
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony_security
+          environment: dev
+          __path__: /var/log/app/security-*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level_name
+            message: message
+            datetime: datetime
+            event: context.event
+            user: context.user
+      
+      - labels:
+          level:
+          event:
+      
+      - timestamp:
+          source: datetime
+          format: RFC3339Nano
+
+  # Logs de requêtes HTTP
+  - job_name: symfony_requests
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony_requests
+          environment: dev
+          __path__: /var/log/app/request-*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level_name
+            message: message
+            datetime: datetime
+            method: context.method
+            uri: context.uri
+            status: context.status
+            duration: context.duration
+            correlation_id: context.correlation_id
+      
+      - labels:
+          level:
+          method:
+          uri:
+          status:
+      
+      - timestamp:
+          source: datetime
+          format: RFC3339Nano
+
+  # Logs d'actions métier
+  - job_name: symfony_actions
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony_actions
+          environment: dev
+          __path__: /var/log/app/action-*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level_name
+            message: message
+            datetime: datetime
+            action: context.action
+            entity: context.entity
+            user_id: context.user_id
+      
+      - labels:
+          level:
+          action:
+          entity:
+      
+      - timestamp:
+          source: datetime
+          format: RFC3339Nano
+
+  # Logs texte (dev.log, fallback)
+  - job_name: symfony_text_logs
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: symfony_text
+          environment: dev
+          __path__: /var/log/app/dev.log
+    
+    pipeline_stages:
+      # Parser le format Symfony par défaut
+      - regex:
+          expression: '^\[(?P<datetime>[^\]]+)\] (?P<channel>\w+)\.(?P<level>\w+): (?P<message>.*)'
+      
+      - labels:
+          channel:
+          level:
+      
+      - timestamp:
+          source: datetime
+          format: "2006-01-02T15:04:05-07:00"

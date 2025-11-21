@@ -1,0 +1,48 @@
+FROM php:8-fpm-alpine
+
+ENV APACHE_SSL=1
+
+RUN apk update \
+    && apk add --no-cache \
+        php-pgsql \
+        php-intl \
+        unzip \
+        curl \
+        bash \
+        $PHPIZE_DEPS \
+        linux-headers \
+        postgresql-dev
+
+# Télécharger le CLI Symfony et le rendre exécutable
+RUN curl -sS https://get.symfony.com/cli/installer | bash
+RUN mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
+
+# Télécharger et installer Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Installer les extensions PHP
+RUN docker-php-ext-install pdo_pgsql intl opcache
+RUN docker-php-ext-configure intl
+
+ADD opcache.ini $PHP_INI_DIR/conf.d
+
+# Création dossier et attribution des droits
+RUN mkdir -p /app/var/cache /app/var/log && \
+    chown -R www-data:www-data /app/var && \
+    chmod -R 755 /app/var
+
+WORKDIR /app
+
+VOLUME /app/var/
+
+# Installer Xdebug, spécifier une version compatible si nécessaire
+RUN pecl install xdebug-3.4.0 \
+    && docker-php-ext-enable xdebug \
+    && echo "zend_extension=xdebug.so" > /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+    && echo "xdebug.mode=develop,debug,coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+# Copier les fichiers de l'application
+COPY . /app
+
+# Installer les dépendances PHP avec Composer
+RUN composer install --no-interaction --prefer-dist --optimize-autoloader

@@ -1,0 +1,133 @@
+monolog:
+    channels:
+        - security
+        - doctrine
+        - request
+        - action
+        - performance
+
+    handlers:
+        # Handler principal - configuration par défaut pour prod/test
+        main:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+            channels: ["!event"]
+            formatter: monolog.formatter.line
+
+        # Logs structurés en JSON pour analyse
+        json_file:
+            type: rotating_file
+            path: '%kernel.logs_dir%/app.json'
+            level: info
+            max_files: 30
+            formatter: monolog.formatter.json
+
+        # Logs de sécurité (authentification, autorisation)
+        security:
+            type: rotating_file
+            path: '%kernel.logs_dir%/security.log'
+            level: info
+            max_files: 30
+            channels: ['security']
+            formatter: monolog.formatter.json
+
+        # Logs d'actions métier
+        action:
+            type: rotating_file
+            path: '%kernel.logs_dir%/action.log'
+            level: info
+            max_files: 30
+            channels: ['action']
+            formatter: monolog.formatter.json
+
+        # Logs de requêtes HTTP
+        request:
+            type: rotating_file
+            path: '%kernel.logs_dir%/request.log'
+            level: info
+            max_files: 15
+            channels: ['request']
+            formatter: monolog.formatter.json
+
+        # Logs de performance
+        performance:
+            type: rotating_file
+            path: '%kernel.logs_dir%/performance.log'
+            level: info
+            max_files: 15
+            channels: ['performance']
+            formatter: monolog.formatter.json
+
+        # Logs de base de données (Doctrine)
+        doctrine:
+            type: rotating_file
+            path: '%kernel.logs_dir%/doctrine.log'
+            level: warning
+            max_files: 15
+            channels: ['doctrine']
+
+        # Console
+        console:
+            type: console
+            process_psr_3_messages: false
+            channels: ["!event", "!doctrine"]
+            formatter: monolog.formatter.line
+
+when@dev:
+    monolog:
+        handlers:
+            # Override du handler main pour le dev (stream direct sans fingers_crossed)
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: debug
+                channels: ["!event"]
+                formatter: monolog.formatter.line
+            
+            # Les autres handlers sont hérités de la config principale
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine"]
+                level: info
+
+when@test:
+    monolog:
+        handlers:
+            main:
+                type: stream
+                path: "%kernel.logs_dir%/%kernel.environment%.log"
+                level: warning
+                channels: ["!event"]
+
+when@prod:
+    monolog:
+        handlers:
+            main:
+                type: fingers_crossed
+                action_level: error
+                handler: stderr
+                excluded_http_codes: [404, 405]
+                buffer_size: 50
+                channels: ["!event"]
+                
+            stderr:
+                type: stream
+                path: php://stderr
+                level: error
+                formatter: monolog.formatter.json
+                
+            json_prod:
+                type: rotating_file
+                path: '%kernel.logs_dir%/prod.json'
+                level: warning
+                max_files: 60
+                formatter: monolog.formatter.json
+
+            console:
+                type: console
+                process_psr_3_messages: false
+                channels: ["!event", "!doctrine"]
+                level: warning
+                # Removed deprecation handler as it's not available in production without dev bundles

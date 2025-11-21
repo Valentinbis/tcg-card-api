@@ -1,0 +1,77 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: TCG Card API
+            description: |
+                API REST de gestion de collection de cartes Pokémon TCG.
+                
+                ## Authentification
+                L'API utilise un système de token API pour l'authentification.
+                Après connexion, utilisez le token retourné dans le header `X-AUTH-TOKEN` pour toutes vos requêtes.
+                
+                ## Taux de limitation
+                - Maximum 100 requêtes par minute par utilisateur
+                - Maximum 1000 requêtes par heure par utilisateur
+            version: 1.0.0
+            contact:
+                name: Support TCG Card
+                email: support@tcgcard.com
+        servers:
+            - url: http://localhost:8000
+              description: Serveur de développement local
+            - url: https://api.tcgcard.com
+              description: Serveur de production
+        components:
+            securitySchemes:
+                ApiToken:
+                    type: apiKey
+                    in: header
+                    name: X-AUTH-TOKEN
+                    description: |
+                        Token d'authentification API obtenu lors de la connexion.
+                        Format: `X-AUTH-TOKEN: votre_token_ici`
+            schemas:
+                Error:
+                    type: object
+                    properties:
+                        error:
+                            type: string
+                            example: "Message d'erreur"
+                User:
+                    type: object
+                    properties:
+                        id:
+                            type: integer
+                            example: 1
+                        email:
+                            type: string
+                            format: email
+                            example: "user@example.com"
+                        username:
+                            type: string
+                            example: "johndoe"
+                        apiToken:
+                            type: string
+                            example: "abc123def456..."
+        security:
+            - ApiToken: []
+        tags:
+            - name: Authentication
+              description: Gestion de l'authentification (inscription, connexion, déconnexion)
+            - name: Users
+              description: Gestion des profils utilisateurs
+            - name: Cards
+              description: Gestion de la collection de cartes Pokémon
+            - name: System
+              description: Informations système et santé de l'API
+    areas:
+        default:
+            path_patterns:
+                - ^/api(?!/doc) # Toutes les routes /api sauf documentation
+            host_patterns:
+                - ^.*$
+        
+    # Configuration du cache pour améliorer les performances
+    cache:
+        pool: cache.app
+
