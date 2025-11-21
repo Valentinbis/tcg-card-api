@@ -148,12 +148,14 @@ deploy:production:
       - runner_system_failure
       - stuck_or_timeout_failure
   timeout: 30m
+  variables:
+    RAILWAY_TOKEN: $RAILWAY_TOKEN
   before_script:
     - npm install -g @railway/cli
     - railway --version
   script:
     - echo "Déploiement sur Railway..."
-    - railway link $RAILWAY_PROJECT_ID
+    - railway link $RAILWAY_PROJECT_ID --yes
     - railway up --detach
   environment:
     name: production
@@ -171,12 +173,14 @@ deploy:staging:
       - runner_system_failure
       - stuck_or_timeout_failure
   timeout: 30m
+  variables:
+    RAILWAY_TOKEN: $RAILWAY_TOKEN
   before_script:
     - npm install -g @railway/cli
     - railway --version
   script:
     - echo "Déploiement sur Railway (staging)..."
-    - railway link $RAILWAY_STAGING_PROJECT_ID
+    - railway link $RAILWAY_STAGING_PROJECT_ID --yes
     - railway up --detach
   environment:
     name: staging
