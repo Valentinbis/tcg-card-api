@@ -14,6 +14,9 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
+/**
+ * @extends AbstractCrudController<Set>
+ */
 class SetCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
@@ -35,7 +38,7 @@ class SetCrudController extends AbstractCrudController
         ];
 
         // Afficher les images dans l'index et le détail
-        if ($pageName === Crud::PAGE_INDEX || $pageName === Crud::PAGE_DETAIL) {
+        if (Crud::PAGE_INDEX === $pageName || Crud::PAGE_DETAIL === $pageName) {
             $fields[] = Field::new('symbolImage', 'Symbole')->setTemplatePath('admin/set_symbol_image.html.twig');
             $fields[] = Field::new('logoImage', 'Logo')->setTemplatePath('admin/set_logo_image.html.twig');
         }

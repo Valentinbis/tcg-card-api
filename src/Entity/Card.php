@@ -111,9 +111,9 @@ class Card
     private ?array $images;
 
     /**
-     * Propriété temporaire pour l'upload d'image dans l'admin
+     * Propriété temporaire pour l'upload d'image dans l'admin.
      */
-    private $uploadedImage;
+    private mixed $uploadedImage;
 
     #[ORM\ManyToOne(targetEntity: Set::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(name: 'set_id', referencedColumnName: 'id', nullable: false)]
@@ -137,6 +137,7 @@ class Card
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\CardVariant", mappedBy="card", cascade={"persist", "remove"})
+     *
      * @var Collection<int, CardVariant>
      */
     private $variants;
@@ -152,32 +153,28 @@ class Card
      */
     public function getVariants(): Collection
     {
-        return $this->variants ?? new ArrayCollection();
+        return $this->variants;
     }
 
     public function addVariant(CardVariant $variant): self
     {
-        if ($this->variants === null) {
-            $this->variants = new ArrayCollection();
-        }
         if (!$this->variants->contains($variant)) {
             $this->variants->add($variant);
             $variant->setCard($this);
         }
+
         return $this;
     }
 
     public function removeVariant(CardVariant $variant): self
     {
-        if ($this->variants === null) {
-            $this->variants = new ArrayCollection();
-        }
         if ($this->variants->contains($variant)) {
             $this->variants->removeElement($variant);
             if ($variant->getCard() === $this) {
                 $variant->setCard(null);
             }
         }
+
         return $this;
     }
 
@@ -236,7 +233,7 @@ class Card
      */
     public function getSubtypes(): ?array
     {
-        /** @var array<string>|null */
+        /* @var array<string>|null */
         return $this->subtypes;
     }
 
@@ -262,14 +259,12 @@ class Card
         return $this;
     }
 
-    /**
-     * @return array<string>|null
-     */
     public function getTypesAsString(): string
     {
         if (is_array($this->types)) {
             return implode(', ', $this->types);
         }
+
         return '';
     }
 
@@ -280,6 +275,7 @@ class Card
         } else {
             $this->types = null;
         }
+
         return $this;
     }
 
@@ -291,6 +287,15 @@ class Card
         $this->types = $types;
 
         return $this;
+    }
+
+    /**
+     * @return array<string>|null
+     */
+    public function getTypes(): ?array
+    {
+        /* @var array<string>|null */
+        return $this->types;
     }
 
     public function getEvolvesFrom(): ?string
@@ -310,7 +315,7 @@ class Card
      */
     public function getEvolvesTo(): ?array
     {
-        /** @var array<string>|null */
+        /* @var array<string>|null */
         return $this->evolvesTo;
     }
 
@@ -329,7 +334,7 @@ class Card
      */
     public function getRules(): ?array
     {
-        /** @var array<string>|null */
+        /* @var array<string>|null */
         return $this->rules;
     }
 
@@ -438,7 +443,7 @@ class Card
      */
     public function getRetreatCost(): ?array
     {
-        /** @var array<string>|null */
+        /* @var array<string>|null */
         return $this->retreatCost;
     }
 
@@ -517,7 +522,7 @@ class Card
      */
     public function getNationalPokedexNumbers(): ?array
     {
-        /** @var array<int>|null */
+        /* @var array<int>|null */
         return $this->nationalPokedexNumbers;
     }
 
@@ -536,7 +541,7 @@ class Card
      */
     public function getLegalities(): ?array
     {
-        /** @var array<string, string>|null */
+        /* @var array<string, string>|null */
         return $this->legalities;
     }
 
@@ -567,7 +572,7 @@ class Card
      */
     public function getImages(): ?array
     {
-        /** @var array<string, string>|null */
+        /* @var array<string, string>|null */
         return $this->images;
     }
 
@@ -586,14 +591,15 @@ class Card
         return $this->images['small'] ?? null;
     }
 
-    public function getUploadedImage()
+    public function getUploadedImage(): mixed
     {
         return $this->uploadedImage;
     }
 
-    public function setUploadedImage($uploadedImage): self
+    public function setUploadedImage(mixed $uploadedImage): self
     {
         $this->uploadedImage = $uploadedImage;
+
         return $this;
     }
 
@@ -612,14 +618,11 @@ class Card
     /** @return Collection<int, Booster> */
     public function getBoosters(): Collection
     {
-        return $this->boosters ?? new ArrayCollection();
+        return $this->boosters;
     }
 
     public function addBooster(Booster $booster): self
     {
-        if ($this->boosters === null) {
-            $this->boosters = new ArrayCollection();
-        }
         if (!$this->boosters->contains($booster)) {
             $this->boosters->add($booster);
         }
@@ -629,9 +632,6 @@ class Card
 
     public function removeBooster(Booster $booster): self
     {
-        if ($this->boosters === null) {
-            $this->boosters = new ArrayCollection();
-        }
         $this->boosters->removeElement($booster);
 
         return $this;

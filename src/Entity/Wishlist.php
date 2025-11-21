@@ -81,6 +81,7 @@ class Wishlist
     public function setUser(?User $user): static
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -92,6 +93,7 @@ class Wishlist
     public function setCardId(string $cardId): static
     {
         $this->cardId = $cardId;
+
         return $this;
     }
 
@@ -99,9 +101,11 @@ class Wishlist
     {
         return $this->variant;
     }
-    public function setVariant(CardVariantEnum $variant): static
+
+    public function setVariant(?CardVariantEnum $variant): static
     {
-        $this->variant = $variant;
+        $this->variant = $variant ?? CardVariantEnum::NORMAL;
+
         return $this;
     }
 
@@ -113,6 +117,7 @@ class Wishlist
     public function setPriority(int $priority): static
     {
         $this->priority = $priority;
+
         return $this;
     }
 
@@ -124,6 +129,7 @@ class Wishlist
     public function setNotes(?string $notes): static
     {
         $this->notes = $notes;
+
         return $this;
     }
 
@@ -135,6 +141,7 @@ class Wishlist
     public function setMaxPrice(?string $maxPrice): static
     {
         $this->maxPrice = $maxPrice;
+
         return $this;
     }
 
@@ -146,6 +153,7 @@ class Wishlist
     public function setCreatedAt(\DateTimeInterface $createdAt): static
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -157,6 +165,7 @@ class Wishlist
     public function setUpdatedAt(\DateTimeInterface $updatedAt): static
     {
         $this->updatedAt = $updatedAt;
+
         return $this;
     }
 }

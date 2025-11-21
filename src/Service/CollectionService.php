@@ -6,10 +6,10 @@ namespace App\Service;
 
 use App\Entity\Collection;
 use App\Entity\User;
-use App\Repository\CollectionRepository;
-use Doctrine\ORM\EntityManagerInterface;
 use App\Enum\CardConditionEnum;
 use App\Enum\CardVariantEnum;
+use App\Repository\CollectionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class CollectionService
 {
@@ -20,7 +20,7 @@ class CollectionService
     }
 
     /**
-     * Add a card to user's collection or update quantity if exists
+     * Add a card to user's collection or update quantity if exists.
      */
     public function addToCollection(
         User $user,
@@ -30,22 +30,24 @@ class CollectionService
         ?float $purchasePrice = null,
         ?\DateTimeImmutable $purchaseDate = null,
         ?string $notes = null,
-        CardVariantEnum $variant = CardVariantEnum::NORMAL
+        ?CardVariantEnum $variant = null
     ): Collection {
+        $variant = $variant ?? CardVariantEnum::NORMAL;
         $existingCollection = $this->collectionRepository->findByUserAndCard($user, $cardId, $variant);
 
         if ($existingCollection) {
             $existingCollection->setQuantity($existingCollection->getQuantity() + $quantity);
-            if ($purchasePrice !== null) {
+            if (null !== $purchasePrice) {
                 $existingCollection->setPurchasePrice($purchasePrice);
             }
-            if ($purchaseDate !== null) {
+            if (null !== $purchaseDate) {
                 $existingCollection->setPurchaseDate($purchaseDate);
             }
-            if ($notes !== null) {
+            if (null !== $notes) {
                 $existingCollection->setNotes($notes);
             }
             $this->entityManager->flush();
+
             return $existingCollection;
         }
 
@@ -66,7 +68,7 @@ class CollectionService
     }
 
     /**
-     * Remove a card from user's collection completely
+     * Remove a card from user's collection completely.
      */
     public function removeFromCollection(User $user, string $cardId): bool
     {
@@ -83,7 +85,7 @@ class CollectionService
     }
 
     /**
-     * Update collection item properties (partial update)
+     * Update collection item properties (partial update).
      */
     public function updateCollectionItem(
         User $user,
@@ -101,22 +103,22 @@ class CollectionService
             return null;
         }
 
-        if ($quantity !== null) {
+        if (null !== $quantity) {
             $collection->setQuantity($quantity);
         }
-        if ($condition !== null) {
+        if (null !== $condition) {
             $collection->setCondition($condition);
         }
-        if ($purchasePrice !== null) {
+        if (null !== $purchasePrice) {
             $collection->setPurchasePrice($purchasePrice);
         }
-        if ($purchaseDate !== null) {
+        if (null !== $purchaseDate) {
             $collection->setPurchaseDate($purchaseDate);
         }
-        if ($notes !== null) {
+        if (null !== $notes) {
             $collection->setNotes($notes);
         }
-        if ($variant !== null) {
+        if (null !== $variant) {
             $collection->setVariant($variant);
         }
 
@@ -126,7 +128,9 @@ class CollectionService
     }
 
     /**
-     * Get user's complete collection with optional filters
+     * Get user's complete collection with optional filters.
+     *
+     * @param array<string, mixed> $filters
      */
     public function getUserCollection(User $user, array $filters = []): array
     {
@@ -145,6 +149,7 @@ class CollectionService
                     foreach ($cardEntity->getVariants() as $v) {
                         if ($v->getType() === $variant) {
                             $variantEntity = $v;
+
                             break;
                         }
                     }
@@ -202,11 +207,12 @@ class CollectionService
                 'prices' => $prices,
             ];
         }
+
         return $result;
     }
 
     /**
-     * Get total number of cards in collection (sum of quantities)
+     * Get total number of cards in collection (sum of quantities).
      */
     public function getCollectionCount(User $user): int
     {
@@ -214,7 +220,7 @@ class CollectionService
     }
 
     /**
-     * Get number of unique cards in collection
+     * Get number of unique cards in collection.
      */
     public function getUniqueCardCount(User $user): int
     {
@@ -222,7 +228,7 @@ class CollectionService
     }
 
     /**
-     * Get total monetary value of collection
+     * Get total monetary value of collection.
      */
     public function getTotalValue(User $user): float
     {
@@ -230,7 +236,7 @@ class CollectionService
     }
 
     /**
-     * Get comprehensive collection statistics
+     * Get comprehensive collection statistics.
      */
     public function getCollectionStats(User $user): array
     {
@@ -244,10 +250,10 @@ class CollectionService
     }
 
     /**
-     * Check if card is in user's collection
+     * Check if card is in user's collection.
      */
     public function isInCollection(User $user, string $cardId): bool
     {
-        return $this->collectionRepository->findByUserAndCard($user, $cardId) !== null;
+        return null !== $this->collectionRepository->findByUserAndCard($user, $cardId);
     }
 }

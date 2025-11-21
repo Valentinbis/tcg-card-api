@@ -37,11 +37,11 @@ class ResetPasswordController extends AbstractController
     public function request(Request $request, MailerInterface $mailer): Response
     {
         $data = json_decode($request->getContent(), true);
-        
+
         if (!is_array($data)) {
             return $this->json(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
         }
-        
+
         $email = $data['email'] ?? null;
 
         if (is_string($email)) {
@@ -78,19 +78,19 @@ class ResetPasswordController extends AbstractController
                 ),
             ], Response::HTTP_BAD_REQUEST);
         }
-        
-        if (!$user instanceof \App\Entity\User) {
+
+        if (!$user instanceof User) {
             return new JsonResponse(['error' => 'Invalid user'], Response::HTTP_BAD_REQUEST);
         }
 
         $data = json_decode($request->getContent(), true);
-        
+
         if (!is_array($data)) {
             return new JsonResponse(['error' => 'Invalid request data'], Response::HTTP_BAD_REQUEST);
         }
 
         $password = $data['password'] ?? null;
-        
+
         if (is_string($password)) {
             try {
                 $this->resetPasswordHelper->removeResetRequest($token);

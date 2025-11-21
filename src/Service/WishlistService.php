@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Service;
 
 use App\Entity\User;
@@ -17,7 +19,7 @@ class WishlistService
     }
 
     /**
-     * Ajoute une carte à la wishlist
+     * Ajoute une carte à la wishlist.
      */
     public function addToWishlist(
         User $user,
@@ -29,8 +31,8 @@ class WishlistService
     ): Wishlist {
         // Vérifie si la carte existe déjà dans la wishlist
         $existingItem = $this->wishlistRepository->findByUserAndCard($user, $cardId);
-        
-        if ($existingItem !== null) {
+
+        if (null !== $existingItem) {
             throw new \InvalidArgumentException('This card is already in your wishlist');
         }
 
@@ -39,7 +41,7 @@ class WishlistService
             ->setCardId($cardId)
             ->setPriority($priority)
             ->setNotes($notes)
-            ->setMaxPrice($maxPrice !== null ? (string) $maxPrice : null)
+            ->setMaxPrice(null !== $maxPrice ? (string) $maxPrice : null)
             ->setVariant($variant);
 
         $this->entityManager->persist($wishlistItem);
@@ -49,13 +51,13 @@ class WishlistService
     }
 
     /**
-     * Retire une carte de la wishlist
+     * Retire une carte de la wishlist.
      */
     public function removeFromWishlist(User $user, string $cardId): void
     {
         $wishlistItem = $this->wishlistRepository->findByUserAndCard($user, $cardId);
-        
-        if ($wishlistItem === null) {
+
+        if (null === $wishlistItem) {
             throw new \InvalidArgumentException('This card is not in your wishlist');
         }
 
@@ -64,7 +66,7 @@ class WishlistService
     }
 
     /**
-     * Met à jour un élément de la wishlist
+     * Met à jour un élément de la wishlist.
      */
     public function updateWishlistItem(
         User $user,
@@ -75,21 +77,21 @@ class WishlistService
         ?CardVariantEnum $variant = null
     ): Wishlist {
         $wishlistItem = $this->wishlistRepository->findByUserAndCard($user, $cardId);
-        
-        if ($wishlistItem === null) {
+
+        if (null === $wishlistItem) {
             throw new \InvalidArgumentException('This card is not in your wishlist');
         }
 
-        if ($priority !== null) {
+        if (null !== $priority) {
             $wishlistItem->setPriority($priority);
         }
-        if ($notes !== null) {
+        if (null !== $notes) {
             $wishlistItem->setNotes($notes);
         }
-        if ($maxPrice !== null) {
+        if (null !== $maxPrice) {
             $wishlistItem->setMaxPrice((string) $maxPrice);
         }
-        if ($variant !== null) {
+        if (null !== $variant) {
             $wishlistItem->setVariant($variant);
         }
 
@@ -99,7 +101,9 @@ class WishlistService
     }
 
     /**
-     * Récupère la wishlist complète d'un utilisateur
+     * Récupère la wishlist complète d'un utilisateur.
+     *
+     * @param array<string, mixed> $filters
      *
      * @return Wishlist[]
      */
@@ -116,6 +120,7 @@ class WishlistService
                 foreach ($cardEntity->getVariants() as $v) {
                     if ($v->getType() === $variant) {
                         $variantEntity = $v;
+
                         break;
                     }
                 }
@@ -159,7 +164,8 @@ class WishlistService
                 ];
             }
             $cardName = $cardEntity ? $cardEntity->getName() : null;
-            $cardImage = $cardEntity ? ($cardEntity->getImages()['small'] ?? null) : null;
+            $images = $cardEntity ? $cardEntity->getImages() : null;
+            $cardImage = $images && isset($images['small']) ? $images['small'] : null;
             $result[] = [
                 'id' => $wishlist->getId(),
                 'cardId' => $wishlist->getCardId(),
@@ -174,11 +180,12 @@ class WishlistService
                 'prices' => $prices,
             ];
         }
+
         return $result;
     }
 
     /**
-     * Compte le nombre d'éléments dans la wishlist
+     * Compte le nombre d'éléments dans la wishlist.
      */
     public function getWishlistCount(User $user): int
     {
@@ -186,7 +193,7 @@ class WishlistService
     }
 
     /**
-     * Obtient les statistiques de la wishlist par priorité
+     * Obtient les statistiques de la wishlist par priorité.
      *
      * @return array<int, int>
      */
@@ -196,10 +203,10 @@ class WishlistService
     }
 
     /**
-     * Vérifie si une carte est dans la wishlist
+     * Vérifie si une carte est dans la wishlist.
      */
     public function isInWishlist(User $user, string $cardId): bool
     {
-        return $this->wishlistRepository->findByUserAndCard($user, $cardId) !== null;
+        return null !== $this->wishlistRepository->findByUserAndCard($user, $cardId);
     }
 }

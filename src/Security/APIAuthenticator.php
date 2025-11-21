@@ -7,7 +7,6 @@ namespace App\Security;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use App\Service\TokenManager;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\Collection;
 use App\Entity\User;
+use App\Enum\CardVariantEnum;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -18,7 +21,9 @@ class CollectionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Trouve tous les éléments de la collection d'un utilisateur
+     * Trouve tous les éléments de la collection d'un utilisateur.
+     *
+     * @param array<string, mixed> $filters
      *
      * @return Collection[]
      */
@@ -55,28 +60,34 @@ class CollectionRepository extends ServiceEntityRepository
 
         $orderBy = $filters['orderBy'] ?? 'createdAt';
         $direction = $filters['direction'] ?? 'DESC';
-        $qb->orderBy('c.' . $orderBy, $direction);
+        $qb->orderBy('c.'.$orderBy, $direction);
 
         return $qb->getQuery()->getResult();
     }
 
     /**
-     * Trouve un élément spécifique de la collection
+     * Trouve un élément spécifique de la collection.
      */
-    public function findByUserAndCard(User $user, string $cardId): ?Collection
+    public function findByUserAndCard(User $user, string $cardId, ?CardVariantEnum $variant = null): ?Collection
     {
-        return $this->createQueryBuilder('c')
+        $qb = $this->createQueryBuilder('c')
             ->where('c.user = :user')
             ->andWhere('c.cardId = :cardId')
             ->setParameter('user', $user)
-            ->setParameter('cardId', $cardId)
-            ->andWhere('c.variant IS NOT NULL')
-            ->getQuery()
-            ->getOneOrNullResult();
+            ->setParameter('cardId', $cardId);
+
+        if (null !== $variant) {
+            $qb->andWhere('c.variant = :variant')
+               ->setParameter('variant', $variant);
+        } else {
+            $qb->andWhere('c.variant IS NOT NULL');
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
     }
 
     /**
-     * Compte le nombre total de cartes dans la collection
+     * Compte le nombre total de cartes dans la collection.
      */
     public function countByUser(User $user): int
     {
@@ -89,7 +100,7 @@ class CollectionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Compte le nombre de cartes uniques dans la collection
+     * Compte le nombre de cartes uniques dans la collection.
      */
     public function countUniqueCardsByUser(User $user): int
     {
@@ -102,7 +113,7 @@ class CollectionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Calcule la valeur totale de la collection
+     * Calcule la valeur totale de la collection.
      */
     public function getTotalValue(User $user): float
     {
@@ -114,11 +125,11 @@ class CollectionRepository extends ServiceEntityRepository
             ->getQuery()
             ->getSingleScalarResult();
 
-        return $result !== null ? (float) $result : 0.0;
+        return null !== $result ? (float) $result : 0.0;
     }
 
     /**
-     * Récupère le nombre de cartes par condition
+     * Récupère le nombre de cartes par condition.
      *
      * @return array<string, int>
      */
@@ -142,7 +153,7 @@ class CollectionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Récupère la valeur par condition
+     * Récupère la valeur par condition.
      *
      * @return array<string, float>
      */
@@ -160,7 +171,7 @@ class CollectionRepository extends ServiceEntityRepository
         $values = [];
         foreach ($results as $result) {
             $condition = $result['condition'] ?? 'Unknown';
-            $values[$condition] = $result['value'] !== null ? (float) $result['value'] : 0.0;
+            $values[$condition] = null !== $result['value'] ? (float) $result['value'] : 0.0;
         }
 
         return $values;

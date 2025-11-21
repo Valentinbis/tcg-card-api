@@ -24,7 +24,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
 {
     /** @var array<string, float> */
     private array $requestStartTimes = [];
-    
+
     /** @var array<string, array<string, mixed>> */
     private array $controllerAttributes = [];
 
@@ -111,7 +111,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $correlationId = $request->attributes->get('correlation_id');
-        
+
         // Skip logging for OPTIONS requests (CORS preflight) without correlation_id
         if (!is_string($correlationId)) {
             return;
@@ -172,7 +172,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         $request = $event->getRequest();
         $response = $event->getResponse();
         $correlationId = $request->attributes->get('correlation_id');
-        
+
         if (!is_string($correlationId)) {
             return;
         }
@@ -274,7 +274,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
 
     /**
      * Vérifie si c'est un health check pour éviter de polluer les logs.
-     * 
+     *
      * @param \Symfony\Component\HttpFoundation\Request $request
      */
     private function isHealthCheck($request): bool
@@ -282,7 +282,7 @@ class HttpLoggingSubscriber implements EventSubscriberInterface
         if (!is_object($request) || !method_exists($request, 'getRequestUri')) {
             return false;
         }
-        
+
         $uri = $request->getRequestUri();
 
         return '/api' === $uri || '/health' === $uri || '/ping' === $uri;
