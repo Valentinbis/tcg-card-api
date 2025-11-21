@@ -141,7 +141,7 @@ php-cs-fixer:
 # =====================================
 deploy:production:
   stage: deploy
-  image: railwayapp/cli:latest
+  image: node:20-alpine
   retry:
     max: 2
     when:
@@ -149,12 +149,7 @@ deploy:production:
       - stuck_or_timeout_failure
   timeout: 30m
   before_script:
-    - apk add --no-cache curl bash tar gzip
-    # Installation de Railway CLI de manière alternative
-    - curl -L https://github.com/railwayapp/cli/releases/latest/download/railway_linux_amd64.tar.gz -o railway.tar.gz
-    - tar -xzf railway.tar.gz
-    - mv railway /usr/local/bin/railway
-    - chmod +x /usr/local/bin/railway
+    - npm install -g @railway/cli
     - railway --version
   script:
     - echo "Déploiement sur Railway..."
@@ -169,7 +164,7 @@ deploy:production:
 
 deploy:staging:
   stage: deploy
-  image: railwayapp/cli:latest
+  image: node:20-alpine
   retry:
     max: 2
     when:
@@ -177,11 +172,7 @@ deploy:staging:
       - stuck_or_timeout_failure
   timeout: 30m
   before_script:
-    - apk add --no-cache curl bash tar gzip
-    - curl -L https://github.com/railwayapp/cli/releases/latest/download/railway_linux_amd64.tar.gz -o railway.tar.gz
-    - tar -xzf railway.tar.gz
-    - mv railway /usr/local/bin/railway
-    - chmod +x /usr/local/bin/railway
+    - npm install -g @railway/cli
     - railway --version
   script:
     - echo "Déploiement sur Railway (staging)..."
