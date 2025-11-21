@@ -68,11 +68,15 @@ phpstan:
   before_script:
     - apk add --no-cache postgresql-dev icu-dev $PHPIZE_DEPS
     - docker-php-ext-install pdo_pgsql intl
+    - APP_ENV=test php bin/console cache:clear
+    - APP_ENV=test php bin/console cache:warmup
   script:
     - vendor/bin/phpstan analyse src --level=max --memory-limit=1G --no-progress
   allow_failure: false
   only:
+    - develop
     - main
+    - merge_requests
 
 php-cs-fixer:
   stage: quality
