@@ -71,7 +71,7 @@ phpstan:
     - APP_ENV=test php bin/console cache:clear
     - APP_ENV=test php bin/console cache:warmup
   script:
-    - vendor/bin/phpstan analyse src --level=max --memory-limit=1G --no-progress
+    - APP_ENV=test vendor/bin/phpstan analyse src --level=max --memory-limit=1G --no-progress
   allow_failure: false
   only:
     - develop
