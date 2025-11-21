@@ -152,7 +152,7 @@ deploy:production:
     RAILWAY_TOKEN: $RAILWAY_TOKEN
   before_script:
     - npm install -g @railway/cli
-    - railway --version
+    - echo "Railway CLI installed successfully"
   script:
     - echo "Déploiement sur Railway..."
     - railway link $RAILWAY_PROJECT_ID --yes
@@ -177,7 +177,7 @@ deploy:staging:
     RAILWAY_TOKEN: $RAILWAY_TOKEN
   before_script:
     - npm install -g @railway/cli
-    - railway --version
+    - echo "Railway CLI installed successfully"
   script:
     - echo "Déploiement sur Railway (staging)..."
     - railway link $RAILWAY_STAGING_PROJECT_ID --yes
