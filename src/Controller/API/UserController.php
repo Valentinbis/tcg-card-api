@@ -152,15 +152,16 @@ class UserController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
 
+            /** @var array<string, mixed> $data */
             $data = json_decode($request->getContent(), true);
 
-            if (isset($data['firstName'])) {
+            if (isset($data['firstName']) && is_string($data['firstName'])) {
                 $user->setFirstName($data['firstName']);
             }
-            if (isset($data['lastName'])) {
+            if (isset($data['lastName']) && is_string($data['lastName'])) {
                 $user->setLastName($data['lastName']);
             }
-            if (isset($data['email'])) {
+            if (isset($data['email']) && is_string($data['email'])) {
                 $user->setEmail($data['email']);
             }
 
@@ -185,20 +186,24 @@ class UserController extends AbstractController
             /** @var User $user */
             $user = $this->getUser();
 
+            /** @var array<string, mixed> $data */
             $data = json_decode($request->getContent(), true);
 
             // Vérifier l'ancien mot de passe
-            if (!$this->passwordHasher->isPasswordValid($user, $data['currentPassword'] ?? '')) {
+            $currentPassword = $data['currentPassword'] ?? '';
+            if (!is_string($currentPassword) || !$this->passwordHasher->isPasswordValid($user, $currentPassword)) {
                 return $this->json(['error' => 'Mot de passe actuel incorrect'], Response::HTTP_BAD_REQUEST);
             }
 
             // Vérifier que les nouveaux mots de passe correspondent
-            if (($data['newPassword'] ?? '') !== ($data['confirmPassword'] ?? '')) {
+            $newPassword = $data['newPassword'] ?? '';
+            $confirmPassword = $data['confirmPassword'] ?? '';
+            if (!is_string($newPassword) || !is_string($confirmPassword) || $newPassword !== $confirmPassword) {
                 return $this->json(['error' => 'Les nouveaux mots de passe ne correspondent pas'], Response::HTTP_BAD_REQUEST);
             }
 
             // Hasher et sauvegarder le nouveau mot de passe
-            $hashedPassword = $this->passwordHasher->hashPassword($user, $data['newPassword']);
+            $hashedPassword = $this->passwordHasher->hashPassword($user, $newPassword);
             $user->setPassword($hashedPassword);
 
             $this->entityManager->flush();
@@ -240,6 +245,7 @@ class UserController extends AbstractController
             $user = $this->getUser();
 
             $settings = $this->userSettingsRepository->findOrCreateForUser($user);
+            /** @var array<string, mixed> $data */
             $data = json_decode($request->getContent(), true);
 
             if (!$data) {
@@ -247,13 +253,13 @@ class UserController extends AbstractController
             }
 
             // Mise à jour des paramètres d'affichage
-            if (isset($data['cardsPerPage'])) {
+            if (isset($data['cardsPerPage']) && is_numeric($data['cardsPerPage'])) {
                 $settings->setCardsPerPage((int) $data['cardsPerPage']);
             }
-            if (isset($data['defaultView'])) {
+            if (isset($data['defaultView']) && is_string($data['defaultView'])) {
                 $settings->setDefaultView($data['defaultView']);
             }
-            if (isset($data['defaultLanguage'])) {
+            if (isset($data['defaultLanguage']) && is_string($data['defaultLanguage'])) {
                 $settings->setDefaultLanguage($data['defaultLanguage']);
             }
             if (isset($data['showCardNumbers'])) {
@@ -278,7 +284,7 @@ class UserController extends AbstractController
             }
 
             // Mise à jour des paramètres de confidentialité
-            if (isset($data['profileVisibility'])) {
+            if (isset($data['profileVisibility']) && is_string($data['profileVisibility'])) {
                 $settings->setProfileVisibility($data['profileVisibility']);
             }
             if (isset($data['showCollection'])) {

@@ -86,17 +86,18 @@ class CardCrudController extends AbstractCrudController implements EventSubscrib
         }
 
         // Si une nouvelle image a été uploadée
-        if ($entity->getUploadedImage()) {
-            $uploadedImagePath = $entity->getUploadedImage();
-
-            // Mettre à jour l'array images
-            $images = $entity->getImages() ?? [];
-            $images['small'] = $uploadedImagePath;
-            $images['large'] = str_replace('/small/', '/large/', $uploadedImagePath); // Même image pour l'instant
-            $entity->setImages($images);
-
-            // Réinitialiser la propriété temporaire
-            $entity->setUploadedImage(null);
+        $uploadedImagePath = $entity->getUploadedImage();
+        if (!is_string($uploadedImagePath)) {
+            return;
         }
+
+        // Mettre à jour l'array images
+        $images = $entity->getImages() ?? [];
+        if (!is_array($images)) {
+            $images = [];
+        }
+        $images['small'] = $uploadedImagePath;
+        $images['large'] = str_replace('/small/', '/large/', $uploadedImagePath); // Même image pour l'instant
+        $entity->setImages($images);
     }
 }

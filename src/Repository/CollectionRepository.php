@@ -58,8 +58,8 @@ class CollectionRepository extends ServiceEntityRepository
                ->setParameter('variant', $filters['variant']);
         }
 
-        $orderBy = $filters['orderBy'] ?? 'createdAt';
-        $direction = $filters['direction'] ?? 'DESC';
+        $orderBy = isset($filters['orderBy']) && is_string($filters['orderBy']) ? $filters['orderBy'] : 'createdAt';
+        $direction = isset($filters['direction']) && is_string($filters['direction']) ? $filters['direction'] : 'DESC';
         $qb->orderBy('c.'.$orderBy, $direction);
 
         return $qb->getQuery()->getResult();
@@ -144,9 +144,10 @@ class CollectionRepository extends ServiceEntityRepository
             ->getResult();
 
         $counts = [];
+        /** @var array<array{condition: string|null, count: mixed}> $results */
         foreach ($results as $result) {
             $condition = $result['condition'] ?? 'Unknown';
-            $counts[$condition] = (int) $result['count'];
+            $counts[$condition] = is_numeric($result['count']) ? (int) $result['count'] : 0;
         }
 
         return $counts;
@@ -169,9 +170,10 @@ class CollectionRepository extends ServiceEntityRepository
             ->getResult();
 
         $values = [];
+        /** @var array<array{condition: string|null, value: mixed}> $results */
         foreach ($results as $result) {
             $condition = $result['condition'] ?? 'Unknown';
-            $values[$condition] = null !== $result['value'] ? (float) $result['value'] : 0.0;
+            $values[$condition] = null !== $result['value'] && is_numeric($result['value']) ? (float) $result['value'] : 0.0;
         }
 
         return $values;

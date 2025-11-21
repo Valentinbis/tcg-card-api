@@ -28,6 +28,7 @@ class PriceController extends AbstractController
         }
 
         try {
+            /** @var array<string, \App\Entity\Price> $prices */
             $prices = $this->priceService->fetchCardPricesAllLanguages($cardId);
 
             if (empty($prices)) {

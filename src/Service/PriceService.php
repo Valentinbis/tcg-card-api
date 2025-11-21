@@ -54,13 +54,14 @@ class PriceService
             $price->setCardId($cardId);
 
             // Extraire les prix Cardmarket (toujours en EUR)
-            if (isset($data['cardmarket'])) {
+            if (isset($data['cardmarket']) && is_array($data['cardmarket'])) {
                 $cardmarket = $data['cardmarket'];
 
-                $marketPrice = $cardmarket['trend'] ?? $cardmarket['avg'] ?? null;
-                $lowPrice = $cardmarket['low'] ?? null;
+                $marketPrice = (isset($cardmarket['trend']) && is_numeric($cardmarket['trend'])) ? (float) $cardmarket['trend'] :
+                              ((isset($cardmarket['avg']) && is_numeric($cardmarket['avg'])) ? (float) $cardmarket['avg'] : null);
+                $lowPrice = (isset($cardmarket['low']) && is_numeric($cardmarket['low'])) ? (float) $cardmarket['low'] : null;
                 $highPrice = null; // Cardmarket ne fournit pas de high price direct
-                $averagePrice = $cardmarket['avg'] ?? null;
+                $averagePrice = (isset($cardmarket['avg']) && is_numeric($cardmarket['avg'])) ? (float) $cardmarket['avg'] : null;
 
                 if (null !== $marketPrice) {
                     $price->setMarketPrice($marketPrice);

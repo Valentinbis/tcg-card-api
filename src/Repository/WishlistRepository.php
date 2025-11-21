@@ -46,8 +46,8 @@ class WishlistRepository extends ServiceEntityRepository
                ->setParameter('maxPrice', $filters['maxPrice']);
         }
 
-        $orderBy = $filters['orderBy'] ?? 'priority';
-        $direction = $filters['direction'] ?? 'DESC';
+        $orderBy = isset($filters['orderBy']) && is_string($filters['orderBy']) ? $filters['orderBy'] : 'priority';
+        $direction = isset($filters['direction']) && is_string($filters['direction']) ? $filters['direction'] : 'DESC';
         $qb->orderBy('w.'.$orderBy, $direction);
 
         return $qb->getQuery()->getResult();
@@ -97,8 +97,14 @@ class WishlistRepository extends ServiceEntityRepository
             ->getResult();
 
         $counts = [];
-        foreach ($results as $result) {
-            $counts[$result['priority']] = (int) $result['count'];
+        if (is_array($results)) {
+            foreach ($results as $result) {
+                if (is_array($result) && isset($result['priority'], $result['count'])) {
+                    $priority = is_numeric($result['priority']) ? (int) $result['priority'] : 0;
+                    $count = is_numeric($result['count']) ? (int) $result['count'] : 0;
+                    $counts[$priority] = $count;
+                }
+            }
         }
 
         return $counts;

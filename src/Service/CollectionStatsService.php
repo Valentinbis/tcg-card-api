@@ -43,19 +43,24 @@ class CollectionStatsService
 
         $sets = [];
         foreach ($setsData as $setData) {
-            $total = (int) ($setData['total'] ?? $setData['printedTotal'] ?? 0);
-            $owned = (int) $setData['owned'];
+            if (!is_array($setData)) {
+                continue;
+            }
+
+            $total = is_numeric($setData['total'] ?? null) ? (int) $setData['total'] :
+                    (is_numeric($setData['printedTotal'] ?? null) ? (int) $setData['printedTotal'] : 0);
+            $owned = is_numeric($setData['owned'] ?? null) ? (int) $setData['owned'] : 0;
             $percentage = $total > 0 ? round(($owned / $total) * 100) : 0;
 
             $sets[] = [
-                'id' => $setData['id'],
-                'name' => $setData['name'],
-                'series' => $setData['series'],
+                'id' => is_string($setData['id'] ?? null) ? $setData['id'] : '',
+                'name' => is_string($setData['name'] ?? null) ? $setData['name'] : '',
+                'series' => is_string($setData['series'] ?? null) ? $setData['series'] : '',
                 'total' => $total,
                 'owned' => $owned,
                 'percentage' => (int) $percentage,
-                'printedTotal' => (int) ($setData['printedTotal'] ?? 0),
-                'releaseDate' => $setData['releaseDate'],
+                'printedTotal' => is_numeric($setData['printedTotal'] ?? null) ? (int) $setData['printedTotal'] : 0,
+                'releaseDate' => is_string($setData['releaseDate'] ?? null) ? $setData['releaseDate'] : null,
             ];
         }
 

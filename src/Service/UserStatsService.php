@@ -82,10 +82,14 @@ class UserStatsService
 
         $typeCounts = [];
         foreach ($types as $row) {
-            $cardTypes = json_decode($row['types'], true);
-            if (is_array($cardTypes)) {
-                foreach ($cardTypes as $type) {
-                    $typeCounts[$type] = ($typeCounts[$type] ?? 0) + 1;
+            if (is_array($row) && isset($row['types']) && is_string($row['types'])) {
+                $cardTypes = json_decode($row['types'], true);
+                if (is_array($cardTypes)) {
+                    foreach ($cardTypes as $type) {
+                        if (is_string($type)) {
+                            $typeCounts[$type] = ($typeCounts[$type] ?? 0) + 1;
+                        }
+                    }
                 }
             }
         }
