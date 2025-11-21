@@ -57,8 +57,12 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 # Configuration Supervisor
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Script de démarrage
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
 # Port exposé
 EXPOSE 8080
 
-# Lancer supervisor (nginx + php-fpm)
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+# Lancer le script de démarrage
+CMD ["/start.sh"]
