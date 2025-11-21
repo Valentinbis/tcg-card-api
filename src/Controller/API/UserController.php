@@ -151,7 +151,7 @@ class UserController extends AbstractController
         try {
             /** @var User $user */
             $user = $this->getUser();
-            
+
             $data = json_decode($request->getContent(), true);
 
             if (isset($data['firstName'])) {
@@ -184,7 +184,7 @@ class UserController extends AbstractController
         try {
             /** @var User $user */
             $user = $this->getUser();
-            
+
             $data = json_decode($request->getContent(), true);
 
             // Vérifier l'ancien mot de passe
@@ -219,9 +219,9 @@ class UserController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        
+
         $settings = $this->userSettingsRepository->findOrCreateForUser($user);
-        
+
         return $this->json($settings, Response::HTTP_OK, [], [
             'groups' => ['settings.show'],
         ]);
@@ -238,10 +238,10 @@ class UserController extends AbstractController
         try {
             /** @var User $user */
             $user = $this->getUser();
-            
+
             $settings = $this->userSettingsRepository->findOrCreateForUser($user);
             $data = json_decode($request->getContent(), true);
-            
+
             if (!$data) {
                 return $this->json(['error' => 'Données invalides'], Response::HTTP_BAD_REQUEST);
             }
@@ -295,6 +295,7 @@ class UserController extends AbstractController
                 foreach ($errors as $error) {
                     $errorMessages[$error->getPropertyPath()] = $error->getMessage();
                 }
+
                 return $this->json([
                     'error' => 'Validation échouée',
                     'details' => $errorMessages,

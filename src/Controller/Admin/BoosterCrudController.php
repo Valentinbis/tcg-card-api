@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controller\Admin;
 
 use App\Entity\Booster;
@@ -8,8 +10,14 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextEditorField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 
+/**
+ * @extends AbstractCrudController<Booster>
+ */
 class BoosterCrudController extends AbstractCrudController
 {
+    /**
+     * @return class-string<Booster>
+     */
     public static function getEntityFqcn(): string
     {
         return Booster::class;

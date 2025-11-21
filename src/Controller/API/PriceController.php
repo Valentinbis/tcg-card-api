@@ -7,7 +7,6 @@ namespace App\Controller\API;
 use App\Service\PriceService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 class PriceController extends AbstractController
@@ -18,7 +17,7 @@ class PriceController extends AbstractController
     }
 
     /**
-     * Récupère les prix d'une carte dans toutes les langues
+     * Récupère les prix d'une carte dans toutes les langues.
      */
     #[Route('/api/cards/{cardId}/prices', name: 'api_card_prices', methods: ['GET'])]
     public function getCardPrices(string $cardId): JsonResponse
@@ -34,6 +33,7 @@ class PriceController extends AbstractController
             if (empty($prices)) {
                 // Retourner estimation si pas de prix réel
                 $estimated = $this->priceService->getEstimatedPrice('Common');
+
                 return $this->json([
                     'cardId' => $cardId,
                     'fr' => $estimated,

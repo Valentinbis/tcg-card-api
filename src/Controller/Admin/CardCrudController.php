@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace App\Controller\Admin;
 
 use App\Entity\Card;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
+use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ImageField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\TextareaField;
-use EasyCorp\Bundle\EasyAdminBundle\Field\Field;
-use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
-use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityPersistedEvent;
-use EasyCorp\Bundle\EasyAdminBundle\Event\BeforeEntityUpdatedEvent;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -41,12 +40,12 @@ class CardCrudController extends AbstractCrudController implements EventSubscrib
         ];
 
         // Pour l'index et le détail, afficher l'image existante avec template personnalisé
-        if ($pageName === Crud::PAGE_INDEX || $pageName === Crud::PAGE_DETAIL) {
+        if (Crud::PAGE_INDEX === $pageName || Crud::PAGE_DETAIL === $pageName) {
             $fields[] = Field::new('smallImage')->setLabel('Image')->setTemplatePath('admin/card_image.html.twig');
         }
 
         // Pour l'édition, afficher l'image actuelle avec template personnalisé
-        if ($pageName === Crud::PAGE_EDIT) {
+        if (Crud::PAGE_EDIT === $pageName) {
             $fields[] = Field::new('smallImage')
                 ->setLabel('Image actuelle')
                 ->setTemplatePath('admin/card_image.html.twig')
@@ -54,7 +53,7 @@ class CardCrudController extends AbstractCrudController implements EventSubscrib
         }
 
         // Pour les formulaires, permettre l'upload d'une nouvelle image
-        if ($pageName === Crud::PAGE_NEW || $pageName === Crud::PAGE_EDIT) {
+        if (Crud::PAGE_NEW === $pageName || Crud::PAGE_EDIT === $pageName) {
             $fields[] = ImageField::new('uploadedImage')
                 ->setLabel('Nouvelle image')
                 ->setBasePath('')
@@ -75,6 +74,9 @@ class CardCrudController extends AbstractCrudController implements EventSubscrib
         ];
     }
 
+    /**
+     * @param BeforeEntityPersistedEvent<Card>|BeforeEntityUpdatedEvent<Card> $event
+     */
     public function handleImageUpload(BeforeEntityPersistedEvent|BeforeEntityUpdatedEvent $event): void
     {
         $entity = $event->getEntityInstance();

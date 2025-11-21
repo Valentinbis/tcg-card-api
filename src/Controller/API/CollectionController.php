@@ -38,7 +38,7 @@ class CollectionController extends AbstractController
     {
         /** @var User $user */
         $user = $this->getUser();
-        
+
         $filters = [];
         if ($request->query->has('condition')) {
             $filters['condition'] = $request->query->get('condition');
@@ -74,7 +74,7 @@ class CollectionController extends AbstractController
         $user = $this->getUser();
 
         return $this->json(
-            ['sets' => $this->collectionStatsService->getCollectionStats($user)], 
+            ['sets' => $this->collectionStatsService->getCollectionStats($user)],
             Response::HTTP_OK
         );
     }
@@ -87,7 +87,8 @@ class CollectionController extends AbstractController
     #[LogAction('add_to_collection', 'Card added to collection')]
     #[LogPerformance(threshold: 0.3)]
     public function add(
-        #[MapRequestPayload] AddToCollectionDTO $dto
+        #[MapRequestPayload]
+        AddToCollectionDTO $dto
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();
@@ -115,7 +116,8 @@ class CollectionController extends AbstractController
     #[LogPerformance(threshold: 0.3)]
     public function update(
         string $cardId,
-        #[MapRequestPayload] UpdateCollectionDTO $dto
+        #[MapRequestPayload]
+        UpdateCollectionDTO $dto
     ): JsonResponse {
         /** @var User $user */
         $user = $this->getUser();

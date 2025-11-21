@@ -40,7 +40,7 @@ class InfosController extends AbstractController
                 'connected' => $isConnected,
             ],
         ]);
-        
+
         if (!is_string($content)) {
             $content = '{"error": "Failed to encode JSON"}';
         }

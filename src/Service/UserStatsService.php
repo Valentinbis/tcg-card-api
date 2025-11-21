@@ -54,7 +54,7 @@ class UserStatsService
         $totalCards = $this->getTotalCards();
         $ownedCards = $this->getTotalOwnedCards($user);
 
-        if ($totalCards === 0) {
+        if (0 === $totalCards) {
             return 0;
         }
 
@@ -75,7 +75,7 @@ class UserStatsService
              INNER JOIN collection col ON c.id = col.card_id 
              WHERE col.user_id = :userId AND c.types IS NOT NULL'
         );
-        
+
         $query->bindValue('userId', $user->getId());
         $result = $query->executeQuery();
         $types = $result->fetchAllAssociative();

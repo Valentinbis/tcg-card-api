@@ -40,19 +40,19 @@ class CardController extends AbstractController
         $set = $request->query->get('set');
         $search = $request->query->get('search');
         $number = $request->query->get('number');
-        
+
         $pageInt = is_numeric($page) ? (int) $page : 1;
         $limitInt = is_numeric($limit) ? (int) $limit : 20;
         $sort = (string) ($request->query->get('sort') ?? 'number');
         $order = (string) ($request->query->get('order') ?? 'ASC');
-        
+
         $pagination = new PaginationDTO(
             page: $pageInt,
             limit: $limitInt,
             sort: $sort,
             order: $order
         );
-        
+
         $offset = ($pagination->page - 1) * $pagination->limit;
 
         $result = $this->cardService->getUserCardsWithFilters(

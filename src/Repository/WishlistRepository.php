@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repository;
 
 use App\Entity\User;
@@ -18,7 +20,9 @@ class WishlistRepository extends ServiceEntityRepository
     }
 
     /**
-     * Trouve tous les éléments de la wishlist d'un utilisateur
+     * Trouve tous les éléments de la wishlist d'un utilisateur.
+     *
+     * @param array<string, mixed> $filters
      *
      * @return Wishlist[]
      */
@@ -44,13 +48,13 @@ class WishlistRepository extends ServiceEntityRepository
 
         $orderBy = $filters['orderBy'] ?? 'priority';
         $direction = $filters['direction'] ?? 'DESC';
-        $qb->orderBy('w.' . $orderBy, $direction);
+        $qb->orderBy('w.'.$orderBy, $direction);
 
         return $qb->getQuery()->getResult();
     }
 
     /**
-     * Trouve un élément spécifique de la wishlist
+     * Trouve un élément spécifique de la wishlist.
      */
     public function findByUserAndCard(User $user, string $cardId): ?Wishlist
     {
@@ -64,7 +68,7 @@ class WishlistRepository extends ServiceEntityRepository
     }
 
     /**
-     * Compte le nombre d'éléments dans la wishlist d'un utilisateur
+     * Compte le nombre d'éléments dans la wishlist d'un utilisateur.
      */
     public function countByUser(User $user): int
     {
@@ -77,7 +81,7 @@ class WishlistRepository extends ServiceEntityRepository
     }
 
     /**
-     * Obtient les cartes wishlist par priorité
+     * Obtient les cartes wishlist par priorité.
      *
      * @return array<int, int>
      */
