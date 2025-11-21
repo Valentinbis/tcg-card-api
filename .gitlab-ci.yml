@@ -156,8 +156,12 @@ deploy:production:
   script:
     - echo "Déploiement sur Railway..."
     - echo "RAILWAY_PROJECT_ID: $RAILWAY_PROJECT_ID"
-    - echo "RAILWAY_TOKEN is set: $(if [ -n "$RAILWAY_TOKEN" ]; then echo 'YES'; else echo 'NO'; fi)"
-    - railway link $RAILWAY_PROJECT_ID --yes || (echo "Railway link failed" && exit 1)
+    - echo "RAILWAY_TOKEN is set: $(if [ -n \"$RAILWAY_TOKEN\" ]; then echo 'YES'; else echo 'NO'; fi)"
+    - |
+      if ! railway link $RAILWAY_PROJECT_ID --yes; then
+        echo "Railway link failed"
+        exit 1
+      fi
     - railway up --detach
   environment:
     name: production
@@ -183,8 +187,12 @@ deploy:staging:
   script:
     - echo "Déploiement sur Railway (staging)..."
     - echo "RAILWAY_STAGING_PROJECT_ID: $RAILWAY_STAGING_PROJECT_ID"
-    - echo "RAILWAY_TOKEN is set: $(if [ -n "$RAILWAY_TOKEN" ]; then echo 'YES'; else echo 'NO'; fi)"
-    - railway link $RAILWAY_STAGING_PROJECT_ID --yes || (echo "Railway link failed" && exit 1)
+    - echo "RAILWAY_TOKEN is set: $(if [ -n \"$RAILWAY_TOKEN\" ]; then echo 'YES'; else echo 'NO'; fi)"
+    - |
+      if ! railway link $RAILWAY_STAGING_PROJECT_ID --yes; then
+        echo "Railway link failed"
+        exit 1
+      fi
     - railway up --detach
   environment:
     name: staging
