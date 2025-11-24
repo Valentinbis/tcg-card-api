@@ -21,5 +21,9 @@ done
 echo "Database ready, running migrations..."
 php bin/console doctrine:migrations:migrate --no-interaction
 
-echo "Migrations completed, starting supervisor..."
+echo "Clearing and warming up cache..."
+php bin/console cache:clear --env=prod --no-warmup
+php bin/console cache:warmup --env=prod
+
+echo "Cache ready, starting supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
