@@ -7,7 +7,7 @@ echo "Database URL: ${DATABASE_URL:0:50}..."
 
 # Créer les dossiers nécessaires et corriger les permissions
 mkdir -p var/cache var/log
-chown -R $(whoami) var/cache var/log
+chown -R www-data:www-data var/cache var/log
 chmod -R 755 var/cache
 chmod -R 777 var/log
 
