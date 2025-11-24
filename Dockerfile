@@ -57,6 +57,9 @@ COPY docker/nginx.conf /etc/nginx/nginx.conf
 # Configuration Supervisor
 COPY docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Donner les permissions d'exécution au script de démarrage
+RUN chmod +x docker/start.sh
+
 # Script de démarrage
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
