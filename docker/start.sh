@@ -5,6 +5,12 @@ echo "Current directory: $(pwd)"
 echo "Environment: $APP_ENV"
 echo "Database URL: ${DATABASE_URL:0:50}..."
 
+# Créer les dossiers nécessaires et corriger les permissions
+mkdir -p var/cache var/log
+chown -R $(whoami) var/cache var/log
+chmod -R 755 var/cache
+chmod -R 777 var/log
+
 # Attendre que la DB soit prête
 echo "Waiting for database..."
 until php bin/console doctrine:query:sql "SELECT 1" > /dev/null 2>&1; do
