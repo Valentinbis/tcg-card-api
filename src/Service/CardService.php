@@ -32,146 +32,118 @@ class CardService
         string $sort,
         string $order
     ): array {
-        // 1. Récupère toutes les cartes triées (sans pagination)
+        // Construction de la requête optimisée avec sélection partielle
         $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c')
-            ->orderBy('c.'.$sort, $order);
+            ->leftJoin('c.set', 's');
 
-        /** @var array<Card> $allCards */
-        $allCards = $qb->getQuery()->getResult();
+        // Sous-requête pour déterminer si la carte est possédée par l'utilisateur
+        $ownedSubQuery = $this->em->createQueryBuilder()
+            ->select('1')
+            ->from(Collection::class, 'col')
+            ->where('col.cardId = c.id')
+            ->andWhere('col.user = :user')
+            ->getDQL();
 
-        // 2. Toutes les Collection pour cet utilisateur
-        $collections = $this->em->getRepository(Collection::class)->findBy([
-            'user' => $user,
-        ]);
+        // Sélection partielle pour éviter de charger toutes les données en mémoire
+        $qb->select([
+            'c.id',
+            'c.name',
+            'c.nameFr',
+            'c.number',
+            'c.rarity',
+            'c.nationalPokedexNumbers',
+            'c.images',
+            'c.types',
+            's.id as set_id',
+            's.name as set_name',
+            'CASE WHEN EXISTS (' . $ownedSubQuery . ') THEN true ELSE false END as owned'
+        ])
+        ->setParameter('user', $user);
 
-        // 3. Indexer les Collection par card_id pour accès rapide
-        /** @var array<string, bool> $ownedCards */
-        $ownedCards = [];
-        foreach ($collections as $collection) {
-            $ownedCards[$collection->getCardId()] = true;
-        }
+        // Appliquer les filtres directement dans la requête
 
-        // 4. Appliquer les filtres côté PHP
-
-        // Filtre par type
+        // Filtre par type (JSON array contains)
         if ($type) {
-            $allCards = array_filter($allCards, function (Card $card) use ($type): bool {
-                $types = $card->getTypes() ?? [];
-
-                return in_array($type, $types, true);
-            });
-            $allCards = array_values($allCards);
+            $qb->andWhere('c.types ? :type')
+               ->setParameter('type', $type);
         }
 
         // Filtre par rareté
         if ($rarity) {
-            $allCards = array_filter($allCards, function (Card $card) use ($rarity): bool {
-                return $card->getRarity() === $rarity;
-            });
-            $allCards = array_values($allCards);
+            $qb->andWhere('c.rarity = :rarity')
+               ->setParameter('rarity', $rarity);
         }
 
         // Filtre par set
         if ($setId) {
-            $allCards = array_filter($allCards, function (Card $card) use ($setId): bool {
-                return $card->getSet()->getId() === $setId;
-            });
-            $allCards = array_values($allCards);
+            $qb->andWhere('s.id = :setId')
+               ->setParameter('setId', $setId);
         }
 
-        // Recherche par nom
+        // Recherche par nom (nom français ou anglais)
         if ($search) {
-            $searchLower = strtolower($search);
-            $allCards = array_filter($allCards, function (Card $card) use ($searchLower): bool {
-                $name = strtolower($card->getNameFr() ?? $card->getName() ?? '');
-
-                return str_contains($name, $searchLower);
-            });
-            $allCards = array_values($allCards);
+            $qb->andWhere('(LOWER(c.nameFr) LIKE LOWER(:search) OR LOWER(c.name) LIKE LOWER(:search))')
+               ->setParameter('search', '%' . $search . '%');
         }
 
         // Filtre par numéro
         if (null !== $number && '' !== $number) {
-            $allCards = array_filter($allCards, function (Card $card) use ($number): bool {
-                return (string) $card->getNumber() === (string) $number;
-            });
-            $allCards = array_values($allCards);
+            $qb->andWhere('c.number = :number')
+               ->setParameter('number', $number);
         }
 
-        // Filtre owned
+        // Filtre owned - utilise la sous-requête EXISTS
         if (null !== $owned) {
-            $allCards = array_filter($allCards, function (Card $card) use ($ownedCards, $owned): bool {
-                $isOwned = isset($ownedCards[$card->getId()]);
+            $ownedFilterSubQuery = $this->em->createQueryBuilder()
+                ->select('1')
+                ->from(Collection::class, 'col2')
+                ->where('col2.cardId = c.id')
+                ->andWhere('col2.user = :user')
+                ->getDQL();
 
-                return 'true' === $owned ? $isOwned : !$isOwned;
-            });
-            $allCards = array_values($allCards);
+            if ('true' === $owned) {
+                $qb->andWhere('EXISTS (' . $ownedFilterSubQuery . ')');
+            } else {
+                $qb->andWhere('NOT EXISTS (' . $ownedFilterSubQuery . ')');
+            }
+            $qb->setParameter('user', $user);
         }
 
-        // 5. Calcule le total AVANT pagination
-        $total = count($allCards);
+        // Tri
+        $qb->orderBy('c.' . $sort, $order);
 
-        // 6. Découpe pour la page courante
-        $cards = array_slice($allCards, $offset, $limit);
+        // Compter le total AVANT pagination
+        $countQb = clone $qb;
+        $countQb->select('COUNT(DISTINCT c.id)');
+        $total = (int) $countQb->getQuery()->getSingleScalarResult();
 
-        // 7. Construire la réponse paginée
-        /** @var array<CardViewDTO> $cardViews */
-        $cardViews = array_map(
-            fn (Card $card): CardViewDTO => (function () use ($card, $ownedCards) {
-                $dto = new CardViewDTO(
-                    $card->getId(),
-                    $card->getName() ?? '',
-                    $card->getNameFr() ?? '',
-                    $card->getNumber() ?? '',
-                    $card->getRarity() ?? '',
-                    $card->getNationalPokedexNumbers() ?? [],
-                    $card->getImages() ?? [],
-                    $ownedCards[$card->getId()] ?? false
-                );
-                // Ajout des variantes et prix
-                $dto->variants = [];
-                foreach ($card->getVariants() as $variant) {
-                    $dto->variants[$variant->getType()->value] = [
-                        'price' => $variant->getPrice(),
-                        'cardmarket_average' => $variant->getCardmarketAverage(),
-                        'cardmarket_trend' => $variant->getCardmarketTrend(),
-                        'cardmarket_min' => $variant->getCardmarketMin(),
-                        'cardmarket_max' => $variant->getCardmarketMax(),
-                        'cardmarket_suggested' => $variant->getCardmarketSuggested(),
-                        'cardmarket_germanProLow' => $variant->getCardmarketGermanProLow(),
-                        'cardmarket_low_ex_plus' => $variant->getCardmarketLowExPlus(),
-                        'cardmarket_avg1' => $variant->getCardmarketAvg1(),
-                        'cardmarket_avg7' => $variant->getCardmarketAvg7(),
-                        'cardmarket_avg30' => $variant->getCardmarketAvg30(),
-                        'cardmarket_reverse' => $variant->getCardmarketReverse(),
-                        'cardmarket_reverse_low' => $variant->getCardmarketReverseLow(),
-                        'cardmarket_reverse_trend' => $variant->getCardmarketReverseTrend(),
-                        'cardmarket_reverse_avg1' => $variant->getCardmarketReverseAvg1(),
-                        'cardmarket_reverse_avg7' => $variant->getCardmarketReverseAvg7(),
-                        'cardmarket_reverse_avg30' => $variant->getCardmarketReverseAvg30(),
-                        'cardmarket_holo' => $variant->getCardmarketHolo(),
-                        'tcgplayer_normal_low' => $variant->getTcgplayerNormalLow(),
-                        'tcgplayer_normal_mid' => $variant->getTcgplayerNormalMid(),
-                        'tcgplayer_normal_high' => $variant->getTcgplayerNormalHigh(),
-                        'tcgplayer_normal_market' => $variant->getTcgplayerNormalMarket(),
-                        'tcgplayer_normal_direct' => $variant->getTcgplayerNormalDirect(),
-                        'tcgplayer_reverse_low' => $variant->getTcgplayerReverseLow(),
-                        'tcgplayer_reverse_mid' => $variant->getTcgplayerReverseMid(),
-                        'tcgplayer_reverse_high' => $variant->getTcgplayerReverseHigh(),
-                        'tcgplayer_reverse_market' => $variant->getTcgplayerReverseMarket(),
-                        'tcgplayer_reverse_direct' => $variant->getTcgplayerReverseDirect(),
-                        'tcgplayer_holo_low' => $variant->getTcgplayerHoloLow(),
-                        'tcgplayer_holo_mid' => $variant->getTcgplayerHoloMid(),
-                        'tcgplayer_holo_high' => $variant->getTcgplayerHoloHigh(),
-                        'tcgplayer_holo_market' => $variant->getTcgplayerHoloMarket(),
-                        'tcgplayer_holo_direct' => $variant->getTcgplayerHoloDirect(),
-                    ];
-                }
+        // Appliquer la pagination
+        $qb->setFirstResult($offset)
+           ->setMaxResults($limit);
 
-                return $dto;
-            })(),
-            $cards
-        );
+        // Récupérer les résultats sous forme de tableau
+        $results = $qb->getQuery()->getScalarResult();
+
+        // Construire les DTOs directement depuis les résultats scalaires
+        $cardViews = [];
+        foreach ($results as $result) {
+            // Récupérer les variantes de manière optimisée
+            $variants = $this->getCardVariantsOptimized($result['id']);
+
+            $dto = new CardViewDTO(
+                $result['id'],
+                $result['name'] ?? '',
+                $result['nameFr'] ?? '',
+                $result['number'] ?? '',
+                $result['rarity'] ?? '',
+                $result['nationalPokedexNumbers'] ?? [],
+                $result['images'] ?? [],
+                (bool) $result['owned']
+            );
+
+            $dto->variants = $variants;
+            $cardViews[] = $dto;
+        }
 
         return [
             'data' => $cardViews,
@@ -202,5 +174,95 @@ class CardService
     public function getCardById(string $cardId): ?Card
     {
         return $this->em->getRepository(Card::class)->find($cardId);
+    }
+
+    /**
+     * Récupère les variantes d'une carte de manière optimisée
+     * @return array<string, array<string, mixed>>
+     */
+    private function getCardVariantsOptimized(string $cardId): array
+    {
+        $qb = $this->em->getRepository(\App\Entity\CardVariant::class)->createQueryBuilder('v')
+            ->select([
+                'v.type',
+                'v.price',
+                'v.cardmarketAverage',
+                'v.cardmarketTrend',
+                'v.cardmarketMin',
+                'v.cardmarketMax',
+                'v.cardmarketSuggested',
+                'v.cardmarketGermanProLow',
+                'v.cardmarketLowExPlus',
+                'v.cardmarketAvg1',
+                'v.cardmarketAvg7',
+                'v.cardmarketAvg30',
+                'v.cardmarketReverse',
+                'v.cardmarketReverseLow',
+                'v.cardmarketReverseTrend',
+                'v.cardmarketReverseAvg1',
+                'v.cardmarketReverseAvg7',
+                'v.cardmarketReverseAvg30',
+                'v.cardmarketHolo',
+                'v.tcgplayerNormalLow',
+                'v.tcgplayerNormalMid',
+                'v.tcgplayerNormalHigh',
+                'v.tcgplayerNormalMarket',
+                'v.tcgplayerNormalDirect',
+                'v.tcgplayerReverseLow',
+                'v.tcgplayerReverseMid',
+                'v.tcgplayerReverseHigh',
+                'v.tcgplayerReverseMarket',
+                'v.tcgplayerReverseDirect',
+                'v.tcgplayerHoloLow',
+                'v.tcgplayerHoloMid',
+                'v.tcgplayerHoloHigh',
+                'v.tcgplayerHoloMarket',
+                'v.tcgplayerHoloDirect',
+            ])
+            ->where('v.card = :cardId')
+            ->setParameter('cardId', $cardId);
+
+        $results = $qb->getQuery()->getScalarResult();
+
+        $variants = [];
+        foreach ($results as $result) {
+            $variants[$result['type']] = [
+                'price' => $result['price'],
+                'cardmarket_average' => $result['cardmarketAverage'],
+                'cardmarket_trend' => $result['cardmarketTrend'],
+                'cardmarket_min' => $result['cardmarketMin'],
+                'cardmarket_max' => $result['cardmarketMax'],
+                'cardmarket_suggested' => $result['cardmarketSuggested'],
+                'cardmarket_germanProLow' => $result['cardmarketGermanProLow'],
+                'cardmarket_low_ex_plus' => $result['cardmarketLowExPlus'],
+                'cardmarket_avg1' => $result['cardmarketAvg1'],
+                'cardmarket_avg7' => $result['cardmarketAvg7'],
+                'cardmarket_avg30' => $result['cardmarketAvg30'],
+                'cardmarket_reverse' => $result['cardmarketReverse'],
+                'cardmarket_reverse_low' => $result['cardmarketReverseLow'],
+                'cardmarket_reverse_trend' => $result['cardmarketReverseTrend'],
+                'cardmarket_reverse_avg1' => $result['cardmarketReverseAvg1'],
+                'cardmarket_reverse_avg7' => $result['cardmarketReverseAvg7'],
+                'cardmarket_reverse_avg30' => $result['cardmarketReverseAvg30'],
+                'cardmarket_holo' => $result['cardmarketHolo'],
+                'tcgplayer_normal_low' => $result['tcgplayerNormalLow'],
+                'tcgplayer_normal_mid' => $result['tcgplayerNormalMid'],
+                'tcgplayer_normal_high' => $result['tcgplayerNormalHigh'],
+                'tcgplayer_normal_market' => $result['tcgplayerNormalMarket'],
+                'tcgplayer_normal_direct' => $result['tcgplayerNormalDirect'],
+                'tcgplayer_reverse_low' => $result['tcgplayerReverseLow'],
+                'tcgplayer_reverse_mid' => $result['tcgplayerReverseMid'],
+                'tcgplayer_reverse_high' => $result['tcgplayerReverseHigh'],
+                'tcgplayer_reverse_market' => $result['tcgplayerReverseMarket'],
+                'tcgplayer_reverse_direct' => $result['tcgplayerReverseDirect'],
+                'tcgplayer_holo_low' => $result['tcgplayerHoloLow'],
+                'tcgplayer_holo_mid' => $result['tcgplayerHoloMid'],
+                'tcgplayer_holo_high' => $result['tcgplayerHoloHigh'],
+                'tcgplayer_holo_market' => $result['tcgplayerHoloMarket'],
+                'tcgplayer_holo_direct' => $result['tcgplayerHoloDirect'],
+            ];
+        }
+
+        return $variants;
     }
 }
