@@ -147,14 +147,29 @@ class CardService
             // Récupérer les variantes de manière optimisée
             $variants = $this->getCardVariantsOptimized($result['id']);
 
+            // Décoder les champs JSON
+            $nationalPokedexNumbers = $result['nationalPokedexNumbers'];
+            if (is_string($nationalPokedexNumbers)) {
+                $nationalPokedexNumbers = json_decode($nationalPokedexNumbers, true) ?? [];
+            } elseif (!is_array($nationalPokedexNumbers)) {
+                $nationalPokedexNumbers = [];
+            }
+
+            $images = $result['images'];
+            if (is_string($images)) {
+                $images = json_decode($images, true) ?? [];
+            } elseif (!is_array($images)) {
+                $images = [];
+            }
+
             $dto = new CardViewDTO(
                 $result['id'],
                 $result['name'] ?? '',
                 $result['nameFr'] ?? '',
                 $result['number'] ?? '',
                 $result['rarity'] ?? '',
-                $result['nationalPokedexNumbers'] ?? [],
-                $result['images'] ?? [],
+                $nationalPokedexNumbers,
+                $images,
                 (bool) $result['owned']
             );
 
