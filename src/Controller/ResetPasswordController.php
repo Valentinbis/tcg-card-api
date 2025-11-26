@@ -20,9 +20,8 @@ use Symfony\Component\Routing\Attribute\Route;
 use SymfonyCasts\Bundle\ResetPassword\Controller\ResetPasswordControllerTrait;
 use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
 use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
-use Psr\Log\LoggerInterface;
 
-#[Route('/api/reset-password')]
+#[Route('/reset-password')]
 class ResetPasswordController extends AbstractController
 {
     use ResetPasswordControllerTrait;
@@ -30,7 +29,6 @@ class ResetPasswordController extends AbstractController
     public function __construct(
         private readonly ResetPasswordHelperInterface $resetPasswordHelper,
         private readonly EntityManagerInterface $entityManager,
-        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -140,17 +138,15 @@ class ResetPasswordController extends AbstractController
                 ->htmlTemplate('email/resetPassword.html.twig')
                 ->context([
                     'user' => $user,
-                    'resetLink' => $this->generateUrl('app_reset_password', ['token' => urlencode($resetToken->getToken())], \Symfony\Component\Routing\Generator\UrlGeneratorInterface::ABSOLUTE_URL),
+                    'resetLink' => $this->generateUrl('app_reset_password', ['token' => urlencode($resetToken->getToken())]),
                 ])
             ;
 
-            $this->addFlash('success', 'Un email de réinitialisation a été envoyé.');
             $mailer->send($email);
             $this->setTokenObjectInSession($resetToken);
 
             return $this->redirectToRoute('app_check_email');
         } catch (\Exception $e) {
-            $this->logger->error('Erreur lors de l\'envoi de l\'email de réinitialisation: ' . $e->getMessage());
             return $this->redirectToRoute('app_check_email');
         }
     }
