@@ -58,8 +58,22 @@ class TokenManager
 
     public function updateActivity(User $user): void
     {
-        $user->updateLastActivity();
-        $this->entityManager->flush();
+        // Ne mettre à jour l'activité que si elle date de plus de 5 minutes
+        $lastActivity = $user->getLastActivityAt();
+        if (null === $lastActivity) {
+            $user->updateLastActivity();
+            $this->entityManager->flush();
+            return;
+        }
+
+        $now = new \DateTimeImmutable();
+        $timeSinceLastActivity = $now->getTimestamp() - $lastActivity->getTimestamp();
+
+        // Ne mettre à jour que si ça fait plus de 5 minutes
+        if ($timeSinceLastActivity > 300) { // 5 minutes
+            $user->updateLastActivity();
+            $this->entityManager->flush();
+        }
     }
 
     public function revokeToken(User $user): void

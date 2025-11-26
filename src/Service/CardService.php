@@ -57,8 +57,10 @@ class CardService
             's.id as set_id',
             's.name as set_name',
             'CASE WHEN EXISTS (' . $ownedSubQuery . ') THEN true ELSE false END as owned'
-        ])
-        ->setParameter('user', $user);
+        ]);
+
+        // Définir le paramètre user immédiatement après la création de la requête
+        $qb->setParameter('user', $user);
 
         // Appliquer les filtres directement dans la requête
 
