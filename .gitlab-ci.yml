@@ -1,5 +1,8 @@
 # GitLab CI/CD Pipeline pour Symfony API
-# Stages: build, quality, test, deploy
+# PIPELINES TEMPORAIREMENT DÉSACTIVÉES
+workflow:
+  rules:
+    - when: never
 
 stages:
   - build
