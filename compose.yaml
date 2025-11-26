@@ -39,6 +39,14 @@ services:
     ports:
       - ${POSTGRES_PORT:-5432}:5432
   ###< doctrine/doctrine-bundle ###
+  ###> mailpit ###
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: tcgcard_mailpit
+    ports:
+      - "1025:1025"    # smtp server
+      - "8025:8025"    # web ui
+  ###< mailpit ###
   ###> sonarqube ###
   sonarqube:
     image: sonarqube:lts-community

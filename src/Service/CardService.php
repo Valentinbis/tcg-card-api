@@ -106,7 +106,6 @@ class CardService
             } else {
                 $qb->andWhere('NOT EXISTS (' . $ownedFilterSubQuery . ')');
             }
-            $qb->setParameter('user', $user);
         }
 
         // Tri
