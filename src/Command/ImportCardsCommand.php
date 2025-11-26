@@ -39,6 +39,12 @@ class ImportCardsCommand extends Command
             InputOption::VALUE_NONE,
             'Truncate tables before importing'
         );
+        $this->addOption(
+            'skip-existing-sets',
+            's',
+            InputOption::VALUE_NONE,
+            'Skip importing sets that already exist in the database'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -99,11 +105,28 @@ class ImportCardsCommand extends Command
         $sets = array_reverse($sets);
 
         $totalImported = 0;
+        $totalSets = count($sets);
+        $processedSets = 0;
+        $startTime = microtime(true);
         foreach ($sets as $setData) {
+            ++$processedSets;
             $setCode = $setData->getId();
-            $output->writeln("<info>Starting import for set: {$setCode}</info>");
+            $elapsed = microtime(true) - $startTime;
+            $avgTimePerSet = $elapsed / $processedSets;
+            $remainingSets = $totalSets - $processedSets;
+            $estimatedRemaining = $remainingSets * $avgTimePerSet;
+            $output->writeln("<info>Processing set {$processedSets}/{$totalSets}: {$setCode} (estimated remaining: " . round($estimatedRemaining / 60, 1) . " min)</info>");
 
             $imported = 0;
+
+            if ($input->getOption('skip-existing-sets')) {
+                // Vérifier si le set existe déjà en base de données
+                $existingSet = $this->em->getRepository(Set::class)->find($setCode);
+                if ($existingSet) {
+                    $output->writeln("<comment>Set {$setCode} already exists in database. Skipping import.</comment>");
+                    continue;
+                }
+            }
             $maxRetries = 3;
             $retryCount = 0;
             /** @var array<\Pokemon\Card> $resp */
