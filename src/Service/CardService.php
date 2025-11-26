@@ -36,6 +36,9 @@ class CardService
         $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c')
             ->leftJoin('c.set', 's');
 
+        // Créer le QueryBuilder pour le comptage avant de définir la sélection complexe
+        $countQb = clone $qb;
+
         // Sous-requête pour déterminer si la carte est possédée par l'utilisateur
         $ownedSubQuery = $this->em->createQueryBuilder()
             ->select('1')
@@ -59,7 +62,7 @@ class CardService
             'CASE WHEN EXISTS (' . $ownedSubQuery . ') THEN true ELSE false END as owned'
         ]);
 
-        // Définir le paramètre user immédiatement après la création de la requête
+        // Définir le paramètre user sur la requête principale seulement
         $qb->setParameter('user', $user);
 
         // Appliquer les filtres directement dans la requête
@@ -68,30 +71,40 @@ class CardService
         if ($type) {
             $qb->andWhere('c.types ? :type')
                ->setParameter('type', $type);
+            $countQb->andWhere('c.types ? :type')
+                    ->setParameter('type', $type);
         }
 
         // Filtre par rareté
         if ($rarity) {
             $qb->andWhere('c.rarity = :rarity')
                ->setParameter('rarity', $rarity);
+            $countQb->andWhere('c.rarity = :rarity')
+                    ->setParameter('rarity', $rarity);
         }
 
         // Filtre par set
         if ($setId) {
             $qb->andWhere('s.id = :setId')
                ->setParameter('setId', $setId);
+            $countQb->andWhere('s.id = :setId')
+                    ->setParameter('setId', $setId);
         }
 
         // Recherche par nom (nom français ou anglais)
         if ($search) {
             $qb->andWhere('(LOWER(c.nameFr) LIKE LOWER(:search) OR LOWER(c.name) LIKE LOWER(:search))')
                ->setParameter('search', '%' . $search . '%');
+            $countQb->andWhere('(LOWER(c.nameFr) LIKE LOWER(:search) OR LOWER(c.name) LIKE LOWER(:search))')
+                    ->setParameter('search', '%' . $search . '%');
         }
 
         // Filtre par numéro
         if (null !== $number && '' !== $number) {
             $qb->andWhere('c.number = :number')
                ->setParameter('number', $number);
+            $countQb->andWhere('c.number = :number')
+                    ->setParameter('number', $number);
         }
 
         // Filtre owned - utilise la sous-requête EXISTS
@@ -105,16 +118,19 @@ class CardService
 
             if ('true' === $owned) {
                 $qb->andWhere('EXISTS (' . $ownedFilterSubQuery . ')');
+                $countQb->andWhere('EXISTS (' . $ownedFilterSubQuery . ')');
             } else {
                 $qb->andWhere('NOT EXISTS (' . $ownedFilterSubQuery . ')');
+                $countQb->andWhere('NOT EXISTS (' . $ownedFilterSubQuery . ')');
             }
+            // Le paramètre :user est utilisé dans la sous-requête, donc on le définit sur countQb aussi
+            $countQb->setParameter('user', $user);
         }
 
-        // Tri
+        // Tri (seulement pour la requête principale)
         $qb->orderBy('c.' . $sort, $order);
 
         // Compter le total AVANT pagination
-        $countQb = clone $qb;
         $countQb->select('COUNT(DISTINCT c.id)');
         $total = (int) $countQb->getQuery()->getSingleScalarResult();
 
