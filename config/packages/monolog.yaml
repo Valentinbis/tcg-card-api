@@ -118,21 +118,43 @@ when@prod:
                 level: error
                 formatter: monolog.formatter.json
                 
+            # Désactiver les logs détaillés en prod pour améliorer les performances
             json_file:
                 type: stream
-                path: php://stdout
-                level: info
-                formatter: monolog.formatter.json
+                path: /dev/null
+                level: emergency
                 
             json_prod:
                 type: stream
-                path: php://stdout
+                path: /dev/null
+                level: emergency
+
+            # Garder seulement les logs de sécurité critiques
+            security:
+                type: stream
+                path: php://stderr
                 level: warning
+                channels: ['security']
                 formatter: monolog.formatter.json
+
+            # Désactiver les autres logs détaillés en prod
+            action:
+                type: stream
+                path: /dev/null
+                level: emergency
+                
+            request:
+                type: stream
+                path: /dev/null
+                level: emergency
+                
+            performance:
+                type: stream
+                path: /dev/null
+                level: emergency
 
             console:
                 type: console
                 process_psr_3_messages: false
                 channels: ["!event", "!doctrine"]
                 level: warning
-                # Removed deprecation handler as it's not available in production without dev bundles
