@@ -25,6 +25,15 @@ final class Version20251127104246 extends AbstractMigration
             "Migration can only be executed safely on '\Doctrine\DBAL\Platforms\PostgreSQL120Platform'."
         );
 
+        // Create sequences for auto-incrementing IDs
+        $this->addSql('CREATE SEQUENCE user_settings_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE card_variant_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE user_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE collection_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE prices_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE wishlist_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+        $this->addSql('CREATE SEQUENCE reset_password_request_id_seq INCREMENT BY 1 MINVALUE 1 START 1;');
+
         $this->addSql('CREATE TABLE user_settings (id INT NOT NULL, user_id INT NOT NULL, cards_per_page INT DEFAULT 20 NOT NULL, default_view VARCHAR(10) DEFAULT \'grid\' NOT NULL, default_language VARCHAR(5) DEFAULT \'fr\' NOT NULL, show_card_numbers BOOLEAN DEFAULT true NOT NULL, show_prices BOOLEAN DEFAULT true NOT NULL, email_notifications BOOLEAN DEFAULT true NOT NULL, new_card_alerts BOOLEAN DEFAULT true NOT NULL, price_drop_alerts BOOLEAN DEFAULT false NOT NULL, weekly_report BOOLEAN DEFAULT false NOT NULL, profile_visibility VARCHAR(10) DEFAULT \'public\' NOT NULL, show_collection BOOLEAN DEFAULT true NOT NULL, show_wishlist BOOLEAN DEFAULT true NOT NULL, created_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, updated_at TIMESTAMP(0) WITHOUT TIME ZONE NOT NULL, PRIMARY KEY(id))');
         $this->addSql('CREATE UNIQUE INDEX uniq_5c844c5a76ed395 ON user_settings (user_id)');
         $this->abortIf(
@@ -183,5 +192,14 @@ final class Version20251127104246 extends AbstractMigration
         );
 
         $this->addSql('DROP TABLE card_booster');
+
+        // Drop sequences
+        $this->addSql('DROP SEQUENCE user_settings_id_seq');
+        $this->addSql('DROP SEQUENCE card_variant_id_seq');
+        $this->addSql('DROP SEQUENCE user_id_seq');
+        $this->addSql('DROP SEQUENCE collection_id_seq');
+        $this->addSql('DROP SEQUENCE prices_id_seq');
+        $this->addSql('DROP SEQUENCE wishlist_id_seq');
+        $this->addSql('DROP SEQUENCE reset_password_request_id_seq');
     }
 }
