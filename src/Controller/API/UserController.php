@@ -40,6 +40,8 @@ class UserController extends AbstractController
      */
     #[Route('/api/me', methods: ['GET'])]
     #[IsGranted('ROLE_USER')]
+    #[LogAction('view_profile', 'User profile accessed')]
+    #[LogSecurity('verify_token', 'Token verification requested')]
     public function me(): JsonResponse
     {
         $startTime = microtime(true);

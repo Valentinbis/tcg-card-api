@@ -139,19 +139,28 @@ when@prod:
 
             # Désactiver les autres logs détaillés en prod
             action:
-                type: stream
-                path: /dev/null
-                level: emergency
+                type: rotating_file
+                path: '%kernel.logs_dir%/action.log'
+                level: info
+                max_files: 30
+                channels: ['action']
+                formatter: monolog.formatter.json
                 
             request:
-                type: stream
-                path: /dev/null
-                level: emergency
+                type: rotating_file
+                path: '%kernel.logs_dir%/request.log'
+                level: info
+                max_files: 15
+                channels: ['request']
+                formatter: monolog.formatter.json
                 
             performance:
-                type: stream
-                path: /dev/null
-                level: emergency
+                type: rotating_file
+                path: '%kernel.logs_dir%/performance.log'
+                level: info
+                max_files: 15
+                channels: ['performance']
+                formatter: monolog.formatter.json
 
             console:
                 type: console
