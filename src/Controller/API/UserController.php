@@ -42,12 +42,28 @@ class UserController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function me(): JsonResponse
     {
+        $startTime = microtime(true);
+
         /** @var User $user */
         $user = $this->getUser();
 
-        return $this->json($user, Response::HTTP_OK, [], [
+        $userRetrievalTime = microtime(true);
+
+        $response = $this->json($user, Response::HTTP_OK, [], [
             'groups' => ['user.show', 'user.token'],
         ]);
+
+        $endTime = microtime(true);
+
+        // Log détaillé des performances
+        error_log(sprintf(
+            "[PERF] /api/me - Total: %.3fs, User retrieval: %.3fs, Serialization: %.3fs",
+            $endTime - $startTime,
+            $userRetrievalTime - $startTime,
+            $endTime - $userRetrievalTime
+        ));
+
+        return $response;
     }
 
     /**

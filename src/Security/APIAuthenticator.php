@@ -40,6 +40,8 @@ class APIAuthenticator extends AbstractAuthenticator
 
     public function authenticate(Request $request): Passport
     {
+        $authStart = microtime(true);
+
         $authHeader = $this->getAuthorizationHeader($request);
 
         if (!$authHeader) {
@@ -52,9 +54,15 @@ class APIAuthenticator extends AbstractAuthenticator
             throw new CustomUserMessageAuthenticationException('No API token provided');
         }
 
-        return new SelfValidatingPassport(
+        $tokenParseTime = microtime(true);
+
+        $passport = new SelfValidatingPassport(
             new UserBadge($apiToken, function ($apiToken) {
+                $dbStart = microtime(true);
                 $user = $this->userRepository->findOneBy(['apiToken' => $apiToken]);
+                $dbEnd = microtime(true);
+
+                error_log(sprintf("[PERF] DB Query findOneBy apiToken: %.3fs", $dbEnd - $dbStart));
 
                 if (!$user) {
                     throw new CustomUserMessageAuthenticationException('Invalid API token');
@@ -63,10 +71,17 @@ class APIAuthenticator extends AbstractAuthenticator
                 return $user;
             })
         );
+
+        $authEnd = microtime(true);
+        error_log(sprintf("[PERF] APIAuthenticator.authenticate - Total: %.3fs, Token parsing: %.3fs", $authEnd - $authStart, $tokenParseTime - $authStart));
+
+        return $passport;
     }
 
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
+        $authSuccessStart = microtime(true);
+
         $user = $token->getUser();
 
         if (!$user instanceof User) {
@@ -74,12 +89,25 @@ class APIAuthenticator extends AbstractAuthenticator
         }
 
         // Vérifier si le token est expiré
+        $tokenCheckStart = microtime(true);
         if (!$this->tokenManager->isTokenValid($user)) {
             throw new CustomUserMessageAuthenticationException('Token expiré ou inactivité trop longue');
         }
+        $tokenCheckEnd = microtime(true);
 
         // Mettre à jour la dernière activité
+        $activityStart = microtime(true);
         $this->tokenManager->updateActivity($user);
+        $activityEnd = microtime(true);
+
+        $authSuccessEnd = microtime(true);
+
+        error_log(sprintf(
+            "[PERF] APIAuthenticator.onAuthenticationSuccess - Total: %.3fs, Token check: %.3fs, Activity update: %.3fs",
+            $authSuccessEnd - $authSuccessStart,
+            $tokenCheckEnd - $tokenCheckStart,
+            $activityEnd - $activityStart
+        ));
 
         return null;
     }
