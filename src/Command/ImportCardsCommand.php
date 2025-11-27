@@ -45,6 +45,12 @@ class ImportCardsCommand extends Command
             InputOption::VALUE_NONE,
             'Skip importing sets that already exist in the database'
         );
+        $this->addOption(
+            'only-missing-images',
+            'm',
+            InputOption::VALUE_NONE,
+            'Only import sets that contain cards with local images (not updated to external URLs)'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -117,6 +123,27 @@ class ImportCardsCommand extends Command
             $estimatedRemaining = $remainingSets * $avgTimePerSet;
             $output->writeln("<info>Processing set {$processedSets}/{$totalSets}: {$setCode} (estimated remaining: " . round($estimatedRemaining / 60, 1) . " min)</info>");
 
+            if ($input->getOption('only-missing-images')) {
+                // Vérifier si le set existe et contient des cartes avec images locales (pas mises à jour vers URLs externes)
+                $existingSet = $this->em->getRepository(Set::class)->find($setCode);
+                if ($existingSet) {
+                    $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c');
+                    $qb->select('COUNT(c.id)')
+                       ->where('c.set = :setId')
+                       ->andWhere('c.images LIKE :localPath')
+                       ->setParameter('setId', $setCode)
+                       ->setParameter('localPath', '%/images/%');
+                    $count = (int) $qb->getQuery()->getSingleScalarResult();
+                    if ($count === 0) {
+                        $output->writeln("<comment>Set {$setCode} has no cards with local images. Skipping.</comment>");
+                        continue;
+                    }
+                } else {
+                    $output->writeln("<comment>Set {$setCode} does not exist in DB. Skipping (import the set first).</comment>");
+                    continue;
+                }
+            }
+
             $imported = 0;
 
             if ($input->getOption('skip-existing-sets')) {
@@ -127,7 +154,7 @@ class ImportCardsCommand extends Command
                     continue;
                 }
             }
-            $maxRetries = 3;
+            $maxRetries = 100;
             $retryCount = 0;
             /** @var array<\Pokemon\Card> $resp */
             $resp = [];
