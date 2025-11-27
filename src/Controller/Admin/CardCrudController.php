@@ -52,16 +52,16 @@ class CardCrudController extends AbstractCrudController implements EventSubscrib
                 ->setHelp('Image actuelle de la carte. Vous pouvez télécharger une nouvelle image ci-dessous.');
         }
 
-        // Pour les formulaires, permettre l'upload d'une nouvelle image
-        if (Crud::PAGE_NEW === $pageName || Crud::PAGE_EDIT === $pageName) {
-            $fields[] = ImageField::new('uploadedImage')
-                ->setLabel('Nouvelle image')
-                ->setBasePath('')
-                ->setUploadDir('public/images/cards/small')
-                ->setUploadedFileNamePattern('[slug]-[timestamp].[extension]')
-                ->setRequired(false)
-                ->setHelp('Téléchargez une nouvelle image');
-        }
+        // Pour les formulaires, permettre l'upload d'une nouvelle image (désactivé pour utiliser URLs externes)
+        // if (Crud::PAGE_NEW === $pageName || Crud::PAGE_EDIT === $pageName) {
+        //     $fields[] = ImageField::new('uploadedImage')
+        //         ->setLabel('Nouvelle image')
+        //         ->setBasePath('')
+        //         ->setUploadDir('public/images/cards/small')
+        //         ->setUploadedFileNamePattern('[slug]-[timestamp].[extension]')
+        //         ->setRequired(false)
+        //         ->setHelp('Téléchargez une nouvelle image');
+        // }
 
         return $fields;
     }

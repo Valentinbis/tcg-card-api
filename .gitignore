@@ -35,3 +35,4 @@
 
 # Dump de la base de données de sets, boosters, cards, card_variant venant de l'api pokemontcg.io
 dump_cartes.sql
+dump_all.sql

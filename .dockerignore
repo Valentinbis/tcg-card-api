@@ -51,3 +51,7 @@ node_modules/
 *.log
 *.tmp
 *.bak
+
+# Images locales (18 Go - servies via URLs externes)
+public/images/
+public/images/**

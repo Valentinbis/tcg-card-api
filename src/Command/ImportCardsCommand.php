@@ -333,14 +333,10 @@ class ImportCardsCommand extends Command
         $largeUrl = $images->getLarge();
         assert(is_string($smallUrl) && is_string($largeUrl));
 
-        $this->downloadImage($smallUrl, 'public/images/cards/small/', $cardId);
-        $this->downloadImage($largeUrl, 'public/images/cards/large/', $cardId);
-        $smallExt = $this->getImageExtension($smallUrl);
-        $largeExt = $this->getImageExtension($largeUrl);
-
+        // Supprimer le téléchargement local - utiliser les URLs externes directement
         $card->setImages([
-            'small' => "/images/cards/small/{$cardId}.{$smallExt}",
-            'large' => "/images/cards/large/{$cardId}.{$largeExt}",
+            'small' => $smallUrl,
+            'large' => $largeUrl,
         ]);
     }
 
@@ -356,11 +352,7 @@ class ImportCardsCommand extends Command
         $logoUrl = $setImages->getLogo();
         assert(is_string($symbolUrl) && is_string($logoUrl));
 
-        $this->downloadImage($symbolUrl, 'public/images/set/symbol/', $setId);
-        $this->downloadImage($logoUrl, 'public/images/set/logo/', $setId);
-
-        $symbolExt = $this->getImageExtension($symbolUrl);
-        $logoExt = $this->getImageExtension($logoUrl);
+        // Supprimer le téléchargement local - utiliser les URLs externes directement
 
         $setIdValue = $setData->getId();
         $setName = $setData->getName();
@@ -384,35 +376,9 @@ class ImportCardsCommand extends Command
             ->setUpdatedAt($updatedAtFixed ? new \DateTime($updatedAtFixed) : null)
             ->setReleaseDate($releaseDateFixed ? new \DateTime($releaseDateFixed) : null)
             ->setImages([
-                'symbol' => "/images/set/symbol/{$setId}.{$symbolExt}",
-                'logo' => "/images/set/logo/{$setId}.{$logoExt}",
+                'symbol' => $symbolUrl,
+                'logo' => $logoUrl,
             ]);
-    }
-
-    private function downloadImage(string $url, string $dir, string $name): void
-    {
-        if (!$url) {
-            return;
-        }
-
-        if (!is_dir($dir)) {
-            mkdir($dir, 0777, true);
-        }
-
-        // Détecter l'extension à partir de l'URL (par défaut .jpg si non trouvée)
-        $extension = $this->getImageExtension($url);
-        $filePath = "$dir/$name.$extension";
-
-        if (!file_exists($filePath)) {
-            file_put_contents($filePath, @file_get_contents($url));
-        }
-    }
-
-    private function getImageExtension(string $url): string
-    {
-        $path = parse_url($url, PHP_URL_PATH);
-
-        return pathinfo(is_string($path) ? $path : '', PATHINFO_EXTENSION) ?: 'jpg';
     }
 
     /**
