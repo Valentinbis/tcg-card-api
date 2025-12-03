@@ -80,7 +80,7 @@ class ImportCardsCommand extends Command
         }
 
         $output->writeln('<info>Fetching all sets...</info>');
-        $maxRetries = 3;
+        $maxRetries = 20;
         $retryCount = 0;
         $sets = [];
 
@@ -127,13 +127,11 @@ class ImportCardsCommand extends Command
                 // Vérifier si le set existe et contient des cartes avec images locales (pas mises à jour vers URLs externes)
                 $existingSet = $this->em->getRepository(Set::class)->find($setCode);
                 if ($existingSet) {
-                    $qb = $this->em->getRepository(Card::class)->createQueryBuilder('c');
-                    $qb->select('COUNT(c.id)')
-                       ->where('c.set = :setId')
-                       ->andWhere('c.images LIKE :localPath')
-                       ->setParameter('setId', $setCode)
-                       ->setParameter('localPath', '%/images/%');
-                    $count = (int) $qb->getQuery()->getSingleScalarResult();
+                    $sql = 'SELECT COUNT(c.id) FROM cards c WHERE c.set_id = :setId AND c.images::text NOT LIKE \'%https%\'';
+                    $stmt = $this->em->getConnection()->prepare($sql);
+                    $stmt->bindValue('setId', $setCode);
+                    $result = $stmt->executeQuery();
+                    $count = (int) $result->fetchOne();
                     if ($count === 0) {
                         $output->writeln("<comment>Set {$setCode} has no cards with local images. Skipping.</comment>");
                         continue;
